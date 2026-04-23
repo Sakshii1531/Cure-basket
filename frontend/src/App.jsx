@@ -8,6 +8,8 @@ import card1 from './assets/card-1.png'
 import card2_1 from './assets/card-2.1.png'
 import card2_2 from './assets/card-2.2.png'
 import card2_3 from './assets/card-2.3.png'
+import section2 from './assets/section-2.png'
+
 
 
 
@@ -818,39 +820,43 @@ function App() {
 
         </div>
       </section>
-      
-      {/* Sponsored Section with Slanted Effect */}
-      <section className="relative bg-[#f7f2ea]">
-        {/* Slanted Background Transition */}
-        <div className="absolute top-0 left-0 w-full h-[60px] bg-white" style={{ clipPath: 'polygon(0 100%, 8% 0, 92% 0, 100% 100%)' }}></div>
-        
-        <div className="relative pt-[60px] bg-white">
-          <div className="max-w-[1250px] mx-auto px-4 md:px-12 py-12 flex flex-col lg:flex-row items-center gap-12">
-            {/* Zepbound Image Container */}
-            <div className="w-full lg:w-1/3 flex justify-center">
+
+      {/* Refined Sponsored Section */}
+
+      <section className="bg-white pb-10 pt-6">
+        <div className="max-w-[1250px] mx-auto px-4 relative">
+
+          {/* Main Grey Card */}
+          <div className="bg-[#f7f7f7] rounded-[24px] shadow-[0_15px_50px_rgba(0,0,0,0.08)] relative border border-gray-100 flex flex-col md:flex-row items-stretch min-h-[320px]">
+            
+            {/* Sponsored Tag */}
+            <div className="absolute -top-3 right-6 z-20">
+              <div className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider relative">
+                Sponsored
+                <div className="absolute top-full right-2 w-0 h-0 border-t-[8px] border-t-black/80 border-r-[8px] border-r-transparent"></div>
+              </div>
+            </div>
+
+            {/* Product Image Section */}
+            <div className="w-full md:w-1/2 bg-[#eeeeee] flex items-center justify-center p-8 relative rounded-t-[24px] md:rounded-tr-none md:rounded-l-[24px]">
               <img 
-                src={card2_2} 
-                alt="Zepbound Vial" 
-                className="w-[280px] h-auto object-contain drop-shadow-2xl"
+                src={section2} 
+                alt="Zepbound Product" 
+                className="max-w-full h-auto max-h-[300px] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.12)]"
               />
             </div>
-            
-            {/* Zepbound Content */}
-            <div className="w-full lg:w-2/3 relative">
-              <div className="absolute -top-10 right-0 bg-black text-white text-[11px] font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
-                Sponsored
-                <div className="absolute top-full right-0 w-0 h-0 border-t-[6px] border-t-black border-l-[6px] border-l-transparent"></div>
-              </div>
-              
-              <h2 className="text-[32px] md:text-[40px] font-bold text-black leading-[1.1] mb-4">
+
+            {/* Content Section */}
+            <div className="w-full md:w-1/2 p-5 md:p-8 flex flex-col justify-center relative">
+              <h2 className="text-[22px] md:text-[28px] font-semibold text-black leading-[1.1] mb-1.5 tracking-tight">
                 Start Zepbound® (Tirzepatide) 2.5 mg single dose vial for as low as $299/Month*
               </h2>
               
-              <p className="text-[15px] font-semibold text-black mb-6">
+              <p className="text-[16px] font-semibold text-black mb-2">
                 Self pay options available with a prescription, no insurance needed or accepted
               </p>
               
-              <div className="space-y-4 text-[13px] text-gray-600 leading-relaxed">
+              <div className="space-y-1 text-[13px] text-gray-500 leading-relaxed max-w-[620px] font-bold">
                 <p>
                   Zepbound 2.5 mg single-dose vial available for as low as $299 for a one-month supply without insurance coverage. *Additional taxes, fees, and conditions may apply, including that patients must certify that they have been prescribed the Zepbound vial for an approved use consistent with FDA approved product labeling. 2.5 mg is a starting dose and is not an approved maintenance dose. One-month supply defined as 28 days and 4 vials.
                 </p>
@@ -858,10 +864,50 @@ function App() {
                   Zepbound® and its delivery device base are registered trademarks owned or licensed by Eli Lilly and Company, its subsidiaries, or affiliates.
                 </p>
               </div>
+
+              {/* Blue Links */}
+              <div className="mt-2 flex flex-col gap-1.5">
+                <a href="#" className="text-[#00509a] font-bold text-[14px] underline hover:no-underline underline-offset-[3px] decoration-[1.5px]">Terms and conditions</a>
+                <a href="#" className="text-[#00509a] font-bold text-[14px] underline hover:no-underline underline-offset-[3px] decoration-[1.5px]">Please see Indications and Safety Summary with Warnings</a>
+              </div>
+
+              {/* Action and Logo Footer */}
+              <div className="mt-4 flex flex-col md:flex-row items-end justify-between gap-6">
+                <button className="bg-[#00509a] text-white px-6 py-3 rounded-full font-bold text-[16px] hover:bg-[#003d75] transition-colors shadow-lg active:scale-95">
+                  Learn more
+                </button>
+                
+                <div className="text-left flex flex-col items-start">
+                  <span className="text-[10px] text-[#0077c8] font-bold tracking-tight leading-none mb-0.5">once weekly</span>
+                  <div className="flex items-baseline leading-none">
+                    <span className="text-[24px] font-black text-[#0077c8] tracking-tighter">zep</span>
+                    <span className="text-[24px] font-black text-[#4cad3a] tracking-tighter">bound®</span>
+                    <div className="flex ml-1 gap-0">
+                      <span className="text-[#4cad3a] font-black text-[14px]">▶</span>
+                      <span className="text-[#4cad3a] font-black text-[14px]">▶</span>
+                      <span className="text-[#4cad3a] font-black text-[14px]">▶</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-[11px] text-gray-500 font-medium">(tirzepatide) injection</span>
+                    <span className="text-[9px] text-gray-400 font-bold">0.5 mL</span>
+                  </div>
+                  <p className="text-[9px] text-gray-400 font-medium mt-0.5">
+                    2.5 mg | 5 mg | 7.5 mg | 10 mg | 12.5 mg | 15 mg
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
+          
+          <div className="mt-4 flex justify-end">
+            <p className="text-[12px] text-gray-400 font-medium tracking-tight">
+              CMAT-05030-12/2023 © Lilly USA, LLC 2025. All rights reserved.
+            </p>
           </div>
         </div>
       </section>
+
 
 
 
