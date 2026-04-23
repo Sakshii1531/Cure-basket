@@ -147,8 +147,11 @@ function App() {
         </div>
       </div>
 
-      {/* Navbar Container */}
-      <div className="relative" onMouseLeave={() => { setIsPrescriptionMenuOpen(false); setIsOnlineCareMenuOpen(false); setIsHealthInfoMenuOpen(false); setIsGoldMembershipMenuOpen(false); }}>
+      {/* Sticky Header Wrapper */}
+      <div className="sticky top-0 z-50 bg-[#f7f2ea]">
+        {/* Navbar Container */}
+        <div className="relative" onMouseLeave={() => { setIsPrescriptionMenuOpen(false); setIsOnlineCareMenuOpen(false); setIsHealthInfoMenuOpen(false); setIsGoldMembershipMenuOpen(false); }}>
+
         {/* Navbar */}
         <nav className="navbar">
           <div className="max-w-[1450px] mx-auto w-full flex items-center justify-between px-4 md:px-12">
@@ -614,7 +617,12 @@ function App() {
               </div>
             </div>
           )}
+        </div>
+      </section>
+      </div>
 
+      <section className="px-4 md:px-12 pb-6 md:pb-8 bg-[#f7f2ea]">
+        <div className="max-w-[1200px] mx-auto">
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2.5 pt-3 text-[16px] text-black">
             <span className="font-bold">Popular searches:</span>
             <span className="border-b border-dotted border-black/40 pb-0.5 hover:border-transparent transition-colors cursor-pointer">Foundayo™</span>
@@ -626,11 +634,25 @@ function App() {
         </div>
       </section>
 
+
+
       {/* Treatment Cards Section */}
-      <section className="px-4 md:px-12 py-10 bg-[#f7f2ea]">
+      <section className="px-4 md:px-12 pt-0 pb-10 bg-[#f7f2ea]">
+
+
+        <div className="max-w-[1250px] mx-auto mb-6 flex flex-col md:flex-row md:items-end justify-between gap-2 md:pl-4">
+
+          <h2 className="text-[32px] font-semibold text-black leading-none">New and now</h2>
+
+
+          <p className="text-[11px] font-bold text-black uppercase tracking-tight">CureBasket is NOT insurance</p>
+
+        </div>
         <div className="max-w-[1250px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+
           {/* Card 1: Weight Loss */}
-          <div className="bg-white rounded-[20px] overflow-hidden shadow-lg border border-gray-200 flex flex-col h-full transform hover:scale-[1.01] transition-transform duration-300">
+          <div className="bg-white rounded-[20px] overflow-hidden shadow-lg border border-gray-200 flex flex-col h-full duration-300">
+
             <div className="bg-[#00A8A8] py-5 text-center">
               <span className="text-white font-bold text-[13px] tracking-[0.15em] uppercase">Weight Loss Treatment</span>
             </div>
@@ -649,10 +671,11 @@ function App() {
                   Get unlimited online care and access to low-cost brand-name GLP-1s.
                 </p>
                 <div className="mt-10">
-                  <button className="bg-[#111] text-white rounded-full px-5 py-2 font-bold text-[13px] flex items-center gap-1.5 hover:bg-black transition-all shadow-md active:scale-95 group">
+                  <button className="bg-[#111] text-white rounded-full px-5 py-2 font-bold text-[13px] flex items-center gap-1.5 shadow-md active:scale-95 group">
 
                     Get started 
-                    <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className="w-3.5 h-3.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                       <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
@@ -678,10 +701,12 @@ function App() {
 
 
           {/* Card 2: Save on Medication */}
-          <div className="bg-white rounded-[20px] overflow-hidden shadow-lg border border-gray-200 flex flex-col h-full transform hover:scale-[1.01] transition-transform duration-300">
-            <div className="bg-[#111] py-1.5 text-center">
+          <div className="bg-white rounded-[20px] overflow-hidden shadow-lg border border-gray-200 flex flex-col h-full duration-300">
+
+            <div className="bg-[#111] py-5 text-center">
               <span className="text-white font-bold text-[13px] tracking-[0.05em] uppercase">Save on GLP-1 Medication</span>
             </div>
+
             <div className="flex-1 bg-white">
               {[
                 { name: 'Foundayo™', desc: '', price: '149', img: card2_1 },
@@ -689,21 +714,25 @@ function App() {
                 { name: 'Wegovy®', desc: 'Tablet, pen, and HD pen', price: '149', img: card2_3 }
               ].map((item, idx) => (
                 <div key={idx} className="group cursor-pointer">
-                  <div className="p-2.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                  <div className="py-0 px-2.5 flex items-center justify-between transition-colors">
+
+
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 flex items-center justify-center shrink-0">
+                      <div className="w-16 h-16 flex items-center justify-center shrink-0">
                         <img 
                           src={item.img} 
                           alt={item.name} 
                           className="w-full h-full object-contain"
                         />
                       </div>
+
                       <div>
                         <h4 className="font-bold text-[18px] text-[#1a1a1a] leading-tight">{item.name}</h4>
                         {item.desc && <p className="text-[12px] text-gray-500 font-medium mt-0.5">{item.desc}</p>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-5">
+
                       <div className="text-right">
                         <span className="block text-[11px] text-gray-500 font-bold leading-none mb-0.5">As low as</span>
                         <div className="flex items-start">
@@ -712,7 +741,8 @@ function App() {
                         </div>
                       </div>
                       <div className="w-6 h-6 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[#1a1a1a] group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg className="w-6 h-6 text-[#1a1a1a] transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+
                           <line x1="5" y1="12" x2="19" y2="12"></line>
                           <polyline points="12 5 19 12 12 19"></polyline>
                         </svg>
@@ -731,26 +761,37 @@ function App() {
 
 
           {/* Card 3: ED Treatment */}
-          <div className="bg-white rounded-[20px] overflow-hidden shadow-lg border border-gray-200 flex flex-col h-full transform hover:scale-[1.01] transition-transform duration-300">
-            <div className="bg-[#006093] py-1.5 text-center">
+          <div className="bg-white rounded-[20px] overflow-hidden shadow-lg border border-gray-200 flex flex-col h-full duration-300">
+
+            <div className="bg-[#006093] py-5 text-center">
               <span className="text-white font-bold text-[12px] tracking-widest uppercase">ED Treatment</span>
             </div>
-            <div className="flex-1 bg-white">
+
+            <div className="flex-1 bg-white flex flex-col">
               {[
                 { name: 'Sildenafil', sub: 'Generic Viagra', price: '18', img: goli1 },
                 { name: 'Tadalafil', sub: 'Generic Cialis', price: '21', img: goli2 }
               ].map((item, idx) => (
-                <div key={idx} className={`p-3 flex items-center justify-between group cursor-pointer hover:bg-gray-50 transition-colors ${idx === 0 ? 'border-b border-dotted border-gray-300' : ''}`}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 flex items-center justify-center shrink-0">
-                      <img 
-                        src={item.img} 
-                        alt={item.name} 
-                        className="w-full h-full object-contain drop-shadow-lg hover:scale-110 transition-transform rotate-[-15deg]"
-                      />
-                    </div>
+                <div key={idx} className={`flex-1 py-0 px-3 flex items-center justify-between group cursor-pointer transition-colors ${idx === 0 ? 'border-b border-dotted border-gray-300' : ''}`}>
+
+
+                  <div className="flex items-center gap-0">
+
+
+                    <div className="w-[106px] h-[106px] flex items-center justify-center shrink-0">
+                        <img 
+                          src={item.img} 
+                          alt={item.name} 
+                          className="w-full h-full object-contain drop-shadow-lg"
+                        />
+
+                      </div>
+
+
+
                     <div>
-                      <h4 className="font-bold text-[18px] text-[#111] leading-none group-hover:text-[#006093] transition-colors">{item.name}</h4>
+                      <h4 className="font-bold text-[18px] text-[#111] leading-none transition-colors">{item.name}</h4>
+
                       <p className="text-[11px] text-gray-500 font-bold mt-1 uppercase tracking-tighter opacity-80">{item.sub}</p>
                     </div>
                   </div>
@@ -762,9 +803,11 @@ function App() {
                         <span className="text-[12px] text-gray-500 font-bold ml-0.5">/ mo.</span>
                       </div>
                     </div>
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-                      <svg className="w-6 h-6 text-gray-400 group-hover:text-black transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                      <svg className="w-6 h-6 text-black transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </div>
+
+
                   </div>
                 </div>
               ))}
@@ -775,6 +818,51 @@ function App() {
 
         </div>
       </section>
+      
+      {/* Sponsored Section with Slanted Effect */}
+      <section className="relative bg-[#f7f2ea]">
+        {/* Slanted Background Transition */}
+        <div className="absolute top-0 left-0 w-full h-[60px] bg-white" style={{ clipPath: 'polygon(0 100%, 8% 0, 92% 0, 100% 100%)' }}></div>
+        
+        <div className="relative pt-[60px] bg-white">
+          <div className="max-w-[1250px] mx-auto px-4 md:px-12 py-12 flex flex-col lg:flex-row items-center gap-12">
+            {/* Zepbound Image Container */}
+            <div className="w-full lg:w-1/3 flex justify-center">
+              <img 
+                src={card2_2} 
+                alt="Zepbound Vial" 
+                className="w-[280px] h-auto object-contain drop-shadow-2xl"
+              />
+            </div>
+            
+            {/* Zepbound Content */}
+            <div className="w-full lg:w-2/3 relative">
+              <div className="absolute -top-10 right-0 bg-black text-white text-[11px] font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
+                Sponsored
+                <div className="absolute top-full right-0 w-0 h-0 border-t-[6px] border-t-black border-l-[6px] border-l-transparent"></div>
+              </div>
+              
+              <h2 className="text-[32px] md:text-[40px] font-bold text-black leading-[1.1] mb-4">
+                Start Zepbound® (Tirzepatide) 2.5 mg single dose vial for as low as $299/Month*
+              </h2>
+              
+              <p className="text-[15px] font-semibold text-black mb-6">
+                Self pay options available with a prescription, no insurance needed or accepted
+              </p>
+              
+              <div className="space-y-4 text-[13px] text-gray-600 leading-relaxed">
+                <p>
+                  Zepbound 2.5 mg single-dose vial available for as low as $299 for a one-month supply without insurance coverage. *Additional taxes, fees, and conditions may apply, including that patients must certify that they have been prescribed the Zepbound vial for an approved use consistent with FDA approved product labeling. 2.5 mg is a starting dose and is not an approved maintenance dose. One-month supply defined as 28 days and 4 vials.
+                </p>
+                <p>
+                  Zepbound® and its delivery device base are registered trademarks owned or licensed by Eli Lilly and Company, its subsidiaries, or affiliates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
 
       {/* Hero Section */}
