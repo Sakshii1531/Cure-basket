@@ -9,6 +9,7 @@ import card2_1 from './assets/card-2.1.png'
 import card2_2 from './assets/card-2.2.png'
 import card2_3 from './assets/card-2.3.png'
 import section2 from './assets/section-2.png'
+import section3 from './assets/section-3.png'
 
 
 
@@ -826,8 +827,7 @@ function App() {
       <section className="bg-white pb-10 pt-6">
         <div className="max-w-[1250px] mx-auto px-4 relative">
 
-          {/* Main Grey Card */}
-          <div className="bg-[#f7f7f7] rounded-[24px] shadow-[0_15px_50px_rgba(0,0,0,0.08)] relative border border-gray-100 flex flex-col md:flex-row items-stretch min-h-[320px]">
+          <div className="bg-[#f7f7f7] rounded-[24px] relative border border-gray-100 flex flex-col md:flex-row items-stretch min-h-[320px]">
             
             {/* Sponsored Tag */}
             <div className="absolute -top-3 right-6 z-20">
@@ -907,6 +907,135 @@ function App() {
           </div>
         </div>
       </section>
+
+      {/* Two Action Cards Section */}
+      <section className="bg-white pb-4">
+        <div className="max-w-[1250px] mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Card 1: Foundayo */}
+          <div className="bg-black rounded-2xl overflow-hidden flex items-stretch h-[90px] cursor-pointer hover:shadow-xl transition-all duration-300">
+            {/* Left Content (Black) */}
+            <div className="flex-1 flex items-center px-6 gap-4">
+              {/* Icon Container */}
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                 <div className="w-5 h-7 bg-[#FFC107] rounded-sm relative">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-[#e6af06] rounded-t-sm"></div>
+                 </div>
+              </div>
+              <div>
+                <h3 className="text-[#FFC107] font-bold text-[18px] leading-tight">
+                  Foundayo™ <span className="text-white">as low as $149</span>
+                </h3>
+                <p className="text-white text-[11px] leading-tight mt-1">
+                  Get this new GLP-1 at the lowest out-of-pocket price available.
+                </p>
+              </div>
+            </div>
+            
+            {/* Right Side (Yellow) - Tilted Oval Transition */}
+            <div className="w-[180px] bg-[#FFC107] flex items-center justify-center relative rounded-l-[100px] -skew-x-[8deg] translate-x-4">
+              <div className="flex items-center gap-1.5 text-black font-bold text-[14px] ml-8 skew-x-[8deg]">
+                <span className="border-b border-black border-dotted pb-0.5">Learn more</span>
+                <span className="text-lg">→</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Wegovy */}
+          <div className="bg-black rounded-2xl overflow-hidden flex items-stretch h-[90px] cursor-pointer hover:shadow-xl transition-all duration-300">
+            {/* Left Content (Black) */}
+            <div className="flex-1 flex items-center px-6 gap-4">
+              {/* Icon Container */}
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                 <div className="w-5 h-7 bg-[#FFC107] rounded-sm relative">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-[#e6af06] rounded-t-sm"></div>
+                 </div>
+              </div>
+              <div>
+                <h3 className="text-[#FFC107] font-bold text-[18px] leading-tight">
+                  Wegovy tablets <span className="text-white">as low as $149</span>
+                </h3>
+                <p className="text-white text-[11px] leading-tight mt-1">
+                  Get Wegovy pills at the lowest out-of-pocket price available.
+                </p>
+              </div>
+            </div>
+            
+            {/* Right Side (Yellow) - Tilted Oval Transition */}
+            <div className="w-[180px] bg-[#FFC107] flex items-center justify-center relative rounded-l-[100px] -skew-x-[8deg] translate-x-4">
+              <div className="flex items-center gap-1.5 text-black font-bold text-[14px] ml-8 skew-x-[8deg]">
+                <span className="border-b border-black border-dotted pb-0.5">Learn more</span>
+                <span className="text-lg">→</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Help Section */}
+      <section className="bg-white pt-4 pb-0 overflow-hidden">
+        <div className="max-w-[1250px] mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12">
+          {/* Left Content */}
+          <div className="w-full md:w-[520px] space-y-6 md:ml-12">
+            <h2 className="text-[34px] font-semibold text-[#001730] tracking-tight -mt-2">How can we help?</h2>
+            
+            <div className="bg-[#f8f9f8] rounded-[20px] border border-gray-100 overflow-hidden">
+              {/* Item 1 */}
+              <div className="p-5 px-6 flex items-center justify-between cursor-pointer hover:bg-[#f0f2f0] transition-all duration-300">
+                <div className="flex items-center gap-4">
+                  <div className="w-7 h-7 flex items-center justify-center border-2 border-gray-900 rounded-full">
+                    <span className="text-[14px] font-black text-gray-900">$</span>
+                  </div>
+                  <span className="text-[19px] font-bold text-gray-900 tracking-tight">Save on medication</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gray-900">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </div>
+
+              <div className="mx-6 border-t border-dotted border-gray-400"></div>
+
+              {/* Item 2 */}
+              <div className="p-5 px-6 flex items-center justify-between cursor-pointer hover:bg-[#f0f2f0] transition-all duration-300">
+                <div className="flex items-center gap-4">
+                  <div className="w-7 h-7 flex items-center justify-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-900">
+                      <path d="M18 6V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M6 18h12"/><path d="M6 22h12"/><rect x="5" y="6" width="14" height="12" rx="2"/><path d="M10 12h4"/><path d="M12 10v4"/>
+                    </svg>
+                  </div>
+                  <span className="text-[19px] font-bold text-gray-900 tracking-tight">Get a new prescription</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gray-900">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          {/* Right Content (Image) */}
+          <div className="w-full md:w-1/2 relative">
+             <img src={section3} alt="Healthcare Help" className="w-full max-w-[550px] mx-auto object-contain relative z-20" />
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Section (Top Curved Only) */}
+      <section className="relative -mt-[180px] pt-56 pb-20 overflow-hidden">
+         {/* Large Top Arc Background */}
+         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[160%] h-[200%] bg-[#fcf0f0] rounded-t-[100%] translate-y-32"></div>
+         
+         <div className="relative z-10 max-w-[1000px] mx-auto px-4 text-center">
+            <h2 className="text-[32px] md:text-[44px] font-serif text-gray-900 leading-tight">
+              Americans have saved over <span className="relative inline-block"><span className="absolute bottom-1 left-0 w-full h-[15px] bg-[#FFD700] -z-10 opacity-80"></span>$85 billion</span> on prescription medications with GoodRx
+            </h2>
+            <div className="mt-2">
+              <a href="#" className="text-black text-[13px] font-bold border-b border-black border-dotted pb-0.5 hover:no-underline opacity-80">
+                Read about our impact
+              </a>
+            </div>
+         </div>
+      </section>
+
+
 
 
 
