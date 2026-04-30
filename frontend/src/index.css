@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #00A8A8;
+  --color-primary: #006D6D;
   --color-primary-light: #4DD0E1;
   --color-primary-dark: #008E8E;
   --color-secondary: #E6F7F7;
@@ -11,7 +11,7 @@
   --color-border: #E0E0E0;
   --color-text-primary: #1A1A1A;
   --color-text-secondary: #6B7280;
-  --color-accent: #FFC107;
+  --color-accent: #F9B233;
   --color-success: #4CAF50;
 
   --color-goodrx-blue: #006093;
@@ -50,7 +50,7 @@
   }
 
   .navbar {
-    @apply bg-white border-b border-border sticky top-0 z-50 px-4 md:px-12 py-3 flex items-center justify-between;
+    @apply bg-transparent border-b border-border sticky top-0 z-50 px-4 md:px-12 py-3 flex items-center justify-between;
   }
 
   .nav-link {
@@ -63,7 +63,7 @@
   }
 
   .top-bar {
-    @apply bg-topbar-bg py-2 px-4 md:px-12 flex justify-end items-center border-b border-border/50 text-[13.5px] font-normal;
+    @apply bg-topbar-bg py-1 px-4 md:px-12 flex justify-end items-center border-b border-border/50 text-[13.5px] font-normal;
   }
 
   .section {
@@ -81,5 +81,23 @@
 
   .animate-bounce-slow {
     animation: bounce-slow 3s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  @keyframes infinite-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .animate-infinite-scroll {
+    animation: infinite-scroll 20s linear infinite;
   }
 }
