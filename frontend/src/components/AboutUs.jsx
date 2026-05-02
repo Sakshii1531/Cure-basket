@@ -17,8 +17,8 @@ function AboutUs() {
   ]
 
   return (
-    <section className="bg-[#f5f5f5] py-12 md:py-20 px-4 md:px-12 overflow-hidden">
-      <div className="max-w-[1000px] mx-auto">
+    <section className="bg-[#fef6f6] pb-12 md:pb-20 pt-0 px-4 md:px-12 overflow-hidden">
+      <div className="max-w-[1250px] mx-auto">
         <h2 className="text-[24px] md:text-[32px] font-bold uppercase tracking-[0.15em] mb-4 text-[#004D4D] text-center">
           About Us
         </h2>

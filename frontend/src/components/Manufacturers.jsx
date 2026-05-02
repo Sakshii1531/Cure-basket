@@ -6,8 +6,8 @@ function Manufacturers() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <section className="bg-white pt-16 md:pt-24 pb-16 md:pb-24 px-4 md:px-12">
-      <div className="max-w-[1200px] mx-auto text-center">
+    <section className="bg-white pt-8 pb-8 px-4 md:px-12">
+      <div className="max-w-[1250px] mx-auto bg-[#f8f8f8] rounded-[32px] border border-gray-100 p-8 md:p-12 text-center">
         <h2 className="text-[20px] md:text-[24px] font-bold text-[#004D4D] uppercase tracking-wider mb-6">
           MANUFACTURES
         </h2>
@@ -18,9 +18,7 @@ function Manufacturers() {
         <div className="flex justify-center">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`text-white px-10 py-3 rounded-xl font-bold text-[14px] transition-all duration-300 shadow-lg active:scale-95
-              ${isExpanded ? 'bg-gradient-to-r from-[#26CBC2] to-[#62E09A] hover:opacity-90' : 'bg-[#004D4D] hover:bg-[#003333]'}
-            `}
+            className="text-white px-10 py-3 rounded-xl font-bold text-[14px] transition-all duration-300 shadow-lg active:scale-95 bg-[#004D4D] hover:bg-[#003333]"
           >
             {isExpanded ? 'Show Less' : 'Read More'}
           </button>

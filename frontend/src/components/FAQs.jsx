@@ -68,8 +68,8 @@ function FAQs() {
   const [activeFaqIndex, setActiveFaqIndex] = useState(null)
 
   return (
-    <section className="bg-[#f5f5f5] py-12 md:py-16 px-4 md:px-12 overflow-hidden">
-      <div className="max-w-[1300px] mx-auto bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 px-8 md:px-12 lg:px-16 py-8 md:py-10">
+    <section className="bg-[#fef6f6] pb-12 md:pb-16 pt-0 px-4 md:px-12 overflow-hidden">
+      <div className="max-w-[1250px] mx-auto bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 px-8 md:px-12 lg:px-16 py-8 md:py-10">
         <h2 className="text-[28px] md:text-[36px] font-bold text-center text-[#004D4D] uppercase tracking-wider mb-6">
           FAQs
         </h2>

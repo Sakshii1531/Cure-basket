@@ -28,7 +28,7 @@ function HcpPage({ onClose }) {
                 { label: 'See savings insights', icon: <><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M22 20V8" /></> },
               ].map(({ label, icon }) => (
                 <div key={label} className="flex items-center gap-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ffd400]">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFD200]">
                     <svg className="h-5 w-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
                       {icon}
                     </svg>
@@ -60,7 +60,7 @@ function HcpPage({ onClose }) {
         </div>
 
         {/* Right Panel */}
-        <div className="bg-[#fff2a6] px-8 py-10 md:px-10 lg:px-14 lg:py-14">
+        <div className="bg-[#FFD200]/20 px-8 py-10 md:px-10 lg:px-14 lg:py-14">
           <div className="mx-auto max-w-[680px]">
             <h2 className="text-center text-[31px] font-semibold leading-[1.08] tracking-[-0.03em] text-black">
               500,000+ HCPs use CureBasket to help their patients save on their prescriptions

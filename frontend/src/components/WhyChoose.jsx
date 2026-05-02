@@ -7,8 +7,8 @@ function WhyChoose() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <section className="bg-[#fcf0f0] pt-6 pb-16 md:pt-10 md:pb-24 px-4 md:px-12 border-b border-gray-50">
-      <div className="max-w-[1300px] mx-auto">
+    <section className="bg-[#fef6f6] pt-6 pb-8 md:pt-10 md:pb-12 px-4 md:px-12 border-b border-gray-50">
+      <div className="max-w-[1250px] mx-auto">
         <h2 className="text-[28px] md:text-[34px] font-bold text-center text-[#004D4D] mb-8 uppercase tracking-wider">
           Why Choose CureBasket?
         </h2>

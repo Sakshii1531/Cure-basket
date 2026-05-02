@@ -20,14 +20,14 @@ function Testimonials() {
   }, [])
 
   return (
-    <section className="bg-white py-16 px-4 md:px-12 overflow-hidden">
-      <div className="max-w-[1200px] mx-auto">
+    <section className="bg-white pb-16 pt-0 px-4 md:px-12 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto">
         {/* Header Rating */}
         <div className="flex flex-col items-center mb-12">
           <div className="flex items-center gap-4">
             <span className="text-[48px] md:text-[56px] font-bold text-gray-800 leading-none">4.9</span>
             <div className="flex flex-col">
-              <div className="flex text-yellow-400">
+              <div className="flex text-[#FFD200]">
                 {"★★★★★".split('').map((s, i) => <span key={i} className="text-xl">★</span>)}
               </div>
               <span className="text-[#004D4D] font-bold text-[14px]">38324 Reviews</span>
@@ -37,18 +37,6 @@ function Testimonials() {
 
         {/* Carousel */}
         <div className="relative max-w-[1100px] mx-auto overflow-hidden">
-          <button
-            onClick={() => setCurrentReviewIndex(prev => (prev - 1 + (reviews.length + 1)) % (reviews.length + 1))}
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-[#004D4D] hover:bg-gray-50 transition-all z-20 border border-gray-100"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-          </button>
-          <button
-            onClick={() => setCurrentReviewIndex(prev => (prev + 1) % (reviews.length + 1))}
-            className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-[#004D4D] hover:bg-gray-50 transition-all z-20 border border-gray-100"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-          </button>
 
           <div
             className={`flex ${currentReviewIndex === 0 ? '' : 'transition-transform duration-700 ease-in-out'}`}
@@ -59,7 +47,7 @@ function Testimonials() {
               <div key={i} className="w-full md:w-1/2 lg:w-1/4 flex-shrink-0 px-2 py-4">
                 <div className="bg-[#f5f5f5] p-6 rounded-[20px] flex flex-col h-full shadow-sm hover:shadow-md transition-all border border-gray-200">
                   <span className="text-[#004D4D] font-bold text-[18px] mb-1">{rev.name}</span>
-                  <div className="flex text-yellow-400 text-sm mb-3">
+                  <div className="flex text-[#FFD200] text-sm mb-3">
                     {"★★★★★".split('').map((s, idx) => <span key={idx}>★</span>)}
                   </div>
                   <h4 className="font-black text-gray-900 text-[14px] mb-3 uppercase tracking-tight">{rev.title}</h4>

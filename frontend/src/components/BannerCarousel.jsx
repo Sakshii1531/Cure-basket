@@ -51,7 +51,7 @@ function BannerCarousel() {
 
   return (
     <section className="bg-[#f7f2ea] pt-4 pb-2">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-0">
+      <div className="max-w-[1300px] mx-auto px-4 md:px-0">
         <div className="relative overflow-hidden bg-white group rounded-[24px] shadow-sm border border-gray-100">
           <div
             className="flex transition-transform duration-700 ease-in-out h-[350px] md:h-[480px]"

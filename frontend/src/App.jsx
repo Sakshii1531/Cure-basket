@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
 
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
@@ -14,8 +15,39 @@ import Testimonials from './components/Testimonials'
 import FooterNewsletter from './components/FooterNewsletter'
 import FooterAccessibility from './components/FooterAccessibility'
 import HcpPage from './components/HcpPage'
+import SearchBar from './components/SearchBar'
+import NewAndNow from './components/NewAndNow'
+import BestSellers from './components/BestSellers'
+import BestSellersPage from './components/BestSellersPage'
+import PromoBanners from './components/PromoBanners'
+import ZepboundPromo from './components/ZepboundPromo'
+import HelpSection from './components/HelpSection'
+import ProductDetail from './components/ProductDetail'
 
-function App() {
+import PrescriptionBanner from './components/PrescriptionBanner'
+import MainBannerCarousel from './components/MainBannerCarousel'
+
+function HomePage({ onProductClick }) {
+  return (
+    <>
+      <SearchBar />
+      <NewAndNow title="New and best" onProductClick={onProductClick} />
+      <FeatureIcons />
+      <PrescriptionBanner />
+      <MainBannerCarousel />
+      <BestSellers onProductClick={onProductClick} />
+      <HelpSection />
+      <ShopByCategory />
+      <WhyChoose />
+      <AboutUs />
+      <FAQs />
+      <Manufacturers />
+      <Testimonials />
+    </>
+  )
+}
+
+function AppContent() {
   const [isPrescriptionMenuOpen, setIsPrescriptionMenuOpen] = useState(false)
   const [isOnlineCareMenuOpen, setIsOnlineCareMenuOpen] = useState(false)
   const [isHealthInfoMenuOpen, setIsHealthInfoMenuOpen] = useState(false)
@@ -23,6 +55,14 @@ function App() {
   const [isAllCategoriesMenuOpen, setIsAllCategoriesMenuOpen] = useState(false)
   const [isMensHealthOpen, setIsMensHealthOpen] = useState(false)
   const [isHcpPageOpen, setIsHcpPageOpen] = useState(() => window.location.hash === '#hcp')
+  
+  const navigate = useNavigate()
+
+  const handleProductClick = (product) => {
+    // For now, we'll just navigate to a generic product route. 
+    // In a real app, we'd use the product ID.
+    navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
+  }
 
   if (isHcpPageOpen) {
     return (
@@ -38,7 +78,6 @@ function App() {
   return (
     <div className="min-h-screen bg-background font-sans">
       <TopBar />
-
       <Navbar
         isPrescriptionMenuOpen={isPrescriptionMenuOpen}
         setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
@@ -53,20 +92,24 @@ function App() {
         isMensHealthOpen={isMensHealthOpen}
         setIsMensHealthOpen={setIsMensHealthOpen}
       />
+      
+      <Routes>
+        <Route path="/" element={<HomePage onProductClick={handleProductClick} />} />
+        <Route path="/product/:id" element={<ProductDetail onBack={() => navigate('/')} />} />
+        <Route path="/best-sellers" element={<BestSellersPage onProductClick={handleProductClick} onBack={() => navigate('/')} />} />
+      </Routes>
 
-      <BannerCarousel />
-      <FeatureIcons />
-      <ProductSection title="Best Seller" />
-      <ProductSection title="New Arrival" />
-      <ShopByCategory />
-      <WhyChoose />
-      <AboutUs />
-      <FAQs />
-      <Manufacturers />
-      <Testimonials />
       <FooterNewsletter />
       <FooterAccessibility />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   )
 }
 

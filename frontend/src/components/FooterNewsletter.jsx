@@ -7,42 +7,42 @@ function FooterNewsletter() {
         <div className="flex flex-col lg:flex-row justify-between gap-12 lg:gap-20">
 
           {/* Left Side: Footer Nav Links */}
-          <div className="flex-grow grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="flex-grow grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12">
             {/* CureBasket */}
-            <div className="flex flex-col gap-4">
-              <h4 className="text-[14px] font-bold text-[#004D4D] uppercase tracking-wider">CureBasket</h4>
-              <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-6">
+              <h4 className="text-[22px] font-semibold text-gray-900 leading-tight">CureBasket</h4>
+              <div className="flex flex-col gap-4">
                 {['About Us', 'Site Map', 'Terms And Conditions', 'Disclaimer', 'Blog', 'Articles', 'Referral Program'].map(link => (
-                  <a key={link} href="#" className="text-[13px] text-gray-600 hover:text-[#004D4D] transition-colors">{link}</a>
+                  <a key={link} href="#" className="text-[15px] font-medium text-gray-800 hover:text-black transition-colors">{link}</a>
                 ))}
               </div>
             </div>
 
             {/* Categories */}
-            <div className="flex flex-col gap-4">
-              <h4 className="text-[14px] font-bold text-[#004D4D] uppercase tracking-wider">Categories</h4>
-              <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-6">
+              <h4 className="text-[22px] font-semibold text-gray-900 leading-tight">Categories</h4>
+              <div className="flex flex-col gap-4">
                 {['New Products', 'Featured Products', "Women's Health", 'Pain Relief'].map(link => (
-                  <a key={link} href="#" className="text-[13px] text-gray-600 hover:text-[#004D4D] transition-colors">{link}</a>
+                  <a key={link} href="#" className="text-[15px] font-medium text-gray-800 hover:text-black transition-colors">{link}</a>
                 ))}
               </div>
             </div>
 
             {/* FAQs */}
-            <div className="flex flex-col gap-4">
-              <h4 className="text-[14px] font-bold text-[#004D4D] uppercase tracking-wider">FAQs</h4>
-              <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-6">
+              <h4 className="text-[22px] font-semibold text-gray-900 leading-tight">FAQs</h4>
+              <div className="flex flex-col gap-4">
                 {['How to Place the Order', 'Refunds and Returns', 'Cancellation Policy', 'Frequently Asked Questions', 'Review Guidelines', 'About Indian Pharmacies'].map(link => (
-                  <a key={link} href="#" className="text-[13px] text-gray-600 hover:text-[#004D4D] transition-colors">{link}</a>
+                  <a key={link} href="#" className="text-[15px] font-medium text-gray-800 hover:text-black transition-colors">{link}</a>
                 ))}
               </div>
             </div>
 
             {/* Contact Us */}
-            <div className="flex flex-col gap-4">
-              <h4 className="text-[14px] font-bold text-[#004D4D] uppercase tracking-wider">Contact Us</h4>
-              <div className="flex flex-col gap-2">
-                <a href="#" className="text-[13px] text-gray-600 hover:text-[#004D4D] transition-colors">Click to Call</a>
+            <div className="flex flex-col gap-6">
+              <h4 className="text-[22px] font-semibold text-gray-900 leading-tight">Contact Us</h4>
+              <div className="flex flex-col gap-4">
+                <a href="#" className="text-[15px] font-medium text-gray-800 hover:text-black transition-colors">Click to Call</a>
               </div>
             </div>
           </div>
@@ -55,21 +55,28 @@ function FooterNewsletter() {
               className="absolute -right-12 -bottom-12 h-[150px] md:h-[200px] w-auto object-contain pointer-events-none z-10"
             />
             <div className="relative z-0">
-              <h3 className="text-[22px] md:text-[26px] font-bold text-[#004D4D] leading-tight mb-0 whitespace-nowrap">
+              <h3 className="text-[24px] md:text-[28px] font-bold text-gray-900 leading-tight mb-1">
                 Good news for your inbox
               </h3>
-              <p className="text-[14px] text-gray-600 mb-2 font-medium">
+              <p className="text-[15px] md:text-[17px] text-gray-800 mb-6 font-medium">
                 Sign up for our newsletter for tips and discounts.
               </p>
-              <div className="flex flex-col gap-3">
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  className="w-full max-w-[300px] h-[44px] px-5 rounded-xl border border-gray-300 focus:outline-none focus:border-[#004D4D] text-gray-700 text-[14px] bg-white transition-all shadow-sm"
-                />
-                <button className="w-fit px-8 h-[42px] bg-[#004D4D] text-white rounded-full font-bold text-[14px] hover:bg-[#003333] transition-all shadow-md -mt-1">
-                  Subscribe
-                </button>
+              <div className="flex flex-col gap-5">
+                <div className="space-y-4">
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    className="w-full h-[54px] px-5 rounded-lg border border-gray-400 focus:outline-none focus:border-gray-600 text-gray-700 text-[16px] bg-white transition-all"
+                  />
+                  
+                  <p className="text-[13px] leading-relaxed text-black font-medium">
+                    By providing your email, you consent to receive marketing communications from <span className="font-bold">CureBasket</span>, which may include content and/or data related to men's health, women's health, reproductive care, or sexual health. You agree to the CureBasket <a href="#" className="underline">Terms of Use</a> and acknowledge the <a href="#" className="underline">Privacy Policy</a>. You can unsubscribe at any time.
+                  </p>
+
+                  <button className="w-full h-[54px] bg-[#004D4D] text-white rounded-full font-bold text-[16px] hover:bg-[#003333] transition-all shadow-md">
+                    Subscribe
+                  </button>
+                </div>
 
                 {/* Social Media Icons */}
                 <div className="mt-4">

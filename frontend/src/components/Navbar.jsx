@@ -9,7 +9,7 @@ function Navbar({
   isMensHealthOpen, setIsMensHealthOpen,
 }) {
   return (
-    <div className="sticky top-0 z-50 bg-[#f7f2ea]">
+    <div className="sticky top-0 z-50 bg-white shadow-sm">
       <div
         className="relative"
         onMouseLeave={() => {
@@ -22,38 +22,40 @@ function Navbar({
         }}
       >
         {/* Navbar */}
-        <nav className="navbar">
-          <div className="max-w-[1450px] mx-auto w-full flex items-center justify-between px-4 md:px-12">
+        <nav className="navbar h-[80px] flex items-center">
+          <div className="max-w-[1800px] mx-auto w-full flex items-center justify-between px-4 md:px-8 gap-4">
             {/* Logo */}
-            <div className="flex items-center gap-3 cursor-pointer group shrink-0">
-              <img src={curebasketLogo} alt="CureBasket Logo" className="w-14 h-14 object-contain" />
-              <span className="text-[28px] font-bold tracking-tight text-primary">CureBasket</span>
+            <div className="flex items-center gap-2 cursor-pointer group shrink-0">
+              <img src={curebasketLogo} alt="CureBasket Logo" className="w-12 h-12 object-contain" />
+              <span className="text-[24px] font-bold tracking-tight text-[#006D6D]">CureBasket</span>
             </div>
 
             {/* Nav Links */}
-            <div className="hidden lg:flex items-center gap-10">
-              <div className="relative py-2 h-full flex items-center">
-                <a href="#" className="nav-link">Medicines</a>
+            <div className="hidden xl:flex items-center gap-6 shrink-0">
+              <a href="#" className="nav-link text-[13px]">Medicines</a>
+              
+              <div className="flex flex-col items-center translate-y-2">
+                <a href="#" className="nav-link text-[13px]">Upload Rx</a>
+                <span className="bg-[#f39c12] text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap -mt-0.5">Fast order</span>
               </div>
-              <div className="relative py-2 h-full flex items-center">
-                <a href="#" className="nav-link">Upload Rx</a>
-              </div>
+
               <div
-                className="relative py-2 h-full flex items-center"
+                className="relative h-full flex items-center"
                 onMouseEnter={() => setIsAllCategoriesMenuOpen(true)}
               >
-                <a href="#" className="nav-link flex items-center gap-1.5">
+                <a href="#" className="nav-link flex items-center gap-1 text-[13px]">
                   All Categories
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </a>
               </div>
+
               <div
-                className="relative py-2 h-full flex items-center"
+                className="relative h-full flex items-center"
                 onMouseEnter={() => { setIsMensHealthOpen(true); setIsAllCategoriesMenuOpen(false) }}
               >
-                <a href="#" className="nav-link flex items-center gap-1.5">
+                <a href="#" className="nav-link flex items-center gap-1 text-[13px]">
                   Men's Health
                   <svg className={`w-3.5 h-3.5 transition-transform ${isMensHealthOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -69,12 +71,45 @@ function Navbar({
                   </div>
                 )}
               </div>
-              <div className="relative py-2 h-full flex items-center">
-                <a href="#" className="nav-link">Eye Care</a>
-              </div>
-              <div className="relative py-2 h-full flex items-center">
-                <a href="#" className="nav-link">Track Order</a>
-              </div>
+
+              <a href="#" className="nav-link text-[13px]">Eye Care</a>
+
+              <a href="#" className="nav-link flex items-center gap-2 text-[13px]">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Track Order
+              </a>
+            </div>
+
+            {/* Search Bar Integrated */}
+            <div className="hidden lg:flex flex-1 max-w-[400px] items-center relative mx-4">
+              <input 
+                type="text" 
+                placeholder="Search for medicines or conditions..." 
+                className="w-full h-11 pl-5 pr-12 rounded-full border border-gray-200 focus:outline-none focus:border-[#006D6D] text-[14px] shadow-sm"
+              />
+              <button className="absolute right-4 text-gray-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-4 shrink-0">
+              <button className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md">
+                Start Saving
+              </button>
+              <button className="text-gray-800 p-1">
+                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
             </div>
           </div>
         </nav>
