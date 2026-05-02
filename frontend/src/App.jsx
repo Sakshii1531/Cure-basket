@@ -23,6 +23,7 @@ import PromoBanners from './components/PromoBanners'
 import ZepboundPromo from './components/ZepboundPromo'
 import HelpSection from './components/HelpSection'
 import ProductDetail from './components/ProductDetail'
+import FrequentlyBoughtPage from './components/FrequentlyBoughtPage'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
@@ -96,6 +97,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<HomePage onProductClick={handleProductClick} />} />
         <Route path="/product/:id" element={<ProductDetail onBack={() => navigate('/')} />} />
+        <Route path="/all-products" element={<FrequentlyBoughtPage onBack={() => navigate(-1)} onProductClick={handleProductClick} />} />
         <Route path="/best-sellers" element={<BestSellersPage onProductClick={handleProductClick} onBack={() => navigate('/')} />} />
       </Routes>
 

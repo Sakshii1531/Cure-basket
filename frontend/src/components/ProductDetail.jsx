@@ -1,353 +1,433 @@
-import React, { useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import mounjaroImg from '../assets/mounjaro.png'
-import ozempicImg from '../assets/ozempic.png'
-import zepboundImg from '../assets/zepbound.png'
+import React, { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import productImg from '../assets/product.png'
+import med1 from '../assets/med1.png'
+
+// Note: In a real app, these would be dynamic based on the product
+const packageOptions = [
+  { id: 1, label: '10 Tablets', price: 12.00, perTablet: 1.20 },
+  { id: 2, label: '30 Tablets', price: 30.00, perTablet: 1.00, popular: true },
+  { id: 3, label: '60 Tablets', price: 55.00, perTablet: 0.91 },
+  { id: 4, label: '120 Tablets', price: 95.00, perTablet: 0.79 },
+]
 
 function ProductDetail({ onBack }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const product = location.state?.product
   
-  const [selectedPharmacy, setSelectedPharmacy] = useState('CVS')
+  const [selectedPackage, setSelectedPackage] = useState(packageOptions[1])
+  const [quantity, setQuantity] = useState(1)
+  const [activeThumb, setActiveThumb] = useState(0)
 
-  // Mock data matching the new UI style
-  const productData = {
-    name: product?.name || "Wegovy",
-    genericName: "semaglutide",
-    image: product?.image || "https://placehold.co/100x100/white/004D4D?text=Wegovy",
-    tabs: ["Drug Info", "Brand-name medications", "Side Effects", "Dosage", "Medicare"],
-    prescription: "Wegovy 1.5mg (30 tablets)",
-    price: "149.00",
-    pharmacies: [
-      { name: "CVS Pharmacy", price: "149.00", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/CVS_Pharmacy_logo.svg/512px-CVS_Pharmacy_logo.svg.png" },
-      { name: "Walgreens", price: "149.00", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Walgreens_Logo.svg/512px-Walgreens_Logo.svg.png" },
-      { name: "Walmart", price: "149.00", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Walmart_logo.svg/512px-Walmart_logo.svg.png" },
-    ]
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white p-12">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Product not found</h2>
+          <button onClick={() => navigate('/')} className="text-[#006D6D] font-bold hover:underline">Return Home</button>
+        </div>
+      </div>
+    )
   }
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-
-  const popularOffers = [
-    {
-      id: 1,
-      name: "Mounjaro",
-      description: "4 pens of 2.5mg/0.5ml 1 carton",
-      discount: "22% off",
-      oldPrice: "$1,336.53",
-      newPrice: "$25.00",
-      image: mounjaroImg
-    },
-    {
-      id: 2,
-      name: "Ozempic",
-      description: "1 prefilled 2mg pen of 2mg/3ml 1 carton",
-      discount: "97.8% off",
-      oldPrice: "$1,475.69",
-      newPrice: "$25.00",
-      image: ozempicImg
-    },
-    {
-      id: 3,
-      name: "Zepbound",
-      description: "4 prefilled pens of 2.5mg/0.5ml 1 carton",
-      discount: "23% off",
-      oldPrice: "$1,281.02",
-      newPrice: "$25.00",
-      image: zepboundImg
-    }
-  ];
-
   return (
-    <div className="bg-[#fcfcfc] min-h-screen pb-20">
-      {/* Top Header Section */}
-      <div className="max-w-[1050px] mx-auto px-4 pt-2">
-        <div className="flex justify-between items-start mb-0">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-4">
-              <h1 className="text-[30px] font-medium text-gray-900 tracking-tight">{productData.name}</h1>
-            </div>
-            <span className="text-[16px] text-black font-medium">{productData.genericName}</span>
-
-            <div className="flex flex-wrap gap-2 mt-4">
-              {productData.tabs.map(tab => (
-                <button key={tab} className="px-4 py-1.5 rounded-full border border-black text-[12px] font-medium text-black hover:bg-gray-50 transition-colors">
-                  {tab}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="w-32 h-32 mr-12">
-            <img src={productData.image} alt="Product" className="w-full h-full object-contain" />
-          </div>
-        </div>
-
-
-
-        {/* Sponsored Banner */}
-        <div className="bg-[#f0f9f9] rounded-xl p-4 flex items-center justify-between mb-8 cursor-pointer hover:bg-[#e0f2f2] transition-colors max-w-[480px]">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 bg-[#004D4D] rounded-full flex items-center justify-center text-white text-[12px] font-bold">i</div>
-            <span className="text-[#004D4D] font-semibold text-[13px]">Explore {productData.name} ({productData.genericName}) info</span>
-            <svg className="w-4 h-4 text-[#004D4D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-          </div>
-        </div>
-
+    <div className="bg-white min-h-screen pb-20">
+      {/* Breadcrumbs */}
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 py-4">
+        <nav className="flex items-center gap-2 text-[12px] font-medium text-gray-500">
+          <span className="cursor-pointer hover:text-[#006D6D]" onClick={() => navigate('/')}>Home</span>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <span className="cursor-pointer hover:text-[#006D6D]">All Medicines</span>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <span className="cursor-pointer hover:text-[#006D6D]">Anti Infectives</span>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <span className="text-gray-900">{product.name}</span>
+        </nav>
       </div>
 
-      <hr className="border-black" />
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12">
+        
+        {/* Left Column: Product Visuals & Info */}
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 items-start">
+            {/* Gallery Section */}
+            <div className="bg-white rounded-[32px] border border-gray-100 pt-8 px-8 pb-12 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative">
+              <div className="absolute top-6 left-6">
+                <span className="bg-[#006D6D] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">BEST SELLER</span>
+              </div>
+              <div className="absolute top-6 right-6">
+                <button className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                </button>
+              </div>
 
-      <div className="max-w-[1050px] mx-auto px-4">
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-8">
-          
-          {/* Left Column */}
-          <div className="space-y-8 border-r border-black pr-12 pt-8">
-            {/* Prescription & Switch Container */}
-            <div className="max-w-[480px]">
-              <div className="bg-white border border-gray-400 rounded-md py-3 px-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="text-[12px] text-gray-500 font-medium mb-0.5">Prescription</div>
-                    <div className="text-[16px] font-semibold text-[#004D4D]">{productData.prescription}</div>
-                  </div>
-                  <button 
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="text-[#004D4D] hover:opacity-80 pt-1 transition-colors"
+              {/* Main Image */}
+              <div className="flex items-center justify-center pt-10 pb-6 h-auto overflow-hidden">
+                <img src={product.image} alt={product.name} className="w-full max-h-[700px] object-contain transform scale-[1.45]" />
+              </div>
+
+              {/* Thumbnails */}
+              <div className="flex justify-center items-center gap-3 mt-4">
+                <button className="w-7 h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                {[0, 1, 2].map(idx => (
+                  <div 
+                    key={idx}
+                    onClick={() => setActiveThumb(idx)}
+                    className={`w-16 h-16 rounded-xl border-2 p-2 cursor-pointer transition-all ${activeThumb === idx ? 'border-[#006D6D]' : 'border-gray-100 hover:border-gray-200'}`}
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                  </button>
+                    <img src={product.image} alt="thumb" className="w-full h-full object-contain opacity-70" />
+                  </div>
+                ))}
+                <button className="w-7 h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+
+              {/* Prescription Required Label */}
+              <div className="mt-6 pt-6 border-t border-gray-100 flex items-center gap-4">
+                <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                </div>
+                <div>
+                  <div className="text-[13px] font-bold text-gray-900">Prescription Required</div>
+                  <div className="text-[11px] text-gray-500">This is a prescription medicine</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Info Section */}
+            <div className="space-y-4 pt-2">
+              <div>
+                <h1 className="text-[22px] md:text-[28px] font-bold text-gray-900 leading-tight mb-2">{product.name}</h1>
+                <div className="space-y-1">
+                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">Ivermectin</span></div>
+                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">Anti Infectives</span></div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[12px] text-gray-600 leading-relaxed max-w-[480px]">
+                  Ivermectin is used to treat certain parasitic infections in the body such as strongyloidiasis and onchocerciasis.
+                </p>
+                <button className="text-[#006D6D] text-[12px] font-bold flex items-center gap-1 hover:underline">
+                  View full description
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M19 9l-7 7-7-7" /></svg>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-4 pt-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex text-[#FFD200]">{"★★★★★".split('').map((s, i) => <span key={i} className="text-base">★</span>)}</div>
+                  <span className="text-gray-900 font-bold text-[12px]">4.8 <span className="text-gray-400 font-medium ml-1">(120 reviews)</span></span>
+                </div>
+                <div className="h-3 w-[1px] bg-gray-300"></div>
+                <button className="text-[#006D6D] font-bold text-[12px] hover:underline">Write a review</button>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                <div className="flex flex-col items-center text-center gap-1">
+                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  </div>
+                  <span className="text-[9px] font-bold text-gray-500 leading-tight">FDA<br/>Approved</span>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1">
+                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <span className="text-[9px] font-bold text-gray-500 leading-tight">Genuine<br/>Medicine</span>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1">
+                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  </div>
+                  <span className="text-[9px] font-bold text-gray-500 leading-tight">Secure<br/>Payments</span>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1">
+                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <span className="text-[9px] font-bold text-gray-500 leading-tight">Discreet<br/>Shipping</span>
+                </div>
+              </div>
+
+              {/* Inline Upload Banner */}
+              <div className="bg-[#FFF8E7] rounded-xl p-3 flex items-center justify-between gap-3 mt-16 border border-[#FFD200]/20 max-w-[420px]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                    <svg className="w-4 h-4 text-[#FBB03B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                  </div>
+                  <div>
+                    <div className="text-[12px] font-bold text-gray-900 leading-tight">Upload Prescription</div>
+                    <div className="text-[10px] text-gray-500 leading-tight mt-0.5">Upload and our pharmacist will review it.</div>
+                  </div>
+                </div>
+                <button className="bg-white border-2 border-gray-100 px-3 py-1 rounded-lg font-bold text-[11px] hover:bg-gray-50 transition-all shadow-sm shrink-0">
+                  Upload Now 
+                  <svg className="w-2.5 h-2.5 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Pricing & Cart Card */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-[32px] border border-gray-100 pt-3 px-6 pb-3 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] sticky top-24">
+            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-1.5 uppercase tracking-tighter">Save 62%</div>
+            
+            <div className="mb-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[22px] md:text-[26px] font-bold text-gray-900">${selectedPackage.price.toFixed(2)}</span>
+                <span className="text-gray-400 line-through text-[12px]">$31.50</span>
+              </div>
+              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save $19.50 (62%)</div>
+              <div className="text-gray-400 text-[8px] mt-0.5">Inclusive of all taxes</div>
+            </div>
+
+            {/* Package Selection */}
+            <div className="space-y-1.5 mb-1.5">
+              <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Select Quantity (Package)</h4>
+              <div className="space-y-1.5">
+                {packageOptions.map(pkg => (
+                  <label 
+                    key={pkg.id}
+                    className={`flex items-center justify-between py-1.5 px-2.5 rounded-xl border-2 cursor-pointer transition-all ${selectedPackage.id === pkg.id ? 'border-[#006D6D] bg-[#E6F7F7]/20' : 'border-gray-100 hover:border-gray-200'}`}
+                    onClick={() => setSelectedPackage(pkg)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${selectedPackage.id === pkg.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
+                        {selectedPackage.id === pkg.id && <div className="w-1.5 h-1.5 rounded-full bg-[#006D6D]"></div>}
+                      </div>
+                      <span className="text-[11px] font-bold text-gray-900">{pkg.label}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[11px] font-bold text-gray-900">${pkg.price.toFixed(2)}</div>
+                      <div className={`text-[8.5px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perTablet.toFixed(2)} / Tablet</div>
+                    </div>
+                    {pkg.popular && (
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[8px] font-bold text-[#FBB03B] shadow-sm">
+                        You save $6 (Most Popular)
+                      </div>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Quantity Selector */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Quantity</span>
+              <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+                <button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all font-bold text-sm"
+                >
+                  −
+                </button>
+                <input 
+                  type="number" 
+                  value={quantity}
+                  readOnly
+                  className="w-7 text-center bg-transparent font-bold text-gray-900 text-[11px] focus:outline-none"
+                />
+                <button 
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all font-bold text-sm"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2">
+              <button className="w-full bg-[#FFD200] text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(255,210,0,0.1)] hover:scale-[1.01] transition-all text-[13px]">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                Add to Cart
+              </button>
+              <button className="w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all text-[13px]">
+                <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                Buy Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trust Features Bar */}
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-12 mb-8">
+        <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            { 
+              title: 'Fast & Discreet Delivery', 
+              desc: 'Get medicines delivered to your doorstep',
+              icon: <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 011 1v2.5a1.5 1.5 0 01-3 0V16m-4 0h4m-4 0a1 1 0 00-1 1v2.5a1.5 1.5 0 01-3 0V16" />
+            },
+            { 
+              title: '100% Genuine Medicines', 
+              desc: 'Sourced from licensed pharmacies',
+              icon: <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            },
+            { 
+              title: 'Secure Payments', 
+              desc: 'Your payments are safe & encrypted',
+              icon: <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            },
+            { 
+              title: '24/7 Customer Support', 
+              desc: 'We are here to help you anytime',
+              icon: <><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></>
+            }
+          ].map((item, idx) => (
+            <div key={idx} className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                <svg className="w-5 h-5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
+                  {item.icon}
+                  {idx === 0 && <path d="M13 9h4l3 3v4a1 1 0 01-1 1h-3" />}
+                </svg>
+              </div>
+              <div>
+                <div className="text-[12px] font-bold text-gray-900">{item.title}</div>
+                <div className="text-[10px] text-gray-500 mt-0.5">{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabs Section */}
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-8 mb-16">
+        <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
+          {/* Tab Headers */}
+          <div className="flex items-center gap-8 px-8 border-b border-gray-100 overflow-x-auto no-scrollbar">
+            {['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews (120)'].map((tab, idx) => (
+              <button 
+                key={tab} 
+                className={`py-5 text-[13px] font-bold whitespace-nowrap transition-all relative ${idx === 0 ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {tab}
+                {idx === 0 && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#006D6D] rounded-t-full"></div>}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-8 grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-12 items-start">
+            {/* Left side: Specs */}
+            <div className="space-y-5">
+              {[
+                { label: 'Manufacturer', value: 'Ajanta Pharma Ltd.' },
+                { label: 'Salt Composition', value: 'Ivermectin (12 mg)' },
+                { label: 'Packaging', value: '10 Tablets in 1 Strip' },
+                { label: 'Storage', value: 'Store below 30°C. Protect from light & moisture.' },
+                { label: 'Prescription', value: 'Required' },
+                { label: 'Delivery Time', value: 'Usually delivers in 1-2 days', highlight: true }
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-12">
+                  <div className="w-32 text-[13px] font-bold text-gray-400 shrink-0">{item.label}</div>
+                  <div className="flex-1">
+                    {item.highlight ? (
+                      <span className="bg-[#E6F7F7] text-[#006D6D] text-[11px] font-bold px-3 py-1 rounded-full">{item.value}</span>
+                    ) : (
+                      <span className="text-[13px] font-bold text-gray-700">{item.value}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right side: Why Choose Us */}
+            <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6 relative overflow-hidden">
+              <div className="relative z-10">
+                <h3 className="text-[16px] font-bold text-gray-900 mb-4">Why choose CureBasket?</h3>
+                <div className="space-y-3">
+                  {[
+                    'Lowest prices guaranteed',
+                    'Genuine medicines from trusted pharmacies',
+                    'Secure payments & data protection',
+                    'Discreet packaging & on-time delivery',
+                    '24/7 customer support'
+                  ].map((text, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="w-4 h-4 rounded-full bg-[#E6F7F7] flex items-center justify-center mt-0.5 shrink-0">
+                        <svg className="w-2.5 h-2.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <span className="text-[12px] font-bold text-gray-600 leading-tight">{text}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
               
-              <div className="bg-[#f0f9f9] border border-gray-400 rounded-md py-3 px-4 flex items-center justify-between">
-                <span className="text-[14px] font-semibold text-black">Switch to {productData.name} pen starting at $199</span>
-                <button className="bg-white border border-black px-6 py-1 rounded-full font-semibold text-[13px] hover:bg-gray-50 transition-all text-black">
-                  Switch
-                </button>
-              </div>
-            </div>
-
-
-
-
-          </div>
-
-          {/* Right Column: Price/Coupon Card */}
-          <div className="lg:sticky lg:top-24 h-fit space-y-4 max-w-[350px] pt-8">
-            {/* Available Dosages */}
-            <div className="pb-4">
-              <h3 className="text-[16px] font-semibold text-[#004D4D] mb-2">Available Dosages</h3>
-              <div className="flex gap-3">
-                <div className="px-4 py-1.5 border border-[#004D4D] rounded-full text-[#004D4D] font-semibold text-[13px] cursor-pointer hover:bg-[#004D4D] hover:text-white transition-all">
-                  6 mg
-                </div>
-                <div className="px-4 py-1.5 border border-[#004D4D] rounded-full text-[#004D4D] font-semibold text-[13px] cursor-pointer hover:bg-[#004D4D] hover:text-white transition-all">
-                  1%
-                </div>
-              </div>
-            </div>
-
-            {/* Quantity and Add to Cart */}
-            <div className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-semibold text-gray-700">Quantity:</span>
-                  <div className="relative">
-                    <select className="appearance-none bg-white border border-[#004D4D] rounded-[10px] px-3 py-1.5 pr-7 text-[13px] font-semibold text-[#004D4D] focus:outline-none min-w-[60px]">
-                      <option selected>1</option>
-                      <option>2</option>
-                    </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <svg className="w-4 h-4 text-[#004D4D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                    </div>
-                  </div>
-                </div>
-                <button className="flex-grow border border-[#004D4D] text-[#004D4D] font-bold py-1.5 rounded-full text-[13px] hover:bg-[#004D4D] hover:text-white transition-all tracking-wide uppercase">
-                  ADD TO CART
-                </button>
+              {/* Graphic Asset */}
+              <div className="absolute bottom-0 -right-4 w-48 h-48 opacity-90 pointer-events-none">
+                <img src={productImg} alt="CureBasket Product" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>
-
-        </div>
-
-      </div>
-
-      {/* Product Info Bar */}
-      <div className="max-w-[1400px] mx-auto px-4">
-        <div className="bg-[#FFC043] rounded-[10px] px-16 py-2.5 flex flex-nowrap justify-between items-center gap-4 mt-4 w-full overflow-hidden shadow-sm">
-          <div className="text-[11px] whitespace-nowrap"><span className="font-bold">SKU:</span> 2593</div>
-          <div className="text-[11px] whitespace-nowrap"><span className="font-bold">Generic For:</span> Stromectol</div>
-          <div className="text-[11px] whitespace-nowrap"><span className="font-bold">Active Ingredient:</span> Ivermectin</div>
-          <div className="text-[11px] whitespace-nowrap"><span className="font-bold">Manufacturer:</span> Admed Pharma Pvt. Ltd. (India)</div>
         </div>
       </div>
 
-      {/* Popular Offers Section */}
-      <div className="bg-[#f7f7f7] py-16 mt-16">
-        <div className="max-w-[1050px] mx-auto px-4">
-          <h2 className="text-[28px] font-bold text-gray-900 mb-8">Popular offers</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {popularOffers.map((offer) => (
-              <div key={offer.id} className="bg-white rounded-[32px] p-8 shadow-[0_8px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_50px_rgba(0,0,0,0.1)] transition-all flex flex-col relative overflow-hidden group border border-gray-100">
-                {/* Grey Side Accent */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[22px] h-[75%] bg-[#C4C4C4] rounded-r-[16px]"></div>
+      {/* Frequently Bought Together */}
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-12 mb-20">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-[18px] font-bold text-gray-900">Frequently Bought Together</h2>
+          <button 
+            onClick={() => navigate('/all-products')}
+            className="flex items-center gap-2 text-[#006D6D] text-[13px] font-bold hover:gap-3 transition-all"
+          >
+            View all
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
 
-                {/* Discount Tag */}
-                <div className="absolute top-6 right-6 bg-white border border-gray-200 px-3 py-1.5 rounded-[8px] flex items-center gap-2 text-[18px] font-bold text-black shadow-sm">
-                  <svg className="w-5 h-5 text-[#008080]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                  {offer.discount}
-                </div>
-
-                {/* Product Image */}
-                <div className="h-44 flex items-center justify-center mb-8 px-4">
-                  <img src={offer.image} alt={offer.name} className="max-h-full object-contain mix-blend-multiply drop-shadow-md" />
-                </div>
-
-                {/* Product Info */}
-                <div className="flex-grow pl-2">
-                  <h3 className="text-[28px] font-bold text-black mb-2 leading-tight">{offer.name}</h3>
-                  <p className="text-[18px] text-[#666666] mb-6 leading-snug">{offer.description}</p>
-                  
-                  {/* Divider */}
-                  <div className="w-full h-[1.5px] bg-[#E0E0E0] mb-6"></div>
-                  
-                  <div className="mt-auto">
-                    <div className="text-[16px] text-[#888888] font-medium line-through mb-1">{offer.oldPrice}</div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[24px] font-medium text-black">As low as</span>
-                      <span className="text-[28px] font-bold text-black">{offer.newPrice}</span>
+        <div className="relative group">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { name: 'Doxycycline 100 mg Tablet', qty: '10 Tablets', price: '$8.50' },
+              { name: 'Albendazole 400 mg Tablet', qty: '1 Tablet', price: '$2.20' },
+              { name: 'Vitamin C 500 mg Tablet', qty: '10 Tablets', price: '$4.10' },
+              { name: 'Zincovit Tablet', qty: '15 Tablets', price: '$3.30' }
+            ].map((item, idx) => (
+              <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-5 group/card">
+                <div className="flex items-start gap-4">
+                  <div className="w-28 h-20 rounded-lg flex items-center justify-center shrink-0">
+                    <img src={med1} alt={item.name} className="w-full h-full object-contain" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 leading-tight h-8">{item.name}</h3>
+                    <p className="text-[11px] font-bold text-gray-400 mt-1">{item.qty}</p>
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-[15px] font-bold text-gray-900">{item.price}</span>
+                      <button className="flex items-center gap-1.5 border-2 border-[#006D6D]/10 text-[#006D6D] px-3 py-1 rounded-lg text-[12px] font-bold hover:bg-[#006D6D] hover:text-white hover:border-[#006D6D] transition-all">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" strokeWidth="2.5"/></svg>
+                        Add
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                {/* Learn more about link */}
-                <div className="mt-8 pl-2 flex items-center gap-2 text-[#00529B] font-bold text-[17px] cursor-pointer hover:opacity-80 transition-opacity">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    <circle cx="11" cy="11" r="3"/>
-                  </svg>
-                  Learn more about {offer.name}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Carousel Controls */}
-          <div className="flex justify-center items-center gap-6 mt-12">
-            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <div className="flex gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-900"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-            </div>
-            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 5l7 7-7 7" /></svg>
-            </button>
-          </div>
+          {/* Carousel Arrows (Visual placeholders as per screenshot) */}
+          <button className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-100 rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-[#006D6D] transition-all hidden lg:flex">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          <button className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-100 rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-[#006D6D] transition-all hidden lg:flex">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
         </div>
       </div>
-
-      {/* Edit Prescription Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-[20px] w-full max-w-[480px] shadow-2xl relative overflow-hidden">
-            {/* Modal Header */}
-            <div className="p-6 pb-0 flex justify-between items-center">
-              <h2 className="text-[24px] font-semibold text-gray-900">Edit prescription</h2>
-              <button 
-                onClick={() => setIsEditModalOpen(false)}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-4">
-              {/* Medication options */}
-              <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Medication options</label>
-                <div className="relative">
-                  <select className="w-full h-[48px] px-4 rounded-[10px] border border-gray-300 bg-white appearance-none text-gray-400 font-medium focus:border-[#004D4D] focus:ring-1 focus:ring-[#004D4D] outline-none transition-all">
-                    <option>{productData.name} (brand)</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form */}
-              <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Form</label>
-                <div className="relative">
-                  <select className="w-full h-[48px] px-4 rounded-[10px] border border-gray-300 bg-white appearance-none text-[#004D4D] font-medium text-[15px] focus:border-[#004D4D] focus:ring-1 focus:ring-[#004D4D] outline-none transition-all">
-                    <option>carton</option>
-                    <option selected>tablet</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dosage */}
-              <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Dosage</label>
-                <div className="relative">
-                  <select className="w-full h-[48px] px-4 rounded-[10px] border border-gray-300 bg-white appearance-none text-[#004D4D] font-medium text-[15px] focus:border-[#004D4D] focus:ring-1 focus:ring-[#004D4D] outline-none transition-all">
-                    <option selected>1.5mg</option>
-                    <option>4mg</option>
-                    <option>9mg</option>
-                    <option>25mg</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quantity */}
-              <div>
-                <label className="block text-[13px] font-medium text-gray-600 mb-1.5">Quantity</label>
-                <div className="relative">
-                  <select className="w-full h-[48px] px-4 rounded-[10px] border border-gray-300 bg-white appearance-none text-[#004D4D] font-medium text-[15px] focus:border-[#004D4D] focus:ring-1 focus:ring-[#004D4D] outline-none transition-all">
-                    <option selected>30 tablets</option>
-                    <option>60 tablets</option>
-                    <option>90 tablets</option>
-                    <option>Custom quantity...</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <button 
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="h-[48px] rounded-full border-2 border-[#004D4D] text-[#004D4D] font-bold text-[15px] hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="h-[48px] rounded-full bg-[#004D4D] text-white font-bold text-[15px] hover:opacity-90 transition-opacity"
-                >
-                  Update
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
