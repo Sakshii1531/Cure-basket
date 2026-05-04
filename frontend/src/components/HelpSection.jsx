@@ -50,7 +50,7 @@ const steps = [
 
 const HelpSection = () => {
   return (
-    <section className="bg-white pb-16 pt-0 px-4 md:px-12 overflow-hidden">
+    <section className="bg-white pb-28 pt-0 px-4 md:px-12 overflow-hidden">
       <div className="max-w-[1250px] mx-auto">
         <h2 className="text-[28px] md:text-[34px] font-semibold text-gray-900 mb-10 tracking-tight">
           How CureBasket works?

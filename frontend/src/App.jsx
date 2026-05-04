@@ -24,6 +24,15 @@ import ZepboundPromo from './components/ZepboundPromo'
 import HelpSection from './components/HelpSection'
 import ProductDetail from './components/ProductDetail'
 import FrequentlyBoughtPage from './components/FrequentlyBoughtPage'
+import PopularBrands from './components/PopularBrands'
+import AllBrandsPage from './components/AllBrandsPage'
+import Cart from './components/Cart'
+import Checkout from './components/Checkout'
+import Payment from './components/Payment'
+import Review from './components/Review'
+import OrderSuccess from './components/OrderSuccess'
+import TrackOrder from './components/TrackOrder'
+import AllReviewsPage from './components/AllReviewsPage'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
@@ -36,6 +45,7 @@ function HomePage({ onProductClick }) {
       <FeatureIcons />
       <PrescriptionBanner />
       <MainBannerCarousel />
+      <PopularBrands />
       <BestSellers onProductClick={onProductClick} />
       <HelpSection />
       <ShopByCategory />
@@ -99,6 +109,14 @@ function AppContent() {
         <Route path="/product/:id" element={<ProductDetail onBack={() => navigate('/')} />} />
         <Route path="/all-products" element={<FrequentlyBoughtPage onBack={() => navigate(-1)} onProductClick={handleProductClick} />} />
         <Route path="/best-sellers" element={<BestSellersPage onProductClick={handleProductClick} onBack={() => navigate('/')} />} />
+        <Route path="/all-brands" element={<AllBrandsPage onBack={() => navigate('/')} />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/review" element={<Review />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/track-order" element={<TrackOrder />} />
+        <Route path="/all-reviews" element={<AllReviewsPage />} />
       </Routes>
 
       <FooterNewsletter />

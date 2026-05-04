@@ -1,3 +1,5 @@
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import weightLossImg from '../assets/allergy.png'
 import skinCareImg from '../assets/skin-care.png'
 import diabetesImg from '../assets/diabetes.png'
@@ -14,6 +16,7 @@ const treatments = [
     id: 1,
     titleLine1: "Allergy",
     titleLine2: "treatment",
+    slug: "allergy",
     price: "39",
     image: weightLossImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -26,6 +29,7 @@ const treatments = [
     id: 2,
     titleLine1: "Beauty &",
     titleLine2: "Skin Care",
+    slug: "skin-care",
     price: "16",
     image: skinCareImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -37,6 +41,7 @@ const treatments = [
     id: 3,
     titleLine1: "Diabetes",
     titleLine2: "treatment",
+    slug: "diabetes",
     price: "18",
     image: diabetesImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -48,6 +53,7 @@ const treatments = [
     id: 4,
     titleLine1: "Hair Loss",
     titleLine2: "treatment",
+    slug: "hair-loss",
     price: "16",
     image: med2,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -59,6 +65,7 @@ const treatments = [
     id: 5,
     titleLine1: "Acne",
     titleLine2: "treatment",
+    slug: "acne",
     price: "12",
     image: acneImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -70,6 +77,7 @@ const treatments = [
     id: 6,
     titleLine1: "Pain",
     titleLine2: "Relief",
+    slug: "pain",
     price: "9",
     image: painImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -81,6 +89,7 @@ const treatments = [
     id: 7,
     titleLine1: "Anti",
     titleLine2: "Cancer",
+    slug: "anti-cancer",
     price: "89",
     image: cancerImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -92,6 +101,7 @@ const treatments = [
     id: 8,
     titleLine1: "Eye",
     titleLine2: "Care",
+    slug: "eye-care",
     price: "15",
     image: eyeImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -103,6 +113,7 @@ const treatments = [
     id: 9,
     titleLine1: "Antibiotics",
     titleLine2: "treatment",
+    slug: "antibiotics",
     price: "14",
     image: antibioticImg,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -114,6 +125,7 @@ const treatments = [
     id: 10,
     titleLine1: "Sexual",
     titleLine2: "Wellness",
+    slug: "sexual-wellness",
     price: "22",
     image: med5,
     bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
@@ -126,6 +138,8 @@ const treatments = [
 const scrollTreatments = [...treatments, ...treatments]
 
 function ShopByCategory() {
+  const navigate = useNavigate()
+
   return (
     <section className="relative -mt-[180px] pt-44 pb-12 overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[160%] h-[200%] bg-[#fef6f6] rounded-t-[100%] translate-y-32"></div>
@@ -157,7 +171,8 @@ function ShopByCategory() {
           {scrollTreatments.map((item, index) => (
             <div 
               key={`${item.id}-${index}`} 
-              className={`${item.bg} rounded-[24px] p-8 relative overflow-hidden flex flex-col items-start text-left h-[220px] w-[350px] md:w-[410px] shadow-sm hover:shadow-md transition-shadow group cursor-pointer border border-gray-100 shrink-0`}
+              onClick={() => navigate(`/all-products?category=${item.slug}`)}
+              className={`${item.bg} rounded-[24px] p-8 relative overflow-hidden flex flex-col items-start text-left h-[220px] w-[350px] md:w-[410px] shadow-sm hover:shadow-md transition-all active:scale-[0.98] group cursor-pointer border border-gray-100 shrink-0`}
             >
               {item.hasLeftBar && (
                 <div className="absolute left-0 top-0 h-[60%] w-3 bg-[#004D4D] rounded-br-[40px] z-20"></div>

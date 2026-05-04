@@ -3,35 +3,264 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import productImg from '../assets/product.png'
 import med1 from '../assets/med1.png'
 
-// Note: In a real app, these would be dynamic based on the product
-const packageOptions = [
-  { id: 1, label: '10 Tablets', price: 12.00, perTablet: 1.20 },
-  { id: 2, label: '30 Tablets', price: 30.00, perTablet: 1.00, popular: true },
-  { id: 3, label: '60 Tablets', price: 55.00, perTablet: 0.91 },
-  { id: 4, label: '120 Tablets', price: 95.00, perTablet: 0.79 },
-]
-
 function ProductDetail({ onBack }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const product = location.state?.product
-  
+  const product = location.state?.product || { name: 'Product', category: 'General', image: productImg }
+
+  // Dynamic Package Options
+  const getPackageOptions = () => {
+    if (product?.name.toLowerCase().includes('weight loss')) {
+      return [
+        { id: 1, label: '1 Pen (4 doses)', price: 120.00, perUnit: 30.00 },
+        { id: 2, label: '2 Pens (8 doses)', price: 220.00, perUnit: 27.50, popular: true },
+        { id: 3, label: '3 Pens (12 doses)', price: 300.00, perUnit: 25.00 },
+      ]
+    }
+    return [
+      { id: 1, label: '10 Tablets', price: 12.00, perUnit: 1.20 },
+      { id: 2, label: '30 Tablets', price: 30.00, perUnit: 1.00, popular: true },
+      { id: 3, label: '60 Tablets', price: 55.00, perUnit: 0.91 },
+      { id: 4, label: '120 Tablets', price: 95.00, perUnit: 0.79 },
+    ]
+  }
+
+  const packageOptions = getPackageOptions()
   const [selectedPackage, setSelectedPackage] = useState(packageOptions[1])
   const [quantity, setQuantity] = useState(1)
   const [activeThumb, setActiveThumb] = useState(0)
+  const [activeTab, setActiveTab] = useState('Product Information')
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
 
-  // Scroll to top on mount
+  // Reset state when product changes
   useEffect(() => {
+    const newOptions = getPackageOptions()
+    setSelectedPackage(newOptions[1] || newOptions[0])
+    setQuantity(1)
+    setActiveThumb(0)
+    setActiveTab('Product Information')
+    setUploadSuccess(false)
     window.scrollTo(0, 0)
-  }, [])
+  }, [product.name])
 
-  if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-12">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Product not found</h2>
-          <button onClick={() => navigate('/')} className="text-[#006D6D] font-bold hover:underline">Return Home</button>
+  const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews (120)']
+
+  // Dynamic content based on product
+  const getProductData = () => {
+    if (product.name.toLowerCase().includes('weight loss')) {
+      return {
+        genericName: 'Semaglutide / Tirzepatide',
+        manufacturer: 'Novo Nordisk / Eli Lilly',
+        salt: 'Incretin Mimetics',
+        uses: [
+          'Chronic weight management',
+          'Appetite regulation and control',
+          'Metabolic health improvement',
+          'Blood sugar regulation'
+        ],
+        sideEffects: ['Nausea', 'Vomiting', 'Diarrhea', 'Constipation', 'Abdominal pain', 'Headache', 'Fatigue'],
+        howToUse: {
+          title: 'Weekly Injection Instructions',
+          step1: 'Inject once a week on the same day each week.',
+          step2: 'Can be taken with or without food at any time of day.'
+        }
+      }
+    }
+    if (product.category === 'Diabetes') {
+      return {
+        genericName: 'Metformin / Sitagliptin',
+        manufacturer: 'Merck / Bristol-Myers Squibb',
+        salt: 'Biguanides / DPP-4 Inhibitors',
+        uses: [
+          'Type 2 Diabetes Mellitus',
+          'Blood sugar level control',
+          'PCOS management (off-label)',
+          'Prevention of diabetes complications'
+        ],
+        sideEffects: ['Stomach upset', 'Metallic taste', 'Low blood sugar', 'Loss of appetite', 'Nausea'],
+        howToUse: {
+          title: 'Daily Medication Guide',
+          step1: 'Take with meals to reduce stomach side effects.',
+          step2: 'Monitor your blood sugar levels regularly as advised.'
+        }
+      }
+    }
+    if (product.name.toLowerCase().includes('doxycycline')) {
+      return {
+        genericName: 'Doxycycline',
+        manufacturer: 'Pfizer / Cipla',
+        salt: 'Doxycycline Hydrochloride',
+        uses: ['Bacterial infections', 'Acne treatment', 'Malaria prevention', 'Cholera'],
+        sideEffects: ['Nausea', 'Photosensitivity', 'Diarrhea', 'Stomach upset'],
+        howToUse: { title: 'Dosage Guide', step1: 'Take with a full glass of water.', step2: 'Do not lie down for 30 mins after taking.' }
+      }
+    }
+    if (product.name.toLowerCase().includes('albendazole')) {
+      return {
+        genericName: 'Albendazole',
+        manufacturer: 'GSK / Abbott',
+        salt: 'Albendazole (400 mg)',
+        uses: ['Parasitic worm infections', 'Neurocysticercosis', 'Hydatid disease'],
+        sideEffects: ['Headache', 'Fever', 'Nausea', 'Temporary hair loss'],
+        howToUse: { title: 'Dosage Guide', step1: 'Can be taken with or without food.', step2: 'May be crushed or chewed if needed.' }
+      }
+    }
+    if (product.name.toLowerCase().includes('vitamin') || product.name.toLowerCase().includes('zincovit')) {
+      return {
+        genericName: 'Multivitamins & Minerals',
+        manufacturer: 'Apex Labs / Sanofi',
+        salt: 'Essential Vitamins + Zinc',
+        uses: ['Immunity boosting', 'Nutritional deficiencies', 'Recovery from illness', 'General wellness'],
+        sideEffects: ['Mild stomach upset', 'Metallic taste', 'Yellowish urine'],
+        howToUse: { title: 'Usage Guide', step1: 'Best taken after a meal.', step2: 'Avoid taking on an empty stomach.' }
+      }
+    }
+    // Default (Ivermectin/General)
+    return {
+      genericName: 'Ivermectin',
+      manufacturer: 'Ajanta Pharma Ltd.',
+      salt: 'Ivermectin (12 mg)',
+      uses: [
+        'Strongyloidiasis (roundworm infection)',
+        'Onchocerciasis (river blindness)',
+        'Scabies (treatment resistant)',
+        'Certain head lice infestations'
+      ],
+      sideEffects: ['Dizziness', 'Loss of appetite', 'Nausea', 'Stomach pain', 'Joint pain', 'Skin rash'],
+      howToUse: {
+        title: 'Dosage Instructions',
+        step1: 'Take on an empty stomach with a full glass of water.',
+        step2: 'Usually taken as a single dose; follow doctor\'s schedule.'
+      }
+    }
+  }
+
+  const pData = getProductData()
+
+  const tabContent = {
+    'Product Information': (
+      <div className="space-y-5">
+        {[
+          { label: 'Manufacturer', value: pData.manufacturer },
+          { label: 'Salt Composition', value: pData.salt },
+          { label: 'Packaging', value: '10 Tablets in 1 Strip' },
+          { label: 'Storage', value: 'Store below 30°C. Protect from light & moisture.' },
+          { label: 'Prescription', value: 'Required' },
+          { label: 'Delivery Time', value: 'Usually delivers in 1-2 days', highlight: true }
+        ].map((item, idx) => (
+          <div key={idx} className="flex gap-12">
+            <div className="w-32 text-[13px] font-bold text-gray-400 shrink-0">{item.label}</div>
+            <div className="flex-1">
+              {item.highlight ? (
+                <span className="bg-[#E6F7F7] text-[#006D6D] text-[11px] font-bold px-3 py-1 rounded-full">{item.value}</span>
+              ) : (
+                <span className="text-[13px] font-bold text-gray-700">{item.value}</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+    'Uses': (
+      <div className="space-y-4">
+        <h3 className="text-[16px] font-bold text-gray-900">What is it used for?</h3>
+        <p className="text-[13px] text-gray-600 leading-relaxed">
+          This medication is primarily used for the following conditions:
+        </p>
+        <ul className="list-disc pl-5 space-y-2 text-[13px] text-gray-600">
+          {pData.uses.map((use, i) => <li key={i}>{use}</li>)}
+        </ul>
+      </div>
+    ),
+    'Side Effects': (
+      <div className="space-y-4">
+        <h3 className="text-[16px] font-bold text-gray-900">Common Side Effects</h3>
+        <p className="text-[13px] text-gray-600 leading-relaxed">
+          While most people do not experience significant side effects, some may include:
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          {pData.sideEffects.map((effect, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+              <span className="text-[13px] text-gray-600 font-medium">{effect}</span>
+            </div>
+          ))}
         </div>
+        <p className="text-[11px] text-gray-400 italic mt-4">
+          *Contact your doctor immediately if you experience any severe allergic reactions.
+        </p>
+      </div>
+    ),
+    'How to Use': (
+      <div className="space-y-4">
+        <h3 className="text-[16px] font-bold text-gray-900">{pData.howToUse.title}</h3>
+        <p className="text-[13px] text-gray-600 leading-relaxed">
+          Follow your doctor's instructions exactly. Typical usage includes:
+        </p>
+        <div className="space-y-3">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div className="text-[13px] font-bold text-gray-900 mb-1">Step 1</div>
+            <p className="text-[12px] text-gray-500">{pData.howToUse.step1}</p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div className="text-[13px] font-bold text-gray-900 mb-1">Step 2</div>
+            <p className="text-[12px] text-gray-500">{pData.howToUse.step2}</p>
+          </div>
+        </div>
+      </div>
+    ),
+    'Safety Advice': (
+      <div className="space-y-6">
+        {[
+          { label: 'Alcohol', status: 'Unsafe', desc: 'Avoid alcohol as it may increase the risk of side effects.' },
+          { label: 'Pregnancy', status: 'Consult Doctor', desc: 'Use only if clearly needed and prescribed by a physician.' },
+          { label: 'Driving', status: 'Caution', desc: 'May cause dizziness. Do not drive if you feel unwell.' },
+          { label: 'Kidney', status: 'Safe', desc: 'No dose adjustment usually required for kidney patients.' }
+        ].map((item, idx) => (
+          <div key={idx} className="flex gap-8 pb-4 border-b border-gray-50 last:border-0">
+            <div className="w-24 text-[13px] font-bold text-gray-400 shrink-0">{item.label}</div>
+            <div className="flex-1">
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${item.status === 'Safe' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                {item.status}
+              </span>
+              <p className="text-[12px] text-gray-500 mt-1">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+    'FAQs': (
+      <div className="space-y-4">
+        {[
+          { q: 'How long does it take to work?', a: 'It starts working immediately, but full clinical effects may take time.' },
+          { q: 'Can I take it with other meds?', a: 'Consult your pharmacist about potential drug interactions.' },
+          { q: 'What if I miss a dose?', a: 'Take as soon as remembered, but never double the dose.' }
+        ].map((faq, idx) => (
+          <div key={idx} className="p-4 rounded-xl border border-gray-100 bg-white">
+            <div className="text-[13px] font-bold text-gray-900 mb-1">Q: {faq.q}</div>
+            <div className="text-[12px] text-gray-500">A: {faq.a}</div>
+          </div>
+        ))}
+      </div>
+    ),
+    'Reviews (120)': (
+      <div className="space-y-6">
+        {[
+          { name: 'John D.', date: '2 days ago', rating: 5, comment: 'Very effective! Cleared up my condition within a week.' },
+          { name: 'Sarah M.', date: '1 week ago', rating: 4, comment: 'Good product, but experienced minor initial side effects.' }
+        ].map((rev, idx) => (
+          <div key={idx} className="pb-6 border-b border-gray-50 last:border-0">
+            <div className="flex justify-between items-center mb-2">
+              <div className="font-bold text-[13px] text-gray-900">{rev.name}</div>
+              <div className="text-[11px] text-gray-400">{rev.date}</div>
+            </div>
+            <div className="flex text-[#FFD200] text-xs mb-2">{"★★★★★".slice(0, rev.rating)}</div>
+            <p className="text-[12px] text-gray-600 italic">"{rev.comment}"</p>
+          </div>
+        ))}
       </div>
     )
   }
@@ -108,14 +337,14 @@ function ProductDetail({ onBack }) {
               <div>
                 <h1 className="text-[22px] md:text-[28px] font-bold text-gray-900 leading-tight mb-2">{product.name}</h1>
                 <div className="space-y-1">
-                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">Ivermectin</span></div>
-                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">Anti Infectives</span></div>
+                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{pData.genericName}</span></div>
+                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{product.category || 'Medicine'}</span></div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <p className="text-[12px] text-gray-600 leading-relaxed max-w-[480px]">
-                  Ivermectin is used to treat certain parasitic infections in the body such as strongyloidiasis and onchocerciasis.
+                  {product.name} ({pData.genericName}) is used for {pData.uses[0].toLowerCase()} and other related conditions. Always follow your physician's prescription.
                 </p>
                 <button className="text-[#006D6D] text-[12px] font-bold flex items-center gap-1 hover:underline">
                   View full description
@@ -171,9 +400,19 @@ function ProductDetail({ onBack }) {
                     <div className="text-[10px] text-gray-500 leading-tight mt-0.5">Upload and our pharmacist will review it.</div>
                   </div>
                 </div>
-                <button className="bg-white border-2 border-gray-100 px-3 py-1 rounded-lg font-bold text-[11px] hover:bg-gray-50 transition-all shadow-sm shrink-0">
-                  Upload Now 
-                  <svg className="w-2.5 h-2.5 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                <button 
+                  onClick={() => setShowUploadModal(true)}
+                  className={`border-2 px-3 py-1 rounded-lg font-bold text-[11px] transition-all shadow-sm shrink-0 flex items-center gap-1.5 ${uploadSuccess ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-gray-100 text-gray-900 hover:bg-gray-50'}`}
+                >
+                  {uploadSuccess ? (
+                    <>
+                      Added <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
+                    </>
+                  ) : (
+                    <>
+                      Upload Now <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -183,14 +422,14 @@ function ProductDetail({ onBack }) {
         {/* Right Column: Pricing & Cart Card */}
         <div className="space-y-6">
           <div className="bg-white rounded-[32px] border border-gray-100 pt-3 px-6 pb-3 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] sticky top-24">
-            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-1.5 uppercase tracking-tighter">Save 62%</div>
+            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-1.5 uppercase tracking-tighter">Save 60%</div>
             
             <div className="mb-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-[22px] md:text-[26px] font-bold text-gray-900">${selectedPackage.price.toFixed(2)}</span>
-                <span className="text-gray-400 line-through text-[12px]">$31.50</span>
+                <span className="text-gray-400 line-through text-[12px]">${(selectedPackage.price * 2.5).toFixed(2)}</span>
               </div>
-              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save $19.50 (62%)</div>
+              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ${(selectedPackage.price * 1.5).toFixed(2)} (60%)</div>
               <div className="text-gray-400 text-[8px] mt-0.5">Inclusive of all taxes</div>
             </div>
 
@@ -212,11 +451,11 @@ function ProductDetail({ onBack }) {
                     </div>
                     <div className="text-right">
                       <div className="text-[11px] font-bold text-gray-900">${pkg.price.toFixed(2)}</div>
-                      <div className={`text-[8.5px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perTablet.toFixed(2)} / Tablet</div>
+                      <div className={`text-[8.5px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perUnit.toFixed(2)} / {product.name.toLowerCase().includes('weight loss') ? 'Dose' : 'Tablet'}</div>
                     </div>
                     {pkg.popular && (
                       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[8px] font-bold text-[#FBB03B] shadow-sm">
-                        You save $6 (Most Popular)
+                        Best Value
                       </div>
                     )}
                   </label>
@@ -251,11 +490,17 @@ function ProductDetail({ onBack }) {
 
             {/* Action Buttons */}
             <div className="space-y-2">
-              <button className="w-full bg-[#FFD200] text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(255,210,0,0.1)] hover:scale-[1.01] transition-all text-[13px]">
+              <button 
+                onClick={() => navigate('/cart')}
+                className="w-full bg-[#FFD200] text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(255,210,0,0.1)] hover:scale-[1.01] transition-all text-[13px]"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 Add to Cart
               </button>
-              <button className="w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all text-[13px]">
+              <button 
+                onClick={() => navigate('/checkout', { state: { product, selectedPackage, quantity } })}
+                className="w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-[#006D6D]/20 transition-all text-[13px] active:scale-[0.98]"
+              >
                 <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 Buy Now
               </button>
@@ -310,40 +555,23 @@ function ProductDetail({ onBack }) {
         <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
           {/* Tab Headers */}
           <div className="flex items-center gap-8 px-8 border-b border-gray-100 overflow-x-auto no-scrollbar">
-            {['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews (120)'].map((tab, idx) => (
+            {tabs.map((tab) => (
               <button 
                 key={tab} 
-                className={`py-5 text-[13px] font-bold whitespace-nowrap transition-all relative ${idx === 0 ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
+                onClick={() => setActiveTab(tab)}
+                className={`py-5 text-[13px] font-bold whitespace-nowrap transition-all relative ${activeTab === tab ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 {tab}
-                {idx === 0 && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#006D6D] rounded-t-full"></div>}
+                {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#006D6D] rounded-t-full"></div>}
               </button>
             ))}
           </div>
 
           {/* Tab Content */}
           <div className="p-8 grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-12 items-start">
-            {/* Left side: Specs */}
-            <div className="space-y-5">
-              {[
-                { label: 'Manufacturer', value: 'Ajanta Pharma Ltd.' },
-                { label: 'Salt Composition', value: 'Ivermectin (12 mg)' },
-                { label: 'Packaging', value: '10 Tablets in 1 Strip' },
-                { label: 'Storage', value: 'Store below 30°C. Protect from light & moisture.' },
-                { label: 'Prescription', value: 'Required' },
-                { label: 'Delivery Time', value: 'Usually delivers in 1-2 days', highlight: true }
-              ].map((item, idx) => (
-                <div key={idx} className="flex gap-12">
-                  <div className="w-32 text-[13px] font-bold text-gray-400 shrink-0">{item.label}</div>
-                  <div className="flex-1">
-                    {item.highlight ? (
-                      <span className="bg-[#E6F7F7] text-[#006D6D] text-[11px] font-bold px-3 py-1 rounded-full">{item.value}</span>
-                    ) : (
-                      <span className="text-[13px] font-bold text-gray-700">{item.value}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
+            {/* Left side: Dynamic Content */}
+            <div className="min-h-[250px]">
+              {tabContent[activeTab]}
             </div>
 
             {/* Right side: Why Choose Us */}
@@ -398,7 +626,11 @@ function ProductDetail({ onBack }) {
               { name: 'Vitamin C 500 mg Tablet', qty: '10 Tablets', price: '$4.10' },
               { name: 'Zincovit Tablet', qty: '15 Tablets', price: '$3.30' }
             ].map((item, idx) => (
-              <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-5 group/card">
+              <div 
+                key={idx} 
+                onClick={() => navigate(`/product/${item.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product: { ...item, category: 'General', image: med1 } } })}
+                className="bg-gray-50 rounded-2xl border border-gray-100 p-5 group/card cursor-pointer hover:shadow-lg transition-all"
+              >
                 <div className="flex items-start gap-4">
                   <div className="w-28 h-20 rounded-lg flex items-center justify-center shrink-0">
                     <img src={med1} alt={item.name} className="w-full h-full object-contain" />
@@ -406,9 +638,12 @@ function ProductDetail({ onBack }) {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 leading-tight h-8">{item.name}</h3>
                     <p className="text-[11px] font-bold text-gray-400 mt-1">{item.qty}</p>
-                    <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center justify-between mt-4 gap-2">
                       <span className="text-[15px] font-bold text-gray-900">{item.price}</span>
-                      <button className="flex items-center gap-1.5 border-2 border-[#006D6D]/10 text-[#006D6D] px-3 py-1 rounded-lg text-[12px] font-bold hover:bg-[#006D6D] hover:text-white hover:border-[#006D6D] transition-all">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); navigate('/cart'); }}
+                        className="flex items-center gap-1.5 bg-[#006D6D] text-white px-2.5 py-1 rounded-lg text-[12px] font-bold hover:bg-[#005a5a] transition-all shadow-sm"
+                      >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" strokeWidth="2.5"/></svg>
                         Add
                       </button>
@@ -428,6 +663,117 @@ function ProductDetail({ onBack }) {
           </button>
         </div>
       </div>
+      {/* Upload Prescription Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-[480px] overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Modal Header */}
+            <div className="bg-[#E6F7F7]/50 px-8 py-6 flex justify-between items-center border-b border-[#006D6D]/10">
+              <div>
+                <h2 className="text-[18px] font-bold text-[#006D6D]">Upload Prescription</h2>
+                <p className="text-[11px] text-[#006D6D]/60 font-medium mt-0.5">Medicines require a valid doctor's prescription</p>
+              </div>
+              <button 
+                onClick={() => { setShowUploadModal(false); setSelectedFile(null); }}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-white hover:text-gray-600 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+
+            <div className="p-8">
+              {!uploadSuccess ? (
+                <div className="space-y-6">
+                  {/* Upload Area */}
+                  <div 
+                    onClick={() => document.getElementById('fileInput').click()}
+                    className={`relative border-2 border-dashed rounded-[24px] p-10 flex flex-col items-center justify-center cursor-pointer transition-all ${selectedFile ? 'border-[#006D6D] bg-[#E6F7F7]/10' : 'border-gray-200 hover:border-[#006D6D] hover:bg-[#E6F7F7]/5'}`}
+                  >
+                    <input 
+                      type="file" 
+                      id="fileInput" 
+                      className="hidden" 
+                      onChange={(e) => setSelectedFile(e.target.files[0])}
+                      accept="image/*,.pdf"
+                    />
+                    
+                    {selectedFile ? (
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-[#006D6D] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#006D6D]/20">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2.5"/></svg>
+                        </div>
+                        <p className="text-[14px] font-bold text-gray-900 truncate max-w-[200px]">{selectedFile.name}</p>
+                        <p className="text-[11px] text-gray-400 mt-1">{(selectedFile.size / 1024).toFixed(1)} KB • Ready to upload</p>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#E6F7F7] transition-all">
+                          <svg className="w-8 h-8 text-gray-300 group-hover:text-[#006D6D] transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2"/></svg>
+                        </div>
+                        <p className="text-[14px] font-bold text-gray-900">Drag & drop or <span className="text-[#006D6D]">browse</span></p>
+                        <p className="text-[11px] text-gray-400 mt-1.5">Supports JPG, PNG, PDF (Max 5MB)</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Instructions */}
+                  <div className="bg-gray-50 rounded-2xl p-4 flex gap-4">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                      <svg className="w-4 h-4 text-[#FBB03B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2.5"/></svg>
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                      Make sure the <span className="font-bold text-gray-700">Doctor's Name, Patient Name</span> and <span className="font-bold text-gray-700">Medicines</span> are clearly visible in the image.
+                    </p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => { setShowUploadModal(false); setSelectedFile(null); }}
+                      className="flex-1 py-4 rounded-xl border-2 border-gray-100 text-gray-500 font-bold text-[14px] hover:bg-gray-50 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      disabled={!selectedFile || isUploading}
+                      onClick={() => {
+                        setIsUploading(true);
+                        setTimeout(() => {
+                          setIsUploading(false);
+                          setUploadSuccess(true);
+                          setTimeout(() => setShowUploadModal(false), 2000);
+                        }, 1500);
+                      }}
+                      className={`flex-1 py-4 rounded-xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
+                    >
+                      {isUploading ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                          Uploading...
+                        </>
+                      ) : 'Attach Prescription'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-10 text-center animate-in zoom-in-95 duration-500">
+                  <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-500/20">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </div>
+                  <h3 className="text-[20px] font-bold text-gray-900 mb-2">Prescription Attached!</h3>
+                  <p className="text-[13px] text-gray-500">Your prescription has been successfully added to this order.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-8 py-4 border-t border-gray-100 flex items-center justify-center gap-2">
+              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeWidth="2"/></svg>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">End-to-End Encrypted & Secure</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

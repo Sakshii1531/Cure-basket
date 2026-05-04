@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const reviews = [
   { name: "Kate", title: "MRS.", date: "April 14, 2026", text: "Easy to order and order came in good time. Glad to have access to this pharmacy. Will be reorderin..." },
@@ -10,6 +11,7 @@ const reviews = [
 ]
 
 function Testimonials() {
+  const navigate = useNavigate()
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
 
   useEffect(() => {
@@ -62,7 +64,7 @@ function Testimonials() {
         </div>
 
         <div className="flex justify-center mt-12">
-          <button className="bg-[#004D4D] text-white px-12 py-3 rounded-xl font-bold text-[14px] transition-all shadow-lg hover:shadow-xl hover:bg-[#003333] active:scale-95">
+          <button onClick={() => navigate('/all-reviews')} className="bg-[#004D4D] text-white px-12 py-3 rounded-xl font-bold text-[14px] transition-all shadow-lg hover:shadow-xl hover:bg-[#003333] active:scale-95">
             Read All Reviews
           </button>
         </div>
