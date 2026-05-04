@@ -43,19 +43,17 @@ const Cart = () => {
   return (
     <div className="bg-[#f8f9fa]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-12 py-3 sticky top-0 z-50 grid grid-cols-3 items-center">
+      <div className="bg-white border-b border-gray-100 px-4 md:px-12 py-3 sticky top-0 z-50 grid grid-cols-3 items-center min-h-[56px] md:min-h-[64px]">
         <div className="flex justify-start">
-          <button onClick={() => navigate(-1)} className="p-1 group flex items-center gap-2">
-            <svg className="w-5 h-5 text-gray-600 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span className="hidden md:inline font-medium text-gray-500 text-[13px]">Back</span>
+          <button onClick={() => navigate(-1)} className="p-1 group flex items-center gap-1.5">
+            <svg className="w-5 h-5 text-gray-600 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span className="hidden sm:inline font-medium text-gray-500 text-[13px]">Back</span>
           </button>
         </div>
         <div className="flex justify-center">
-          <h1 className="text-[16px] md:text-[20px] font-semibold text-gray-800 whitespace-nowrap">My Cart</h1>
+          <h1 className="text-[16px] md:text-[20px] font-bold text-gray-800 whitespace-nowrap">My Cart</h1>
         </div>
-        <div className="flex justify-end">
-          {/* Empty div for grid balance */}
-        </div>
+        <div className="flex justify-end"></div>
       </div>
 
       <div className="max-w-[1150px] mx-auto px-4 md:px-12 pt-6 pb-2">

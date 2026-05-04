@@ -35,10 +35,10 @@ function NewAndNow({ title = "New and now", onProductClick }) {
             onClick={() => onProductClick?.({ name: "Weight Loss Treatment", category: "Weight Loss", image: weightLossImg })}
             className="min-w-[350px] md:min-w-[410px] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white flex flex-col h-full transition-shadow cursor-pointer hover:shadow-lg"
           >
-            <div className="bg-[#006D6D] text-white py-4 px-4 text-center font-bold text-[14px] tracking-[0.15em] uppercase">
+            <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
               Weight Loss Treatment
             </div>
-            <div className="flex-grow p-4 bg-gradient-to-tr from-[#d1e9f5] to-[#f4cfdf] relative flex flex-col min-h-[180px]">
+            <div className="flex-grow p-3 md:p-4 bg-gradient-to-tr from-[#d1e9f5] to-[#f4cfdf] relative flex flex-col min-h-[140px] md:min-h-[180px]">
               <h3 className="text-[18px] md:text-[20px] font-bold leading-[1.2] mb-1 text-gray-900 max-w-[50%]">
                 Need a <span className="text-[#006D6D]">weight loss treatment</span> plan?
               </h3>
@@ -57,10 +57,10 @@ function NewAndNow({ title = "New and now", onProductClick }) {
 
           {/* Card 2: Diabetes Management */}
           <div className="min-w-[350px] md:min-w-[410px] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white flex flex-col h-full transition-shadow">
-            <div className="bg-[#121212] text-white py-4 px-4 text-center font-bold text-[14px] tracking-[0.15em] uppercase">
+            <div className="bg-[#121212] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
               Diabetes Management
             </div>
-            <div className="p-4 flex flex-col gap-2 h-full justify-start min-h-[180px]">
+            <div className="p-3 md:p-4 flex flex-col gap-1.5 md:gap-2 h-full justify-start min-h-[140px] md:min-h-[180px]">
               <div 
                 onClick={() => onProductClick?.({ name: "Generic Glucophage", category: "Diabetes", image: diabetes1 })}
                 className="flex items-center gap-4 py-0 border-b-[3px] border-dotted border-gray-500 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -102,10 +102,10 @@ function NewAndNow({ title = "New and now", onProductClick }) {
 
           {/* Card 3: ED Treatment */}
           <div className="min-w-[350px] md:min-w-[410px] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white flex flex-col h-full transition-shadow">
-            <div className="bg-[#006D6D] text-white py-4 px-4 text-center font-bold text-[14px] tracking-[0.15em] uppercase">
+            <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
               Erectile Dysfunction Treatment
             </div>
-            <div className="p-4 flex flex-col gap-2 h-full justify-start min-h-[180px]">
+            <div className="p-3 md:p-4 flex flex-col gap-1.5 md:gap-2 h-full justify-start min-h-[140px] md:min-h-[180px]">
               {/* Product 1 */}
               <div 
                 onClick={() => onProductClick?.({ name: "Sildenafil (Generic Viagra)", category: "ED Treatment", image: card3_1 })}
@@ -152,10 +152,10 @@ function NewAndNow({ title = "New and now", onProductClick }) {
             onClick={() => onProductClick?.({ name: "Hair Loss Treatment", category: "Hair Loss", image: hairLossImg })}
             className="min-w-[350px] md:min-w-[410px] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white flex flex-col h-full transition-shadow cursor-pointer hover:shadow-lg"
           >
-            <div className="bg-[#006D6D] text-white py-4 px-4 text-center font-bold text-[14px] tracking-[0.15em] uppercase">
+            <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
               Hair Loss Treatment
             </div>
-            <div className="flex-grow p-4 bg-gradient-to-tr from-[#fff2cc] via-[#f2fcfc] to-[#f9e5ef] relative flex flex-col min-h-[180px]">
+            <div className="flex-grow p-3 md:p-4 bg-gradient-to-tr from-[#fff2cc] via-[#f2fcfc] to-[#f9e5ef] relative flex flex-col min-h-[140px] md:min-h-[180px]">
               <h3 className="text-[18px] md:text-[20px] font-bold leading-[1.2] mb-1 text-gray-900 max-w-[50%]">
                 Struggling with <span className="text-[#006D6D]">hair loss?</span>
               </h3>
@@ -175,10 +175,10 @@ function NewAndNow({ title = "New and now", onProductClick }) {
 
           {/* Card 5: Anxiety & Depression */}
           <div className="min-w-[350px] md:min-w-[410px] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white flex flex-col h-full transition-shadow">
-            <div className="bg-[#006D6D] text-white py-4 px-4 text-center font-bold text-[14px] tracking-[0.15em] uppercase">
+            <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
               Anxiety & Depression
             </div>
-            <div className="p-4 flex flex-col gap-2 h-full justify-start min-h-[180px]">
+            <div className="p-3 md:p-4 flex flex-col gap-1.5 md:gap-2 h-full justify-start min-h-[140px] md:min-h-[180px]">
               <div 
                 onClick={() => onProductClick?.({ name: "Sertraline (Generic Zoloft)", category: "Mental Health", image: med3 })}
                 className="flex items-center gap-4 py-0 border-b border-dotted border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"

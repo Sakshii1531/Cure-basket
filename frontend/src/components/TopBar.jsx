@@ -1,6 +1,6 @@
 function TopBar() {
   return (
-    <div className="top-bar">
+    <div className="top-bar hidden xl:block">
       <div className="max-w-[1450px] mx-auto w-full flex justify-end items-center px-4 md:px-12">
         <div className="flex items-center gap-6">
           <a href="#contact" className="flex items-center gap-2 text-primary hover:text-primary-dark transition-colors text-[13.5px] font-bold group">

@@ -78,30 +78,30 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
 
         {/* Category Banner */}
         {categoryFilter && catDetails && (
-          <div className={`mb-12 rounded-[32px] p-8 md:p-12 relative overflow-hidden flex items-center border border-gray-100 shadow-sm min-h-[300px]`}>
+          <div className={`mb-8 md:mb-12 rounded-[24px] md:rounded-[32px] p-6 md:p-12 relative overflow-hidden flex items-center border border-gray-100 shadow-sm min-h-[200px] md:min-h-[300px]`}>
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
                <img src={catDetails.image} alt="banner" className="w-full h-full object-cover" />
-               <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]"></div>
+               <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]"></div>
             </div>
             
             <div className="z-10 relative">
-               <span className="bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest mb-6 inline-block text-gray-800 shadow-sm">Category Spotlight</span>
-               <h1 className="text-[42px] md:text-[60px] font-black leading-[1.1] capitalize text-gray-900 drop-shadow-sm">
+               <span className="bg-white/80 backdrop-blur-md px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-widest mb-4 md:mb-6 inline-block text-gray-800 shadow-sm">Category Spotlight</span>
+               <h1 className="text-[28px] md:text-[60px] font-black leading-[1.1] capitalize text-gray-900 drop-shadow-sm">
                  {categoryFilter.replace('-', ' ')} <br/>
                  <span className={catDetails.textColor}>Solutions</span>
                </h1>
-               <p className="text-gray-700 text-[15px] md:text-[18px] mt-6 max-w-lg font-bold leading-relaxed">
+               <p className="text-gray-700 text-[13px] md:text-[18px] mt-4 md:mt-6 max-w-lg font-bold leading-relaxed hidden sm:block">
                  Genuine medicines and premium healthcare products for your {categoryFilter.replace('-', ' ')} needs, delivered fast to your doorstep.
                </p>
-               <div className="mt-8 flex gap-4">
-                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
-                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                    <span className="text-[12px] font-bold text-gray-800">100% Genuine</span>
+               <div className="mt-6 md:mt-8 flex gap-3 md:gap-4">
+                  <div className="bg-white/90 backdrop-blur-sm px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-2 shadow-sm">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                    <span className="text-[10px] md:text-[12px] font-bold text-gray-800">100% Genuine</span>
                   </div>
-                  <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-2xl flex items-center gap-2 shadow-sm">
-                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-4a1 1 0 00-.293-.707l-2-2A1 1 0 0017 7h-3z"/></svg>
-                    <span className="text-[12px] font-bold text-gray-800">Fast Delivery</span>
+                  <div className="bg-white/90 backdrop-blur-sm px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-2 shadow-sm">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-4a1 1 0 00-.293-.707l-2-2A1 1 0 0017 7h-3z"/></svg>
+                    <span className="text-[10px] md:text-[12px] font-bold text-gray-800">Fast Delivery</span>
                   </div>
                </div>
             </div>
@@ -110,18 +110,18 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
 
         {/* Header (Simplified if banner exists) */}
         {!categoryFilter && (
-          <div className="mb-12">
-            <h1 className="text-[32px] md:text-[42px] font-bold text-gray-900 tracking-tight mb-4 capitalize">
+          <div className="mb-8 md:mb-12">
+            <h1 className="text-[28px] md:text-[42px] font-bold text-gray-900 tracking-tight mb-3 md:mb-4 capitalize">
               Frequently Bought Together
             </h1>
-            <p className="text-gray-500 text-[16px] max-w-2xl leading-relaxed font-medium">
+            <p className="text-gray-500 text-[14px] md:text-[16px] max-w-2xl leading-relaxed font-medium">
               Explore products that our customers frequently purchase together for comprehensive health management.
             </p>
           </div>
         )}
 
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
               <div 

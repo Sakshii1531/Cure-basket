@@ -22,48 +22,48 @@ function Testimonials() {
   }, [])
 
   return (
-    <section className="bg-white pb-16 pt-0 px-4 md:px-12 overflow-hidden">
+    <section className="bg-white pb-10 md:pb-16 pt-0 px-4 md:px-12 overflow-hidden">
       <div className="max-w-[1400px] mx-auto">
         {/* Header Rating */}
-        <div className="flex flex-col items-center mb-12">
-          <div className="flex items-center gap-4">
-            <span className="text-[48px] md:text-[56px] font-bold text-gray-800 leading-none">4.9</span>
+        <div className="flex flex-col items-center mb-8 md:mb-12">
+          <div className="flex items-center gap-3 md:gap-4">
+            <span className="text-[36px] md:text-[56px] font-bold text-gray-800 leading-none">4.9</span>
             <div className="flex flex-col">
               <div className="flex text-[#FFD200]">
-                {"★★★★★".split('').map((s, i) => <span key={i} className="text-xl">★</span>)}
+                {"★★★★★".split('').map((s, i) => <span key={i} className="text-lg md:text-xl">★</span>)}
               </div>
-              <span className="text-[#004D4D] font-bold text-[14px]">38324 Reviews</span>
+              <span className="text-[#004D4D] font-bold text-[12px] md:text-[14px]">38324 Reviews</span>
             </div>
           </div>
         </div>
 
         {/* Carousel */}
-        <div className="relative max-w-[1100px] mx-auto overflow-hidden">
+        <div className="relative max-w-[1100px] mx-auto overflow-hidden px-4 md:px-0">
 
           <div
             className={`flex ${currentReviewIndex === 0 ? '' : 'transition-transform duration-700 ease-in-out'}`}
-            style={{ transform: `translateX(-${currentReviewIndex * (100 / 4)}%)` }}
+            style={{ transform: `translateX(-${currentReviewIndex * (window.innerWidth < 768 ? 85 : 25)}%)` }}
             onTransitionEnd={() => { if (currentReviewIndex >= reviews.length) setCurrentReviewIndex(0) }}
           >
             {[...reviews, ...reviews.slice(0, 4)].map((rev, i) => (
-              <div key={i} className="w-full md:w-1/2 lg:w-1/4 flex-shrink-0 px-2 py-4">
-                <div className="bg-[#f5f5f5] p-6 rounded-[20px] flex flex-col h-full shadow-sm hover:shadow-md transition-all border border-gray-200">
-                  <span className="text-[#004D4D] font-bold text-[18px] mb-1">{rev.name}</span>
-                  <div className="flex text-[#FFD200] text-sm mb-3">
+              <div key={i} className="w-[85%] md:w-1/2 lg:w-1/4 flex-shrink-0 px-2 py-4">
+                <div className="bg-[#f5f5f5] p-4 md:p-6 rounded-[20px] flex flex-col h-full shadow-sm hover:shadow-md transition-all border border-gray-200">
+                  <span className="text-[#004D4D] font-bold text-[16px] md:text-[18px] mb-1">{rev.name}</span>
+                  <div className="flex text-[#FFD200] text-xs md:text-sm mb-2 md:mb-3">
                     {"★★★★★".split('').map((s, idx) => <span key={idx}>★</span>)}
                   </div>
-                  <h4 className="font-black text-gray-900 text-[14px] mb-3 uppercase tracking-tight">{rev.title}</h4>
-                  <p className="text-gray-600 text-[13px] leading-snug text-justify mb-6 flex-grow font-medium line-clamp-4">
+                  <h4 className="font-black text-gray-900 text-[12px] md:text-[14px] mb-2 md:mb-3 uppercase tracking-tight">{rev.title}</h4>
+                  <p className="text-gray-600 text-[12px] md:text-[13px] leading-snug text-justify mb-4 md:mb-6 flex-grow font-medium line-clamp-4">
                     "{rev.text}" <span className="text-blue-500 cursor-pointer hover:underline">Read more</span>
                   </p>
-                  <span className="text-gray-500 text-[12px] font-medium">{rev.date}</span>
+                  <span className="text-gray-500 text-[11px] md:text-[12px] font-medium">{rev.date}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex justify-center mt-12">
+        <div className="flex justify-center mt-4 md:mt-12">
           <button onClick={() => navigate('/all-reviews')} className="bg-[#004D4D] text-white px-12 py-3 rounded-xl font-bold text-[14px] transition-all shadow-lg hover:shadow-xl hover:bg-[#003333] active:scale-95">
             Read All Reviews
           </button>

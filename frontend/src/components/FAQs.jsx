@@ -35,22 +35,22 @@ function FAQItem({ faq, index, activeFaqIndex, setActiveFaqIndex }) {
     <div className="w-full">
       <div
         onClick={() => setActiveFaqIndex(isOpen ? null : index)}
-        className={`flex flex-col px-8 py-3.5 border border-[#004D4D]/20 bg-white transition-all duration-300 shadow-sm rounded-[24px]
+        className={`flex flex-col px-4 md:px-8 py-2 md:py-3.5 border border-[#004D4D]/20 bg-white transition-all duration-300 shadow-sm rounded-[20px] md:rounded-[24px]
           ${isOpen ? 'border-[#004D4D]/40' : 'hover:border-[#004D4D] hover:shadow-md cursor-pointer'}
         `}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[13px] md:text-[14px] font-bold text-gray-700 leading-tight">{faq.q}</span>
+          <span className="text-[12px] md:text-[14px] font-bold text-gray-700 leading-tight">{faq.q}</span>
           <svg
-            className={`w-4 h-4 text-[#004D4D] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+            className={`w-3.5 h-3.5 md:w-4 md:h-4 text-[#004D4D] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
           >
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </div>
         {isOpen && (
-          <div className="mt-4 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
-            <p className="text-[12px] md:text-[13px] leading-relaxed text-gray-600 text-justify font-medium">
+          <div className="mt-2 md:mt-4 pt-2 md:pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
+            <p className="text-[11px] md:text-[13px] leading-tight md:leading-relaxed text-gray-600 text-justify font-medium">
               {faq.a.split(/(CureBasket(?:\.com)?)/g).map((part, i) =>
                 part.toLowerCase().includes('curebasket') ? (
                   <span key={i} className="font-bold text-[#004D4D]">{part}</span>
@@ -69,12 +69,12 @@ function FAQs() {
 
   return (
     <section className="bg-[#fef6f6] pb-12 md:pb-16 pt-0 px-4 md:px-12 overflow-hidden">
-      <div className="max-w-[1250px] mx-auto bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 px-8 md:px-12 lg:px-16 py-8 md:py-10">
-        <h2 className="text-[28px] md:text-[36px] font-bold text-center text-[#004D4D] uppercase tracking-wider mb-6">
+      <div className="max-w-[1250px] mx-auto bg-white rounded-[24px] md:rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 px-5 md:px-12 lg:px-16 py-6 md:py-10">
+        <h2 className="text-[22px] md:text-[36px] font-bold text-center text-[#004D4D] uppercase tracking-wider mb-4 md:mb-6">
           FAQs
         </h2>
         <div className="flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
-          <div className="w-full lg:w-[45%] flex flex-col gap-y-5">
+          <div className="w-full lg:w-[45%] flex flex-col gap-y-3 md:gap-y-5">
             {faqs.map((faq, index) => (
               <FAQItem
                 key={index}
@@ -85,7 +85,7 @@ function FAQs() {
               />
             ))}
           </div>
-          <div className="w-full lg:w-[55%] flex justify-center">
+          <div className="hidden lg:flex w-full lg:w-[55%] justify-center">
             <img src={img_faq} alt="FAQ Help" className="relative w-full max-w-[450px] h-auto object-contain drop-shadow-2xl" />
           </div>
         </div>

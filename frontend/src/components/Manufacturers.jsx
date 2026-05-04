@@ -7,18 +7,18 @@ function Manufacturers() {
 
   return (
     <section className="bg-white pt-8 pb-8 px-4 md:px-12">
-      <div className="max-w-[1250px] mx-auto bg-[#f8f8f8] rounded-[32px] border border-gray-100 p-8 md:p-12 text-center">
-        <h2 className="text-[20px] md:text-[24px] font-bold text-[#004D4D] uppercase tracking-wider mb-6">
+      <div className="max-w-[1250px] mx-auto bg-[#f8f8f8] rounded-[24px] md:rounded-[32px] border border-gray-100 p-5 md:p-12 text-center">
+        <h2 className="text-[18px] md:text-[24px] font-bold text-[#004D4D] uppercase tracking-wider mb-4 md:mb-6">
           MANUFACTURES
         </h2>
-        <p className={`text-[14px] md:text-[15px] text-gray-600 leading-tight tracking-tight text-justify mb-8 font-medium ${isExpanded ? '' : 'line-clamp-2'}`}>
+        <p className={`text-[12px] md:text-[15px] text-gray-600 leading-[1.15] md:leading-tight tracking-tight text-justify mb-6 md:mb-8 font-medium ${isExpanded ? '' : 'line-clamp-2'}`}>
           We order our drugs from reputed international manufacturers and are made available for sale after careful scrutiny of the quality. This way we can spend more time and efforts to help you when you buy medicine online. These drugs sold in other countries are known by other brand names, but generically they are the same drugs.
           {isExpanded && <> {manufacturersList} | {manufacturersList} | {manufacturersList}</>}
         </p>
         <div className="flex justify-center">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-white px-10 py-3 rounded-xl font-bold text-[14px] transition-all duration-300 shadow-lg active:scale-95 bg-[#004D4D] hover:bg-[#003333]"
+            className="text-white px-8 md:px-10 py-2.5 md:py-3 rounded-xl font-bold text-[14px] transition-all duration-300 shadow-lg active:scale-95 bg-[#004D4D] hover:bg-[#003333]"
           >
             {isExpanded ? 'Show Less' : 'Read More'}
           </button>

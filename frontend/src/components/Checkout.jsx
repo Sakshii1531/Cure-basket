@@ -77,20 +77,20 @@ const Checkout = () => {
 
       <div className="max-w-[800px] mx-auto px-4 py-8">
         {/* Progress Bar */}
-        <div className="flex items-start justify-center mb-12 max-w-[500px] mx-auto gap-0">
+        <div className="flex items-start justify-center mb-10 md:mb-12 max-w-[500px] mx-auto gap-0 px-2">
           <div className="flex flex-col items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-[#006D6D] text-white flex items-center justify-center font-bold text-[14px] shadow-lg shadow-[#006D6D]/20">1</div>
-            <span className="text-[11px] font-bold text-[#006D6D]">Address</span>
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-[#006D6D] text-white flex items-center justify-center font-bold text-[12px] md:text-[14px] shadow-lg shadow-[#006D6D]/20">1</div>
+            <span className="text-[10px] md:text-[11px] font-bold text-[#006D6D]">Address</span>
           </div>
-          <div className="flex-1 border-t-2 border-dashed border-gray-300 mt-[18px] mx-3"></div>
+          <div className="flex-1 border-t-2 border-dashed border-gray-300 mt-[16px] md:mt-[18px] mx-2 md:mx-3"></div>
           <div className="flex flex-col items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold text-[14px]">2</div>
-            <span className="text-[11px] font-medium text-gray-400">Payment</span>
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold text-[12px] md:text-[14px]">2</div>
+            <span className="text-[10px] md:text-[11px] font-medium text-gray-400">Payment</span>
           </div>
-          <div className="flex-1 border-t-2 border-dashed border-gray-300 mt-[18px] mx-3"></div>
+          <div className="flex-1 border-t-2 border-dashed border-gray-300 mt-[16px] md:mt-[18px] mx-2 md:mx-3"></div>
           <div className="flex flex-col items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold text-[14px]">3</div>
-            <span className="text-[11px] font-medium text-gray-400">Review</span>
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center font-bold text-[12px] md:text-[14px]">3</div>
+            <span className="text-[10px] md:text-[11px] font-medium text-gray-400">Review</span>
           </div>
         </div>
 

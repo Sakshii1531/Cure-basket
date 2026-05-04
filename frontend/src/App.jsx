@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
@@ -33,6 +33,10 @@ import Review from './components/Review'
 import OrderSuccess from './components/OrderSuccess'
 import TrackOrder from './components/TrackOrder'
 import AllReviewsPage from './components/AllReviewsPage'
+import MobileBottomNav from './components/MobileBottomNav'
+import CategoriesPage from './components/CategoriesPage'
+import OrdersPage from './components/OrdersPage'
+import AccountPage from './components/AccountPage'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
@@ -68,10 +72,10 @@ function AppContent() {
   const [isHcpPageOpen, setIsHcpPageOpen] = useState(() => window.location.hash === '#hcp')
   
   const navigate = useNavigate()
+  const location = useLocation()
+  const isSubPage = ['/categories', '/orders', '/account'].includes(location.pathname)
 
   const handleProductClick = (product) => {
-    // For now, we'll just navigate to a generic product route. 
-    // In a real app, we'd use the product ID.
     navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
   }
 
@@ -87,22 +91,50 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background font-sans">
-      <TopBar />
-      <Navbar
-        isPrescriptionMenuOpen={isPrescriptionMenuOpen}
-        setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
-        isOnlineCareMenuOpen={isOnlineCareMenuOpen}
-        setIsOnlineCareMenuOpen={setIsOnlineCareMenuOpen}
-        isHealthInfoMenuOpen={isHealthInfoMenuOpen}
-        setIsHealthInfoMenuOpen={setIsHealthInfoMenuOpen}
-        isGoldMembershipMenuOpen={isGoldMembershipMenuOpen}
-        setIsGoldMembershipMenuOpen={setIsGoldMembershipMenuOpen}
-        isAllCategoriesMenuOpen={isAllCategoriesMenuOpen}
-        setIsAllCategoriesMenuOpen={setIsAllCategoriesMenuOpen}
-        isMensHealthOpen={isMensHealthOpen}
-        setIsMensHealthOpen={setIsMensHealthOpen}
-      />
+    <div className="min-h-screen bg-background font-sans pb-[70px] md:pb-0">
+      {/* Global Headers for Main Pages (Mobile & Desktop) */}
+      {!isSubPage && (
+        <>
+          <TopBar />
+          <Navbar
+            isPrescriptionMenuOpen={isPrescriptionMenuOpen}
+            setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
+            isOnlineCareMenuOpen={isOnlineCareMenuOpen}
+            setIsOnlineCareMenuOpen={setIsOnlineCareMenuOpen}
+            isHealthInfoMenuOpen={isHealthInfoMenuOpen}
+            setIsHealthInfoMenuOpen={setIsHealthInfoMenuOpen}
+            isGoldMembershipMenuOpen={isGoldMembershipMenuOpen}
+            setIsGoldMembershipMenuOpen={setIsGoldMembershipMenuOpen}
+            isAllCategoriesMenuOpen={isAllCategoriesMenuOpen}
+            setIsAllCategoriesMenuOpen={setIsAllCategoriesMenuOpen}
+            isMensHealthOpen={isMensHealthOpen}
+            setIsMensHealthOpen={setIsMensHealthOpen}
+          />
+        </>
+      )}
+      
+      {/* For Desktop Subpages, always show header */}
+      <div className="hidden md:block">
+        {isSubPage && (
+          <>
+            <TopBar />
+            <Navbar
+              isPrescriptionMenuOpen={isPrescriptionMenuOpen}
+              setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
+              isOnlineCareMenuOpen={isOnlineCareMenuOpen}
+              setIsOnlineCareMenuOpen={setIsOnlineCareMenuOpen}
+              isHealthInfoMenuOpen={isHealthInfoMenuOpen}
+              setIsHealthInfoMenuOpen={setIsHealthInfoMenuOpen}
+              isGoldMembershipMenuOpen={isGoldMembershipMenuOpen}
+              setIsGoldMembershipMenuOpen={setIsGoldMembershipMenuOpen}
+              isAllCategoriesMenuOpen={isAllCategoriesMenuOpen}
+              setIsAllCategoriesMenuOpen={setIsAllCategoriesMenuOpen}
+              isMensHealthOpen={isMensHealthOpen}
+              setIsMensHealthOpen={setIsMensHealthOpen}
+            />
+          </>
+        )}
+      </div>
       
       <Routes>
         <Route path="/" element={<HomePage onProductClick={handleProductClick} />} />
@@ -117,10 +149,21 @@ function AppContent() {
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/track-order" element={<TrackOrder />} />
         <Route path="/all-reviews" element={<AllReviewsPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/account" element={<AccountPage />} />
       </Routes>
 
-      <FooterNewsletter />
-      <FooterAccessibility />
+      {!isSubPage && <FooterNewsletter />}
+      {!isSubPage && <FooterAccessibility />}
+      
+      {/* For desktop subpages, show footer */}
+      <div className="hidden md:block">
+        {isSubPage && <FooterNewsletter />}
+        {isSubPage && <FooterAccessibility />}
+      </div>
+      
+      <MobileBottomNav />
     </div>
   )
 }

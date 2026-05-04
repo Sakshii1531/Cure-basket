@@ -266,9 +266,9 @@ function ProductDetail({ onBack }) {
   }
 
   return (
-    <div className="bg-white min-h-screen pb-20">
+    <div className="bg-white min-h-screen pb-10 md:pb-20">
       {/* Breadcrumbs */}
-      <div className="max-w-[1250px] mx-auto px-4 md:px-12 py-4">
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 py-4 hidden md:block">
         <nav className="flex items-center gap-2 text-[12px] font-medium text-gray-500">
           <span className="cursor-pointer hover:text-[#006D6D]" onClick={() => navigate('/')}>Home</span>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -280,65 +280,65 @@ function ProductDetail({ onBack }) {
         </nav>
       </div>
 
-      <div className="max-w-[1250px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12">
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 md:gap-12 pt-4 md:pt-0">
         
         {/* Left Column: Product Visuals & Info */}
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 items-start">
+        <div className="space-y-6 md:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 md:gap-8 items-start">
             {/* Gallery Section */}
-            <div className="bg-white rounded-[32px] border border-gray-100 pt-8 px-8 pb-12 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative">
-              <div className="absolute top-6 left-6">
-                <span className="bg-[#006D6D] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">BEST SELLER</span>
+            <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-6 px-6 pb-8 md:pt-8 md:px-8 md:pb-12 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative">
+              <div className="absolute top-4 left-4 md:top-6 md:left-6">
+                <span className="bg-[#006D6D] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 md:px-3 py-1 rounded-full">BEST SELLER</span>
               </div>
-              <div className="absolute top-6 right-6">
-                <button className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+              <div className="absolute top-4 right-4 md:top-6 md:right-6">
+                <button className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                 </button>
               </div>
 
               {/* Main Image */}
-              <div className="flex items-center justify-center pt-10 pb-6 h-auto overflow-hidden">
-                <img src={product.image} alt={product.name} className="w-full max-h-[700px] object-contain transform scale-[1.45]" />
+              <div className="flex items-center justify-center pt-8 pb-4 h-auto overflow-hidden">
+                <img src={product.image} alt={product.name} className="w-full max-h-[300px] md:max-h-[700px] object-contain transform scale-110 md:scale-[1.45]" />
               </div>
 
               {/* Thumbnails */}
-              <div className="flex justify-center items-center gap-3 mt-4">
-                <button className="w-7 h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
+              <div className="flex justify-center items-center gap-2 md:gap-3 mt-4">
+                <button className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                  <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 {[0, 1, 2].map(idx => (
                   <div 
                     key={idx}
                     onClick={() => setActiveThumb(idx)}
-                    className={`w-16 h-16 rounded-xl border-2 p-2 cursor-pointer transition-all ${activeThumb === idx ? 'border-[#006D6D]' : 'border-gray-100 hover:border-gray-200'}`}
+                    className={`w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-xl border-2 p-1.5 md:p-2 cursor-pointer transition-all ${activeThumb === idx ? 'border-[#006D6D]' : 'border-gray-100 hover:border-gray-200'}`}
                   >
                     <img src={product.image} alt="thumb" className="w-full h-full object-contain opacity-70" />
                   </div>
                 ))}
-                <button className="w-7 h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
+                <button className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                  <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
                 </button>
               </div>
 
               {/* Prescription Required Label */}
-              <div className="mt-6 pt-6 border-t border-gray-100 flex items-center gap-4">
-                <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <div className="mt-5 pt-5 border-t border-gray-100 flex items-center gap-3 md:gap-4">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
                 <div>
-                  <div className="text-[13px] font-bold text-gray-900">Prescription Required</div>
-                  <div className="text-[11px] text-gray-500">This is a prescription medicine</div>
+                  <div className="text-[12px] md:text-[13px] font-bold text-gray-900">Prescription Required</div>
+                  <div className="text-[10px] md:text-[11px] text-gray-500">This is a prescription medicine</div>
                 </div>
               </div>
             </div>
 
             {/* Info Section */}
-            <div className="space-y-4 pt-2">
+            <div className="space-y-4 pt-0 md:pt-2">
               <div>
-                <h1 className="text-[22px] md:text-[28px] font-bold text-gray-900 leading-tight mb-2">{product.name}</h1>
+                <h1 className="text-[20px] md:text-[28px] font-bold text-gray-900 leading-tight mb-2">{product.name}</h1>
                 <div className="space-y-1">
-                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{pData.genericName}</span></div>
-                  <div className="text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{product.category || 'Medicine'}</span></div>
+                  <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{pData.genericName}</span></div>
+                  <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{product.category || 'Medicine'}</span></div>
                 </div>
               </div>
 
@@ -352,67 +352,48 @@ function ProductDetail({ onBack }) {
                 </button>
               </div>
 
-              <div className="flex items-center gap-4 pt-1">
+              <div className="flex flex-wrap items-center gap-3 md:gap-4 pt-1">
                 <div className="flex items-center gap-2">
-                  <div className="flex text-[#FFD200]">{"★★★★★".split('').map((s, i) => <span key={i} className="text-base">★</span>)}</div>
-                  <span className="text-gray-900 font-bold text-[12px]">4.8 <span className="text-gray-400 font-medium ml-1">(120 reviews)</span></span>
+                  <div className="flex text-[#FFD200]">{"★★★★★".split('').map((s, i) => <span key={i} className="text-sm md:text-base">★</span>)}</div>
+                  <span className="text-gray-900 font-bold text-[11px] md:text-[12px]">4.8 <span className="text-gray-400 font-medium ml-1">(120 reviews)</span></span>
                 </div>
-                <div className="h-3 w-[1px] bg-gray-300"></div>
-                <button className="text-[#006D6D] font-bold text-[12px] hover:underline">Write a review</button>
+                <div className="hidden md:block h-3 w-[1px] bg-gray-300"></div>
+                <button className="text-[#006D6D] font-bold text-[11px] md:text-[12px] hover:underline">Write a review</button>
               </div>
 
               {/* Trust Badges */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-                <div className="flex flex-col items-center text-center gap-1">
-                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-3 pt-2">
+                {[
+                  { label: 'FDA\nApproved', icon: <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /> },
+                  { label: 'Genuine\nMedicine', icon: <path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+                  { label: 'Secure\nPayments', icon: <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /> },
+                  { label: 'Discreet\nShipping', icon: <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /> }
+                ].map((badge, bidx) => (
+                  <div key={bidx} className="flex flex-col items-center text-center gap-1">
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
+                      <svg className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">{badge.icon}</svg>
+                    </div>
+                    <span className="text-[8px] md:text-[9px] font-bold text-gray-500 leading-tight whitespace-pre-line">{badge.label}</span>
                   </div>
-                  <span className="text-[9px] font-bold text-gray-500 leading-tight">FDA<br/>Approved</span>
-                </div>
-                <div className="flex flex-col items-center text-center gap-1">
-                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  </div>
-                  <span className="text-[9px] font-bold text-gray-500 leading-tight">Genuine<br/>Medicine</span>
-                </div>
-                <div className="flex flex-col items-center text-center gap-1">
-                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                  </div>
-                  <span className="text-[9px] font-bold text-gray-500 leading-tight">Secure<br/>Payments</span>
-                </div>
-                <div className="flex flex-col items-center text-center gap-1">
-                  <div className="w-8 h-8 rounded-full bg-[#E6F7F7] flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  </div>
-                  <span className="text-[9px] font-bold text-gray-500 leading-tight">Discreet<br/>Shipping</span>
-                </div>
+                ))}
               </div>
 
               {/* Inline Upload Banner */}
-              <div className="bg-[#FFF8E7] rounded-xl p-3 flex items-center justify-between gap-3 mt-16 border border-[#FFD200]/20 max-w-[420px]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                    <svg className="w-4 h-4 text-[#FBB03B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+              <div className="bg-[#FFF8E7] rounded-xl p-3 flex items-center justify-between gap-3 mt-8 md:mt-16 border border-[#FFD200]/20 max-w-full md:max-w-[420px]">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#FBB03B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                   </div>
                   <div>
-                    <div className="text-[12px] font-bold text-gray-900 leading-tight">Upload Prescription</div>
-                    <div className="text-[10px] text-gray-500 leading-tight mt-0.5">Upload and our pharmacist will review it.</div>
+                    <div className="text-[11px] md:text-[12px] font-bold text-gray-900 leading-tight">Upload Prescription</div>
+                    <div className="text-[9px] md:text-[10px] text-gray-500 leading-tight mt-0.5">Quick review by pharmacists.</div>
                   </div>
                 </div>
                 <button 
                   onClick={() => setShowUploadModal(true)}
-                  className={`border-2 px-3 py-1 rounded-lg font-bold text-[11px] transition-all shadow-sm shrink-0 flex items-center gap-1.5 ${uploadSuccess ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-gray-100 text-gray-900 hover:bg-gray-50'}`}
+                  className={`border-2 px-3 py-1 rounded-lg font-bold text-[10px] md:text-[11px] transition-all shadow-sm shrink-0 flex items-center gap-1.5 ${uploadSuccess ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-gray-100 text-gray-900 hover:bg-gray-50'}`}
                 >
-                  {uploadSuccess ? (
-                    <>
-                      Added <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
-                    </>
-                  ) : (
-                    <>
-                      Upload Now <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
-                    </>
-                  )}
+                  {uploadSuccess ? 'Added' : 'Upload Now'}
                 </button>
               </div>
             </div>
@@ -421,40 +402,39 @@ function ProductDetail({ onBack }) {
 
         {/* Right Column: Pricing & Cart Card */}
         <div className="space-y-6">
-          <div className="bg-white rounded-[32px] border border-gray-100 pt-3 px-6 pb-3 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] sticky top-24">
-            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-1.5 uppercase tracking-tighter">Save 60%</div>
+          <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-5 px-5 pb-5 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] lg:sticky lg:top-24">
+            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save 60%</div>
             
-            <div className="mb-3">
+            <div className="mb-4 md:mb-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-[22px] md:text-[26px] font-bold text-gray-900">${selectedPackage.price.toFixed(2)}</span>
+                <span className="text-[24px] md:text-[26px] font-bold text-gray-900">${selectedPackage.price.toFixed(2)}</span>
                 <span className="text-gray-400 line-through text-[12px]">${(selectedPackage.price * 2.5).toFixed(2)}</span>
               </div>
               <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ${(selectedPackage.price * 1.5).toFixed(2)} (60%)</div>
-              <div className="text-gray-400 text-[8px] mt-0.5">Inclusive of all taxes</div>
             </div>
 
             {/* Package Selection */}
-            <div className="space-y-1.5 mb-1.5">
+            <div className="space-y-2 mb-4 md:mb-1.5">
               <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Select Quantity (Package)</h4>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {packageOptions.map(pkg => (
                   <label 
                     key={pkg.id}
-                    className={`flex items-center justify-between py-1.5 px-2.5 rounded-xl border-2 cursor-pointer transition-all ${selectedPackage.id === pkg.id ? 'border-[#006D6D] bg-[#E6F7F7]/20' : 'border-gray-100 hover:border-gray-200'}`}
+                    className={`flex items-center justify-between py-2 md:py-1.5 px-3 md:px-2.5 rounded-xl border-2 cursor-pointer transition-all relative ${selectedPackage.id === pkg.id ? 'border-[#006D6D] bg-[#E6F7F7]/20' : 'border-gray-100 hover:border-gray-200'}`}
                     onClick={() => setSelectedPackage(pkg)}
                   >
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${selectedPackage.id === pkg.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
+                      <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${selectedPackage.id === pkg.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
                         {selectedPackage.id === pkg.id && <div className="w-1.5 h-1.5 rounded-full bg-[#006D6D]"></div>}
                       </div>
                       <span className="text-[11px] font-bold text-gray-900">{pkg.label}</span>
                     </div>
                     <div className="text-right">
                       <div className="text-[11px] font-bold text-gray-900">${pkg.price.toFixed(2)}</div>
-                      <div className={`text-[8.5px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perUnit.toFixed(2)} / {product.name.toLowerCase().includes('weight loss') ? 'Dose' : 'Tablet'}</div>
+                      <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perUnit.toFixed(2)} / unit</div>
                     </div>
                     {pkg.popular && (
-                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[8px] font-bold text-[#FBB03B] shadow-sm">
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[7px] md:text-[8px] font-bold text-[#FBB03B] shadow-sm z-10">
                         Best Value
                       </div>
                     )}
@@ -464,27 +444,12 @@ function ProductDetail({ onBack }) {
             </div>
 
             {/* Quantity Selector */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-4 md:mb-2">
               <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Quantity</span>
               <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
-                <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all font-bold text-sm"
-                >
-                  −
-                </button>
-                <input 
-                  type="number" 
-                  value={quantity}
-                  readOnly
-                  className="w-7 text-center bg-transparent font-bold text-gray-900 text-[11px] focus:outline-none"
-                />
-                <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all font-bold text-sm"
-                >
-                  +
-                </button>
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold">−</button>
+                <input type="number" value={quantity} readOnly className="w-8 text-center bg-transparent font-bold text-gray-900 text-[11px]" />
+                <button onClick={() => setQuantity(quantity + 1)} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold">+</button>
               </div>
             </div>
 
@@ -492,14 +457,14 @@ function ProductDetail({ onBack }) {
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/cart')}
-                className="w-full bg-[#FFD200] text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(255,210,0,0.1)] hover:scale-[1.01] transition-all text-[13px]"
+                className="w-full bg-[#FFD200] text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#FFD200]/10 text-[13px]"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 Add to Cart
               </button>
               <button 
                 onClick={() => navigate('/checkout', { state: { product, selectedPackage, quantity } })}
-                className="w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-[#006D6D]/20 transition-all text-[13px] active:scale-[0.98]"
+                className="w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all text-[13px]"
               >
                 <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 Buy Now
@@ -510,40 +475,37 @@ function ProductDetail({ onBack }) {
       </div>
 
       {/* Trust Features Bar */}
-      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-12 mb-8">
-        <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-10 md:mt-12 mb-8">
+        <div className="bg-gray-50/50 rounded-[24px] border border-gray-100 p-6 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {[
             { 
-              title: 'Fast & Discreet Delivery', 
-              desc: 'Get medicines delivered to your doorstep',
+              title: 'Fast Delivery', 
+              desc: 'Doorstep service',
               icon: <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 011 1v2.5a1.5 1.5 0 01-3 0V16m-4 0h4m-4 0a1 1 0 00-1 1v2.5a1.5 1.5 0 01-3 0V16" />
             },
             { 
-              title: '100% Genuine Medicines', 
-              desc: 'Sourced from licensed pharmacies',
+              title: '100% Genuine', 
+              desc: 'Licensed stock',
               icon: <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             },
             { 
-              title: 'Secure Payments', 
-              desc: 'Your payments are safe & encrypted',
+              title: 'Secure Pay', 
+              desc: 'Encrypted payments',
               icon: <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             },
             { 
-              title: '24/7 Customer Support', 
-              desc: 'We are here to help you anytime',
+              title: '24/7 Support', 
+              desc: 'Always here',
               icon: <><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></>
             }
           ].map((item, idx) => (
-            <div key={idx} className="flex items-center gap-4">
+            <div key={idx} className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-3 md:gap-4">
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
-                <svg className="w-5 h-5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                  {item.icon}
-                  {idx === 0 && <path d="M13 9h4l3 3v4a1 1 0 01-1 1h-3" />}
-                </svg>
+                <svg className="w-5 h-5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">{item.icon}</svg>
               </div>
               <div>
-                <div className="text-[12px] font-bold text-gray-900">{item.title}</div>
-                <div className="text-[10px] text-gray-500 mt-0.5">{item.desc}</div>
+                <div className="text-[11px] md:text-[12px] font-bold text-gray-900">{item.title}</div>
+                <div className="text-[9px] md:text-[10px] text-gray-500 mt-0.5">{item.desc}</div>
               </div>
             </div>
           ))}
@@ -551,41 +513,34 @@ function ProductDetail({ onBack }) {
       </div>
 
       {/* Tabs Section */}
-      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-8 mb-16">
-        <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-8 mb-10 md:mb-16">
+        <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
           {/* Tab Headers */}
-          <div className="flex items-center gap-8 px-8 border-b border-gray-100 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-6 md:gap-8 px-6 md:px-8 border-b border-gray-100 overflow-x-auto no-scrollbar scroll-smooth">
             {tabs.map((tab) => (
               <button 
                 key={tab} 
                 onClick={() => setActiveTab(tab)}
-                className={`py-5 text-[13px] font-bold whitespace-nowrap transition-all relative ${activeTab === tab ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`py-4 md:py-5 text-[12px] md:text-[13px] font-bold whitespace-nowrap transition-all relative ${activeTab === tab ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 {tab}
-                {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#006D6D] rounded-t-full"></div>}
+                {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 md:h-1 bg-[#006D6D] rounded-t-full"></div>}
               </button>
             ))}
           </div>
 
           {/* Tab Content */}
-          <div className="p-8 grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-12 items-start">
-            {/* Left side: Dynamic Content */}
-            <div className="min-h-[250px]">
+          <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-10 md:gap-12 items-start">
+            <div className="min-h-[200px] md:min-h-[250px]">
               {tabContent[activeTab]}
             </div>
 
-            {/* Right side: Why Choose Us */}
-            <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6 relative overflow-hidden">
+            {/* Why Choose Us */}
+            <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6 relative overflow-hidden hidden md:block">
               <div className="relative z-10">
                 <h3 className="text-[16px] font-bold text-gray-900 mb-4">Why choose CureBasket?</h3>
                 <div className="space-y-3">
-                  {[
-                    'Lowest prices guaranteed',
-                    'Genuine medicines from trusted pharmacies',
-                    'Secure payments & data protection',
-                    'Discreet packaging & on-time delivery',
-                    '24/7 customer support'
-                  ].map((text, idx) => (
+                  {['Lowest prices guaranteed', 'Genuine medicines stock', 'Secure data protection', 'On-time delivery'].map((text, idx) => (
                     <div key={idx} className="flex items-start gap-3">
                       <div className="w-4 h-4 rounded-full bg-[#E6F7F7] flex items-center justify-center mt-0.5 shrink-0">
                         <svg className="w-2.5 h-2.5 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
@@ -595,10 +550,8 @@ function ProductDetail({ onBack }) {
                   ))}
                 </div>
               </div>
-              
-              {/* Graphic Asset */}
-              <div className="absolute bottom-0 -right-4 w-48 h-48 opacity-90 pointer-events-none">
-                <img src={productImg} alt="CureBasket Product" className="w-full h-full object-contain" />
+              <div className="absolute bottom-0 -right-4 w-32 h-32 opacity-80 pointer-events-none">
+                <img src={productImg} alt="CureBasket" className="w-full h-full object-contain" />
               </div>
             </div>
           </div>
@@ -606,61 +559,30 @@ function ProductDetail({ onBack }) {
       </div>
 
       {/* Frequently Bought Together */}
-      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-12 mb-20">
+      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-10 md:mt-12 mb-16 md:mb-20">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[18px] font-bold text-gray-900">Frequently Bought Together</h2>
-          <button 
-            onClick={() => navigate('/all-products')}
-            className="flex items-center gap-2 text-[#006D6D] text-[13px] font-bold hover:gap-3 transition-all"
-          >
-            View all
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
+          <h2 className="text-[18px] font-bold text-gray-900">Recommended for you</h2>
+          <button onClick={() => navigate('/all-products')} className="text-[#006D6D] text-[12px] font-bold flex items-center gap-1 hover:underline">View all</button>
         </div>
 
-        <div className="relative group">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: 'Doxycycline 100 mg Tablet', qty: '10 Tablets', price: '$8.50' },
-              { name: 'Albendazole 400 mg Tablet', qty: '1 Tablet', price: '$2.20' },
-              { name: 'Vitamin C 500 mg Tablet', qty: '10 Tablets', price: '$4.10' },
-              { name: 'Zincovit Tablet', qty: '15 Tablets', price: '$3.30' }
-            ].map((item, idx) => (
-              <div 
-                key={idx} 
-                onClick={() => navigate(`/product/${item.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product: { ...item, category: 'General', image: med1 } } })}
-                className="bg-gray-50 rounded-2xl border border-gray-100 p-5 group/card cursor-pointer hover:shadow-lg transition-all"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-28 h-20 rounded-lg flex items-center justify-center shrink-0">
-                    <img src={med1} alt={item.name} className="w-full h-full object-contain" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 leading-tight h-8">{item.name}</h3>
-                    <p className="text-[11px] font-bold text-gray-400 mt-1">{item.qty}</p>
-                    <div className="flex items-center justify-between mt-4 gap-2">
-                      <span className="text-[15px] font-bold text-gray-900">{item.price}</span>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); navigate('/cart'); }}
-                        className="flex items-center gap-1.5 bg-[#006D6D] text-white px-2.5 py-1 rounded-lg text-[12px] font-bold hover:bg-[#005a5a] transition-all shadow-sm"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" strokeWidth="2.5"/></svg>
-                        Add
-                      </button>
-                    </div>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {[
+            { name: 'Doxycycline 100 mg', price: '$8.50' },
+            { name: 'Vitamin C 500 mg', price: '$4.10' }
+          ].map((item, idx) => (
+            <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-4 flex gap-4 cursor-pointer hover:shadow-md transition-all">
+              <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
+                <img src={med1} alt={item.name} className="w-full h-full object-contain p-2" />
+              </div>
+              <div className="flex flex-col justify-between">
+                <h3 className="text-[13px] font-bold text-gray-800 line-clamp-1">{item.name}</h3>
+                <div className="flex items-center justify-between gap-4 mt-2">
+                  <span className="text-[15px] font-bold text-gray-900">{item.price}</span>
+                  <button className="bg-[#006D6D] text-white px-3 py-1 rounded-lg text-[11px] font-bold">Add</button>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Carousel Arrows (Visual placeholders as per screenshot) */}
-          <button className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-100 rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-[#006D6D] transition-all hidden lg:flex">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
-          <button className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-100 rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-[#006D6D] transition-all hidden lg:flex">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
+            </div>
+          ))}
         </div>
       </div>
       {/* Upload Prescription Modal */}

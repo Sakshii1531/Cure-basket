@@ -151,7 +151,7 @@ function MainBannerCarousel() {
   }, [])
 
   return (
-    <section className="bg-white py-4 md:py-6 px-4 md:px-12">
+    <section className="bg-white py-2 md:py-6 px-2 md:px-12">
       <div className="max-w-[1250px] mx-auto relative group overflow-hidden">
         {/* Slides Container */}
         <div 
@@ -161,37 +161,37 @@ function MainBannerCarousel() {
           {slides.map((slide) => (
             <div 
               key={slide.id}
-              className="min-w-full rounded-[24px] p-8 md:p-10 flex flex-col md:flex-row items-center relative overflow-hidden"
+              className="min-w-full rounded-[24px] p-5 md:p-10 flex flex-col md:flex-row items-center relative overflow-hidden min-h-[260px] md:min-h-0"
               style={{ backgroundColor: slide.bg }}
             >
               {/* Left Section: Text and CTA */}
-              <div className="flex-1 z-10">
-                <h1 className="text-[28px] md:text-[40px] font-bold leading-tight">
+              <div className="flex-1 z-10 text-center md:text-left">
+                <h1 className="text-[24px] md:text-[40px] font-bold leading-tight">
                   <span className="text-[#006D6D]">{slide.heading1}</span><br />
                   <span style={{ color: slide.heading2Color }}>{slide.heading2}</span>
                 </h1>
-                <p className="text-[14px] md:text-[16px] text-gray-700 mt-4 max-w-[400px]">
+                <p className="text-[13px] md:text-[16px] text-gray-700 mt-3 md:mt-4 max-w-[400px] mx-auto md:mx-0">
                   {slide.sub}
                 </p>
                 
-                <div className="mt-8 flex flex-col md:flex-row items-center gap-6">
+                <div className="mt-6 md:mt-8 flex flex-col md:flex-row items-center gap-4 md:gap-6">
                   <button 
-                    className="px-10 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
+                    className="w-full md:w-auto px-8 md:px-10 py-3 md:py-3.5 rounded-[12px] font-bold text-[14px] md:text-[16px] flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
                     style={{ backgroundColor: slide.btnBg, color: slide.btnColor }}
                   >
                     {slide.cta}
-                    <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                     </svg>
                   </button>
-                  <span className="text-[#006D6D] font-semibold text-[14px] leading-tight">
-                    {slide.helper.split('!')[0]}!<br />
+                  <span className="text-[#006D6D] font-semibold text-[12px] md:text-[14px] leading-tight">
+                    {slide.helper.split('!')[0]}!<br className="hidden md:block" />
                     {slide.helper.split('!')[1] && <span className="opacity-80 font-normal">{slide.helper.split('!')[1]}</span>}
                   </span>
                 </div>
               </div>
 
-              {/* Middle Section: Trust Pillars */}
+              {/* Middle Section: Trust Pillars (Hidden on mobile, show on LG) */}
               <div className="hidden lg:flex flex-1 justify-center gap-8 z-10 px-4">
                 {slide.pillars.map((pillar, index) => (
                   <React.Fragment key={pillar.id}>
@@ -206,12 +206,12 @@ function MainBannerCarousel() {
                 ))}
               </div>
 
-              {/* Right Section: Graphic */}
+              {/* Right Section: Graphic (Hidden on mobile/tablet, show on MD) */}
               <div className="flex-1 hidden md:flex justify-end relative z-10">
                 <div className="relative">
-                  <img src={slide.image} alt="Promotion" className="w-[480px] object-contain" />
+                  <img src={slide.image} alt="Promotion" className="w-[300px] lg:w-[480px] object-contain" />
                   <div 
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 opacity-[0.05] rounded-full blur-3xl -z-10"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 lg:w-64 h-48 lg:h-64 opacity-[0.05] rounded-full blur-3xl -z-10"
                     style={{ backgroundColor: slide.blobColor }}
                   />
                 </div>
@@ -219,7 +219,7 @@ function MainBannerCarousel() {
 
               {/* Background Decorative Blob */}
               <div 
-                className="absolute right-[-80px] top-[-80px] w-[400px] h-[400px] opacity-[0.03] rounded-full pointer-events-none" 
+                className="absolute right-[-40px] md:right-[-80px] top-[-40px] md:top-[-80px] w-[200px] md:w-[400px] h-[200px] md:h-[400px] opacity-[0.03] rounded-full pointer-events-none" 
                 style={{ backgroundColor: slide.blobColor }}
               />
             </div>
@@ -227,26 +227,26 @@ function MainBannerCarousel() {
         </div>
 
         {/* Navigation Dots */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2 z-20">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`h-2.5 rounded-full transition-all duration-500 ease-out shadow-sm ${currentSlide === index ? 'w-8 bg-[#006D6D]' : 'w-2.5 bg-white/60 hover:bg-white'}`}
+              className={`h-2 md:h-2.5 rounded-full transition-all duration-500 ease-out shadow-sm ${currentSlide === index ? 'w-6 md:w-8 bg-[#006D6D]' : 'w-2 md:w-2.5 bg-white/60 hover:bg-white'}`}
             />
           ))}
         </div>
 
-        {/* Arrows (Optional but nice) */}
+        {/* Arrows (Hidden on mobile) */}
         <button 
           onClick={() => setCurrentSlide(prev => (prev === 0 ? slides.length - 1 : prev - 1))}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-[#006D6D] opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 hidden md:flex items-center justify-center text-[#006D6D] opacity-0 group-hover:opacity-100 transition-opacity z-20"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
         </button>
         <button 
           onClick={() => setCurrentSlide(prev => (prev === slides.length - 1 ? 0 : prev + 1))}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-[#006D6D] opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 hidden md:flex items-center justify-center text-[#006D6D] opacity-0 group-hover:opacity-100 transition-opacity z-20"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
         </button>

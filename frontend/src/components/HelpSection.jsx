@@ -52,28 +52,30 @@ const HelpSection = () => {
   return (
     <section className="bg-white pb-28 pt-0 px-4 md:px-12 overflow-hidden">
       <div className="max-w-[1250px] mx-auto">
-        <h2 className="text-[28px] md:text-[34px] font-semibold text-gray-900 mb-10 tracking-tight">
+        <h2 className="text-[22px] md:text-[34px] font-semibold text-gray-900 mb-10 tracking-tight">
           How CureBasket works?
         </h2>
         
         <div className="relative flex flex-col lg:flex-row justify-between items-stretch gap-0">
           {steps.map((item, index) => (
             <React.Fragment key={index}>
-              <div className="flex-1 bg-white rounded-[20px] border border-gray-200 p-6 flex items-center gap-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] relative z-10">
+              <div className="flex-1 bg-white rounded-[20px] border border-gray-200 p-3 md:p-6 flex items-center gap-2 md:gap-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] relative z-10">
                 {/* Icon Circle */}
-                <div className={`w-16 h-16 rounded-full ${item.bgColor} flex items-center justify-center shrink-0`}>
-                  {item.icon}
+                <div className={`w-11 h-11 md:w-16 md:h-16 rounded-full ${item.bgColor} flex items-center justify-center shrink-0`}>
+                  <div className="scale-[0.65] md:scale-100">
+                    {item.icon}
+                  </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex flex-col">
-                  <span className="text-[#006D6D] font-bold text-[13px] uppercase tracking-wider mb-1">
+                  <span className="text-[#006D6D] font-bold text-[11px] md:text-[13px] uppercase tracking-wider mb-0 md:mb-1 leading-none">
                     {item.step}
                   </span>
-                  <h3 className="text-[16px] font-bold text-gray-900 leading-tight mb-1">
+                  <h3 className="text-[14px] md:text-[16px] font-bold text-gray-900 leading-tight mb-0.5 md:mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-gray-500 text-[12px] leading-snug max-w-[180px]">
+                  <p className="text-gray-500 text-[11px] md:text-[12px] leading-snug max-w-[180px]">
                     {item.desc}
                   </p>
                 </div>
