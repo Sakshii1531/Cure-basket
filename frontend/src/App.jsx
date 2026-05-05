@@ -41,6 +41,7 @@ import EditProfilePage from './components/EditProfilePage'
 import CategoryProductList from './components/CategoryProductList'
 import LoginModal from './components/LoginModal'
 import { AuthProvider } from './context/AuthContext'
+import ScrollToTop from './components/ScrollToTop'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
@@ -197,6 +198,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <AppContent />
       </Router>
     </AuthProvider>
