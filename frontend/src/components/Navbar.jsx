@@ -1,11 +1,21 @@
 import React, { useState } from 'react'
 import curebasketLogo from '../assets/logo1.png'
 
-const Navbar = () => {
+function Navbar({
+  isPrescriptionMenuOpen,
+  setIsPrescriptionMenuOpen,
+  isOnlineCareMenuOpen,
+  setIsOnlineCareMenuOpen,
+  isHealthInfoMenuOpen,
+  setIsHealthInfoMenuOpen,
+  isGoldMembershipMenuOpen,
+  setIsGoldMembershipMenuOpen,
+  isAllCategoriesMenuOpen,
+  setIsAllCategoriesMenuOpen,
+  isMensHealthOpen,
+  setIsMensHealthOpen,
+}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isAllCategoriesMenuOpen, setIsAllCategoriesMenuOpen] = useState(false)
-  const [isMensHealthOpen, setIsMensHealthOpen] = useState(false)
-  const [orderId] = React.useState(() => `CB-${Math.floor(100000 + Math.random() * 900000)}`)
 
   return (
     <div className="sticky top-0 z-50 bg-white">

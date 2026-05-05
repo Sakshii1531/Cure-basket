@@ -9,7 +9,7 @@ function ProductDetail({ onBack }) {
   const product = location.state?.product || { name: 'Product', category: 'General', image: productImg }
 
   // Dynamic Package Options
-  const getPackageOptions = () => {
+  const getPackageOptions = React.useCallback(() => {
     if (product?.name.toLowerCase().includes('weight loss')) {
       return [
         { id: 1, label: '1 Pen (4 doses)', price: 120.00, perUnit: 30.00 },
@@ -23,7 +23,7 @@ function ProductDetail({ onBack }) {
       { id: 3, label: '60 Tablets', price: 55.00, perUnit: 0.91 },
       { id: 4, label: '120 Tablets', price: 95.00, perUnit: 0.79 },
     ]
-  }
+  }, [product.name])
 
   const packageOptions = getPackageOptions()
   const [selectedPackage, setSelectedPackage] = useState(packageOptions[1])
@@ -44,7 +44,7 @@ function ProductDetail({ onBack }) {
     setActiveTab('Product Information')
     setUploadSuccess(false)
     window.scrollTo(0, 0)
-  }, [product.name])
+  }, [product.name, getPackageOptions])
 
   const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews (120)']
 

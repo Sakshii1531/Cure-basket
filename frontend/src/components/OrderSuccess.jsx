@@ -8,7 +8,7 @@ const OrderSuccess = () => {
     window.scrollTo(0, 0)
   }, [])
 
-  const orderId = `CB-${Math.floor(100000 + Math.random() * 900000)}`
+  const [orderId] = React.useState(() => `CB-${Math.floor(100000 + Math.random() * 900000)}`)
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen flex items-center justify-center px-4 py-16">
