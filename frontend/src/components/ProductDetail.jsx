@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuthGate } from '../hooks/useAuthGate'
 import productImg from '../assets/product.png'
 import med1 from '../assets/med1.png'
 
@@ -34,6 +35,7 @@ function ProductDetail({ onBack }) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
+  const { guardedAction } = useAuthGate()
 
   // Reset state when product changes
   useEffect(() => {
@@ -456,14 +458,14 @@ function ProductDetail({ onBack }) {
             {/* Action Buttons */}
             <div className="space-y-2">
               <button 
-                onClick={() => navigate('/cart')}
+                onClick={guardedAction(() => navigate('/cart'), 'add-to-cart')}
                 className="w-full bg-[#FFD200] text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#FFD200]/10 text-[13px]"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 Add to Cart
               </button>
               <button 
-                onClick={() => navigate('/checkout', { state: { product, selectedPackage, quantity } })}
+                onClick={guardedAction(() => navigate('/checkout', { state: { product, selectedPackage, quantity } }), 'buy-now')}
                 className="w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all text-[13px]"
               >
                 <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>

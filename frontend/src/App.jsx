@@ -39,9 +39,12 @@ import OrdersPage from './components/OrdersPage'
 import AccountPage from './components/AccountPage'
 import EditProfilePage from './components/EditProfilePage'
 import CategoryProductList from './components/CategoryProductList'
+import LoginModal from './components/LoginModal'
+import { AuthProvider } from './context/AuthContext'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
+import SupportModal from './components/SupportModal'
 
 function HomePage({ onProductClick }) {
   return (
@@ -71,10 +74,18 @@ function AppContent() {
   const [isGoldMembershipMenuOpen, setIsGoldMembershipMenuOpen] = useState(false)
   const [isAllCategoriesMenuOpen, setIsAllCategoriesMenuOpen] = useState(false)
   const [isMensHealthOpen, setIsMensHealthOpen] = useState(false)
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false)
+  const [supportModalType, setSupportModalType] = useState('contact')
   const [isHcpPageOpen, setIsHcpPageOpen] = useState(() => window.location.hash === '#hcp')
   
   const navigate = useNavigate()
   const location = useLocation()
+  
+  const openSupportModal = (type) => {
+    setSupportModalType(type)
+    setIsSupportModalOpen(true)
+  }
+
   const isSubPage = ['/categories', '/orders', '/account', '/edit-profile'].includes(location.pathname) || location.pathname.startsWith('/category/')
 
   const handleProductClick = (product) => {
@@ -97,8 +108,9 @@ function AppContent() {
       {/* Global Headers for Main Pages (Mobile & Desktop) */}
       {!isSubPage && (
         <>
-          <TopBar />
+          <TopBar openSupport={openSupportModal} />
           <Navbar
+            openSupport={openSupportModal}
             isPrescriptionMenuOpen={isPrescriptionMenuOpen}
             setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
             isOnlineCareMenuOpen={isOnlineCareMenuOpen}
@@ -119,8 +131,9 @@ function AppContent() {
       <div className="hidden md:block">
         {isSubPage && (
           <>
-            <TopBar />
+            <TopBar openSupport={openSupportModal} />
             <Navbar
+              openSupport={openSupportModal}
               isPrescriptionMenuOpen={isPrescriptionMenuOpen}
               setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
               isOnlineCareMenuOpen={isOnlineCareMenuOpen}
@@ -168,15 +181,25 @@ function AppContent() {
       </div>
       
       <MobileBottomNav />
+
+      <SupportModal 
+        isOpen={isSupportModalOpen} 
+        onClose={() => setIsSupportModalOpen(false)} 
+        type={supportModalType}
+      />
+
+      <LoginModal />
     </div>
   )
 }
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   )
 }
 

@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const menuItems = [
   {
@@ -51,6 +52,16 @@ const menuItems = [
 
 const AccountPage = () => {
   const navigate = useNavigate()
+  const { isLoggedIn, user, logout, openLoginModal } = useAuth()
+
+  const initials = user?.name
+    ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'U'
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen pb-20">
@@ -69,21 +80,40 @@ const AccountPage = () => {
 
       {/* Profile Card */}
       <div className="p-3">
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 shadow-sm">
-          <div className="w-14 h-14 bg-[#006D6D] rounded-full flex items-center justify-center text-white text-[18px] font-bold shadow-lg shadow-[#006D6D]/20 shrink-0">
-            JD
+        {isLoggedIn ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 shadow-sm">
+            <div className="w-14 h-14 bg-[#006D6D] rounded-full flex items-center justify-center text-white text-[18px] font-bold shadow-lg shadow-[#006D6D]/20 shrink-0">
+              {initials}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <h2 className="text-[15px] font-bold text-gray-900 leading-tight">{user?.name || 'User'}</h2>
+              <p className="text-[12px] text-gray-500 font-medium">{user?.email || user?.phone || ''}</p>
+              <button onClick={() => navigate('/edit-profile')} className="flex items-center gap-1 text-[#006D6D] text-[12px] font-bold mt-0.5 hover:underline">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Edit Profile
+              </button>
+            </div>
           </div>
-          <div className="flex flex-col gap-0.5">
-            <h2 className="text-[15px] font-bold text-gray-900 leading-tight">John Doe</h2>
-            <p className="text-[12px] text-gray-500 font-medium">john.doe@email.com</p>
-            <button onClick={() => navigate('/edit-profile')} className="flex items-center gap-1 text-[#006D6D] text-[12px] font-bold mt-0.5 hover:underline">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 shadow-sm">
+            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
+              <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Edit Profile
-            </button>
+            </div>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-[14px] font-bold text-gray-700">Not logged in</h2>
+              <button
+                onClick={() => openLoginModal('login')}
+                className="text-[12px] font-bold text-[#006D6D] hover:underline text-left"
+              >
+                Login or Sign Up →
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Menu List */}
@@ -109,12 +139,17 @@ const AccountPage = () => {
 
       {/* Logout Button */}
       <div className="p-3">
-        <button className="w-full bg-white border border-red-100 py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:bg-red-50 group">
-          <svg className="w-4 h-4 text-red-500 group-active:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span className="text-[13px] font-black text-red-500 uppercase tracking-wider">Logout</span>
-        </button>
+        {isLoggedIn ? (
+          <button
+            onClick={handleLogout}
+            className="w-full bg-white border border-red-100 py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:bg-red-50 group"
+          >
+            <svg className="w-4 h-4 text-red-500 group-active:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="text-[13px] font-black text-red-500 uppercase tracking-wider">Logout</span>
+          </button>
+        ) : null}
       </div>
     </div>
   )

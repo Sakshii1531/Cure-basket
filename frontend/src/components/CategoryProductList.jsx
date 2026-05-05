@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useAuthGate } from '../hooks/useAuthGate'
 import med1 from '../assets/med1.png'
 import med2 from '../assets/med2.png'
 import med3 from '../assets/med3.png'
@@ -66,6 +67,8 @@ const CategoryProductList = () => {
   const handleProductClick = (product) => {
     navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
   }
+
+  const { guardedAction } = useAuthGate()
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen pb-20">
@@ -166,7 +169,7 @@ const CategoryProductList = () => {
                 
                 <div className="flex flex-col items-end gap-1.5">
                    <button 
-                    onClick={(e) => { e.stopPropagation(); /* cart logic */ }}
+                    onClick={(e) => { e.stopPropagation(); guardedAction(() => alert('Added to cart!'))() }}
                     className="bg-[#006D6D] text-white px-3 py-1.5 rounded-lg text-[11px] font-bold active:scale-95 transition-all"
                    >
                     Add to Cart

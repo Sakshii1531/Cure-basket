@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthGate } from '../hooks/useAuthGate'
 import med1 from '../assets/med1.png'
 
 const cartItems = [
@@ -34,6 +35,7 @@ const cartItems = [
 
 const Cart = () => {
   const navigate = useNavigate()
+  const { guardedAction } = useAuthGate()
   
   const subtotal = cartItems.reduce((acc, item) => acc + item.price, 0)
   const shipping = 10.00
@@ -132,7 +134,7 @@ const Cart = () => {
               </div>
 
               <button 
-                onClick={() => navigate('/checkout')}
+                onClick={guardedAction(() => navigate('/checkout'), 'checkout')}
                 className="w-full bg-[#006D6D] text-white font-semibold py-3.5 rounded-xl text-[14px] shadow-md hover:bg-[#005a5a] transition-all active:scale-[0.98] mt-6 flex items-center justify-center gap-2"
               >
                 Proceed to Checkout
