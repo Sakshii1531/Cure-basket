@@ -37,6 +37,8 @@ import MobileBottomNav from './components/MobileBottomNav'
 import CategoriesPage from './components/CategoriesPage'
 import OrdersPage from './components/OrdersPage'
 import AccountPage from './components/AccountPage'
+import EditProfilePage from './components/EditProfilePage'
+import CategoryProductList from './components/CategoryProductList'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
@@ -73,7 +75,7 @@ function AppContent() {
   
   const navigate = useNavigate()
   const location = useLocation()
-  const isSubPage = ['/categories', '/orders', '/account'].includes(location.pathname)
+  const isSubPage = ['/categories', '/orders', '/account', '/edit-profile'].includes(location.pathname) || location.pathname.startsWith('/category/')
 
   const handleProductClick = (product) => {
     navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
@@ -152,6 +154,8 @@ function AppContent() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/edit-profile" element={<EditProfilePage />} />
+        <Route path="/category/:categoryName" element={<CategoryProductList />} />
       </Routes>
 
       {!isSubPage && <FooterNewsletter />}

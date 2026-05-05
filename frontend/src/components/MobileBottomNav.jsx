@@ -53,7 +53,7 @@ const MobileBottomNav = () => {
             <button
               key={item.label}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-[#006D6D]' : 'text-gray-400'}`}
+              className={`flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-[#014D4E]' : 'text-[#014D4E]/50'}`}
             >
               <div className={`${isActive ? 'scale-110' : 'scale-100'} transition-transform duration-300`}>
                 {item.icon}
