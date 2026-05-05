@@ -7,12 +7,12 @@ import med4 from '../assets/med4.png'
 import med5 from '../assets/med5.png'
 
 // Category Banners (AI Generated)
-import allergyBanner from 'C:/Users/HP/.gemini/antigravity/brain/ed5e4503-d35c-4301-922a-e13264c128af/allergy_banner_1777890268903.png'
-import diabetesBanner from 'C:/Users/HP/.gemini/antigravity/brain/ed5e4503-d35c-4301-922a-e13264c128af/diabetes_banner_1777890391063.png'
-import skinCareBanner from 'C:/Users/HP/.gemini/antigravity/brain/ed5e4503-d35c-4301-922a-e13264c128af/skin_care_banner_1777890407540.png'
-import antibioticsBanner from 'C:/Users/HP/.gemini/antigravity/brain/ed5e4503-d35c-4301-922a-e13264c128af/antibiotics_banner_1777890422969.png'
-import painBanner from 'C:/Users/HP/.gemini/antigravity/brain/ed5e4503-d35c-4301-922a-e13264c128af/pain_relief_banner_1777890437621.png'
-import hairLossBanner from 'C:/Users/HP/.gemini/antigravity/brain/ed5e4503-d35c-4301-922a-e13264c128af/hair_loss_banner_1777890597175.png'
+import allergyBanner from '../assets/allergy_banner_1777890268903.png'
+import diabetesBanner from '../assets/diabetes_banner_1777890391063.png'
+import skinCareBanner from '../assets/skin_care_banner_1777890407540.png'
+import antibioticsBanner from '../assets/antibiotics_banner_1777890422969.png'
+import painBanner from '../assets/pain_relief_banner_1777890437621.png'
+import hairLossBanner from '../assets/hair_loss_banner_1777890597175.png'
 
 const frequentlyBought = [
   { id: 1, name: 'Doxycycline 100 mg Tablet', qty: '10 Tablets', price: '8.50', image: med1, category: 'allergy' },
