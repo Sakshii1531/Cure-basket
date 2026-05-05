@@ -112,7 +112,7 @@ const bestSellers = [
 
 function BestSellers({ onProductClick }) {
   const navigate = useNavigate()
-  const visibleProducts = bestSellers.slice(0, 3)
+  const visibleProducts = bestSellers
 
   return (
     <section className="bg-white pt-2 pb-12 md:py-12 px-4 md:px-12">
@@ -135,13 +135,13 @@ function BestSellers({ onProductClick }) {
           </button>
         </div>
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+        {/* Cards Slider */}
+        <div className="flex gap-4 md:gap-8 overflow-x-auto no-scrollbar pb-6 px-1 scroll-smooth">
           {visibleProducts.map((product) => (
             <div 
               key={product.id}
               onClick={() => onProductClick?.(product)}
-              className="bg-white rounded-[20px] md:rounded-[24px] border border-gray-100 md:border-gray-200 px-3 py-2 md:px-4 md:py-3 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-md transition-shadow"
+              className="min-w-[170px] md:min-w-[400px] bg-white rounded-[20px] md:rounded-[24px] border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-md transition-shadow"
             >
               {/* Badge - Adjusted for Mobile Vertical Layout */}
               <div className={`absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 ${product.badgeBg} ${product.badgeText}`}>
@@ -151,7 +151,7 @@ function BestSellers({ onProductClick }) {
               {/* Layout: Vertical on Mobile, Horizontal on Desktop (MD+) */}
               <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 mt-1 flex-grow">
                 {/* Image Section */}
-                <div className="w-full md:w-[160px] h-[100px] md:h-[150px] shrink-0 flex items-center justify-center">
+                <div className="w-full md:w-[160px] h-[80px] md:h-[130px] shrink-0 flex items-center justify-center">
                   <img 
                     src={product.image} 
                     alt={product.name}
@@ -161,15 +161,15 @@ function BestSellers({ onProductClick }) {
 
                 {/* Content Section */}
                 <div className="flex flex-col w-full text-left md:pt-2">
-                  <h3 className="text-[13px] md:text-[18px] font-bold text-gray-900 leading-tight mb-0.5">
+                   <h3 className="text-[13px] md:text-[18px] font-bold text-gray-900 leading-tight mb-0.5 min-h-[32px] md:min-h-[44px] flex items-center">
                     {product.name}
                   </h3>
-                  <p className="text-[#006D6D] font-semibold text-[11px] md:text-[13px] mb-1 md:mb-2">
+                  <p className="text-[#006D6D] font-semibold text-[11px] md:text-[13px] mb-0.5 md:mb-1">
                     {product.generic}
                   </p>
                   
                   {/* Rating */}
-                  <div className="flex items-center gap-1 mb-1 md:mb-2">
+                  <div className="flex items-center gap-1 mb-0.5 md:mb-1">
                     <svg className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-[#FFD200]" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
@@ -181,13 +181,17 @@ function BestSellers({ onProductClick }) {
 
               {/* Price and Button Row */}
               <div className="mt-1 flex justify-between items-end">
-                <div className="flex flex-col">
-                  {product.originalPrice && (
+                <div className="flex flex-col justify-end">
+                  {product.originalPrice ? (
                     <span className="text-[10px] md:text-[12px] text-gray-400 line-through font-medium leading-none mb-0.5">
                       ${product.originalPrice}
                     </span>
+                  ) : (
+                    <span className="text-[10px] md:text-[12px] text-transparent leading-none mb-0.5 select-none">
+                      $0.00
+                    </span>
                   )}
-                  <span className="text-[18px] md:text-[26px] font-black text-gray-900 leading-none">
+                  <span className="text-[16px] md:text-[22px] font-black text-gray-900 leading-none">
                     ${product.price}
                   </span>
                 </div>

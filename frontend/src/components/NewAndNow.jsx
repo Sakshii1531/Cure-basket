@@ -73,7 +73,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                   <p className="text-[12px] text-gray-500 font-bold">Generic Glucophage</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <div className="font-black text-[28px] text-gray-900 flex items-baseline gap-1 leading-none">
+                  <div className="font-black text-[22px] text-gray-900 flex items-baseline gap-1 leading-none">
                     $12 <span className="text-[13px] text-gray-600 font-black">/ mo.</span>
                     <span className="text-gray-300 font-normal text-[24px] ml-1">→</span>
                   </div>
@@ -91,7 +91,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                   <p className="text-[12px] text-gray-500 font-bold">Brand Medication</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <div className="font-black text-[28px] text-gray-900 flex items-baseline gap-1 leading-none">
+                  <div className="font-black text-[22px] text-gray-900 flex items-baseline gap-1 leading-none">
                     $89 <span className="text-[13px] text-gray-600 font-black">/ mo.</span>
                     <span className="text-gray-300 font-normal text-[24px] ml-1">→</span>
                   </div>
@@ -119,7 +119,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                   <p className="text-[12px] text-gray-500 font-bold">Generic Viagra</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <div className="font-black text-[28px] text-gray-900 flex items-baseline gap-1 leading-none">
+                  <div className="font-black text-[22px] text-gray-900 flex items-baseline gap-1 leading-none">
                     $18 <span className="text-[13px] text-gray-600 font-black">/ mo.</span>
                     <span className="text-gray-300 font-normal text-[24px] ml-1">→</span>
                   </div>
@@ -138,7 +138,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                   <p className="text-[12px] text-gray-500 font-bold">Generic Cialis</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <div className="font-black text-[28px] text-gray-900 flex items-baseline gap-1 leading-none">
+                  <div className="font-black text-[22px] text-gray-900 flex items-baseline gap-1 leading-none">
                     $21 <span className="text-[13px] text-gray-600 font-black">/ mo.</span>
                     <span className="text-gray-300 font-normal text-[24px] ml-1">→</span>
                   </div>
@@ -191,7 +191,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                   <p className="text-[12px] text-gray-500 font-bold">Generic Zoloft</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <div className="font-black text-[28px] text-gray-900 flex items-baseline gap-1 leading-none">
+                  <div className="font-black text-[22px] text-gray-900 flex items-baseline gap-1 leading-none">
                     $15 <span className="text-[13px] text-gray-600 font-black">/ mo.</span>
                     <span className="text-gray-300 font-normal text-[24px] ml-1">→</span>
                   </div>
@@ -209,7 +209,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                   <p className="text-[12px] text-gray-500 font-bold">Generic Prozac</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <div className="font-black text-[28px] text-gray-900 flex items-baseline gap-1 leading-none">
+                  <div className="font-black text-[22px] text-gray-900 flex items-baseline gap-1 leading-none">
                     $15 <span className="text-[13px] text-gray-600 font-black">/ mo.</span>
                     <span className="text-gray-300 font-normal text-[24px] ml-1">→</span>
                   </div>
