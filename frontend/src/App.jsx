@@ -46,6 +46,8 @@ import ScrollToTop from './components/ScrollToTop'
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
 import SupportModal from './components/SupportModal'
+import UploadRxPage from './components/UploadRxPage'
+import MedicinesPage from './components/MedicinesPage'
 
 function HomePage({ onProductClick }) {
   return (
@@ -87,7 +89,7 @@ function AppContent() {
     setIsSupportModalOpen(true)
   }
 
-  const isSubPage = ['/categories', '/orders', '/account', '/edit-profile'].includes(location.pathname) || location.pathname.startsWith('/category/')
+  const isSubPage = ['/categories', '/orders', '/account', '/edit-profile', '/upload-rx', '/medicines'].includes(location.pathname) || location.pathname.startsWith('/category/')
 
   const handleProductClick = (product) => {
     navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
@@ -170,6 +172,8 @@ function AppContent() {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/edit-profile" element={<EditProfilePage />} />
         <Route path="/category/:categoryName" element={<CategoryProductList />} />
+        <Route path="/upload-rx" element={<UploadRxPage />} />
+        <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
       </Routes>
 
       {!isSubPage && <FooterNewsletter />}

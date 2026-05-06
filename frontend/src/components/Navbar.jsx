@@ -93,10 +93,13 @@ function Navbar({
 
             {/* Nav Links */}
             <div className="flex items-center gap-6 shrink-0">
-              <a href="#" className="nav-link text-[13px]">Medicines</a>
+              <button onClick={() => navigate('/medicines')} className="nav-link text-[13px]">Medicines</button>
               
-              <div className="flex flex-col items-center translate-y-2">
-                <a href="#" className="nav-link text-[13px]">Upload Rx</a>
+              <div 
+                className="flex flex-col items-center translate-y-2 cursor-pointer"
+                onClick={() => navigate('/upload-rx')}
+              >
+                <span className="nav-link text-[13px]">Upload Rx</span>
                 <span className="bg-[#f39c12] text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap -mt-0.5">Fast order</span>
               </div>
 
@@ -185,12 +188,20 @@ function Navbar({
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  <div className="space-y-4">
-                    <a href="#" className="block text-[15px] font-bold text-gray-800">Medicines</a>
-                    <a href="#" className="block text-[15px] font-bold text-gray-800 flex items-center gap-2">
+                  <div className="space-y-4 text-left">
+                    <button 
+                      onClick={() => { navigate('/medicines'); setIsMobileMenuOpen(false); }} 
+                      className="block text-[15px] font-bold text-gray-800"
+                    >
+                      Medicines
+                    </button>
+                    <button 
+                      onClick={() => { navigate('/upload-rx'); setIsMobileMenuOpen(false); }} 
+                      className="block text-[15px] font-bold text-gray-800 flex items-center gap-2"
+                    >
                       Upload Rx
                       <span className="bg-[#f39c12] text-white text-[9px] px-2 py-0.5 rounded-full">Fast order</span>
-                    </a>
+                    </button>
                     <a href="#" className="block text-[15px] font-bold text-gray-800">All Categories</a>
                     <a href="#" className="block text-[15px] font-bold text-gray-800">Men's Health</a>
                     <a href="#" className="block text-[15px] font-bold text-gray-800">Eye Care</a>
