@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import curebasketLogo from '../assets/logo1.png'
 
 function Navbar({
@@ -17,6 +18,13 @@ function Navbar({
   openSupport
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const goToCategory = (cat) => {
+    setIsAllCategoriesMenuOpen(false)
+    setIsMensHealthOpen(false)
+    navigate(`/category/${encodeURIComponent(cat)}`)
+  }
 
   return (
     <div className="sticky top-0 z-50 bg-white">
@@ -117,24 +125,24 @@ function Navbar({
                 {isMensHealthOpen && (
                   <div className="absolute top-full left-0 min-w-[240px] bg-white border border-gray-200 shadow-xl z-[70] mt-0">
                     <div className="flex flex-col">
-                      <a href="#" className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-100 transition-colors">The Blue Pill (Sildenafil)</a>
-                      <a href="#" className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-100 transition-colors">The WeekEndPill (Tadalafil)</a>
-                      <a href="#" className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 transition-colors">Vardenafil</a>
+                      <button onClick={() => goToCategory('Sildenafil')} className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-100 transition-colors text-left">The Blue Pill (Sildenafil)</button>
+                      <button onClick={() => goToCategory('Tadalafil')} className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-100 transition-colors text-left">The WeekEndPill (Tadalafil)</button>
+                      <button onClick={() => goToCategory('Vardenafil')} className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 transition-colors text-left">Vardenafil</button>
                     </div>
                   </div>
                 )}
               </div>
 
-              <a href="#" className="nav-link text-[13px]">Eye Care</a>
+              <button onClick={() => goToCategory('Eye Care')} className="nav-link text-[13px]">Eye Care</button>
 
-              <a href="#" className="nav-link flex items-center gap-2 text-[13px]">
+              <button onClick={() => navigate('/track-order')} className="nav-link flex items-center gap-2 text-[13px]">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                   <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                   <line x1="12" y1="22.08" x2="12" y2="12"></line>
                 </svg>
                 Track Order
-              </a>
+              </button>
             </div>
 
             {/* Search Bar Integrated */}
@@ -212,22 +220,22 @@ function Navbar({
             <div className="max-w-[1450px] mx-auto px-4 md:px-12 grid grid-cols-4 gap-12">
               <div className="space-y-2">
                 {['Acid Reflux', 'Acne', 'Alcohol & Drug Treatment', 'Allergy', 'Alpha Blockers', 'Alzheimers', 'Angina Pectoris Anti-Anginals', 'Anthelmintic & Anti-worm', 'Anti Amebics', 'Anti Androgen', 'Anti Cancer', 'Anti Coagulants', 'Anti Convulsant'].map(cat => (
-                  <div key={cat} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
+                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
                 ))}
               </div>
               <div className="space-y-2">
                 {['Anti Emetic', 'Anti Migraine', 'Anti Parkinsonian', 'Anti Viral', 'Antibiotics', 'Antifungal', 'Asthma', 'Available Products', 'Beauty & Skin Care', 'Best selling Products', 'Birth Control', 'Bladder Prostate', 'Diabetes'].map(cat => (
-                  <div key={cat} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
+                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
                 ))}
               </div>
               <div className="space-y-2">
                 {['ED Pills Online', 'Eye Care', 'Featured Products', 'Free Shipping Products', 'Gastro Health', 'Hair Loss', 'Heart & Blood Pressure', 'HIV & Herpes', 'Hypothyroidism', 'Immunosuppressive', 'Infertility Therapy', 'Melasma'].map(cat => (
-                  <div key={cat} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
+                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
                 ))}
               </div>
               <div className="space-y-2">
                 {["Men's Health", 'New Products', 'Offers', 'Osteoporosis', 'Others', 'Pain Relief', 'Quit Smoking', 'Sildenafil Citrate', 'Stock Clearance', 'Weight Loss', "Women's Day", "Women's Health"].map(cat => (
-                  <div key={cat} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
+                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
                 ))}
               </div>
             </div>
