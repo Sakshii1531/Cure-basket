@@ -22,7 +22,7 @@ function Testimonials() {
   }, [])
 
   return (
-    <section className="bg-white pb-10 md:pb-16 pt-0 px-4 md:px-12 overflow-hidden">
+    <section id="service-reviews" className="bg-white pb-10 md:pb-16 pt-0 px-4 md:px-12 overflow-hidden">
       <div className="max-w-[1400px] mx-auto">
         {/* Header Rating */}
         <div className="flex flex-col items-center mb-8 md:mb-12">
