@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, Navigate } from 'react-router-dom';
 
 function AdminLayout() {
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+
+  if (!isAdminLoggedIn) {
+    return <Navigate to="/admin/login" replace />;
+  }
 
   const menuItems = [
     { name: 'Dashboard', path: '/admin', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -53,7 +59,13 @@ function AdminLayout() {
         </nav>
         
         <div className="p-4 border-t border-white/10">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold text-[#f5b74b] hover:bg-white/10 transition-colors">
+          <button 
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold text-[#f5b74b] hover:bg-white/10 transition-colors"
+            onClick={() => {
+              localStorage.removeItem('isAdminLoggedIn');
+              window.location.href = '/admin/login';
+            }}
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -121,7 +133,8 @@ function AdminLayout() {
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                     onClick={() => {
                       setIsProfileOpen(false);
-                      alert('Logging out...');
+                      localStorage.removeItem('isAdminLoggedIn');
+                      window.location.href = '/admin/login';
                     }}
                   >
                     Logout

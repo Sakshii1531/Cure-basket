@@ -62,6 +62,7 @@ import Brands from './admin/pages/Brands'
 import Reviews from './admin/pages/Reviews'
 import Analytics from './admin/pages/Analytics'
 import CMS from './admin/pages/CMS'
+import AdminLogin from './admin/pages/AdminLogin'
 
 function HomePage({ onProductClick }) {
   return (
@@ -191,6 +192,7 @@ function AppContent() {
         <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
 
         {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="medicines" element={<Medicines />} />
