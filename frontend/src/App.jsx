@@ -48,6 +48,20 @@ import MainBannerCarousel from './components/MainBannerCarousel'
 import SupportModal from './components/SupportModal'
 import UploadRxPage from './components/UploadRxPage'
 import MedicinesPage from './components/MedicinesPage'
+import AdminLayout from './admin/layout/AdminLayout'
+import Dashboard from './admin/pages/Dashboard'
+import Medicines from './admin/pages/Medicines'
+import Categories from './admin/pages/Categories'
+import Orders from './admin/pages/Orders'
+import Users from './admin/pages/Users'
+import Banners from './admin/pages/Banners'
+import Coupons from './admin/pages/Coupons'
+import Settings from './admin/pages/Settings'
+import Prescriptions from './admin/pages/Prescriptions'
+import Brands from './admin/pages/Brands'
+import Reviews from './admin/pages/Reviews'
+import Analytics from './admin/pages/Analytics'
+import CMS from './admin/pages/CMS'
 
 function HomePage({ onProductClick }) {
   return (
@@ -90,6 +104,7 @@ function AppContent() {
   }
 
   const isSubPage = ['/categories', '/orders', '/account', '/edit-profile', '/upload-rx', '/medicines'].includes(location.pathname) || location.pathname.startsWith('/category/')
+  const isAdminPage = location.pathname.startsWith('/admin')
 
   const handleProductClick = (product) => {
     navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
@@ -109,7 +124,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background font-sans pb-[70px] md:pb-0">
       {/* Global Headers for Main Pages (Mobile & Desktop) */}
-      {!isSubPage && (
+      {!isSubPage && !isAdminPage && (
         <>
           <TopBar openSupport={openSupportModal} />
           <Navbar
@@ -132,7 +147,7 @@ function AppContent() {
       
       {/* For Desktop Subpages, always show header */}
       <div className="hidden md:block">
-        {isSubPage && (
+        {isSubPage && !isAdminPage && (
           <>
             <TopBar openSupport={openSupportModal} />
             <Navbar
@@ -174,18 +189,35 @@ function AppContent() {
         <Route path="/category/:categoryName" element={<CategoryProductList />} />
         <Route path="/upload-rx" element={<UploadRxPage />} />
         <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="medicines" element={<Medicines />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="users" element={<Users />} />
+          <Route path="banners" element={<Banners />} />
+          <Route path="coupons" element={<Coupons />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="prescriptions" element={<Prescriptions />} />
+          <Route path="brands" element={<Brands />} />
+          <Route path="reviews" element={<Reviews />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="cms" element={<CMS />} />
+        </Route>
       </Routes>
 
-      {!isSubPage && <FooterNewsletter />}
-      {!isSubPage && <FooterAccessibility />}
+      {!isSubPage && !isAdminPage && <FooterNewsletter />}
+      {!isSubPage && !isAdminPage && <FooterAccessibility />}
       
       {/* For desktop subpages, show footer */}
       <div className="hidden md:block">
-        {isSubPage && <FooterNewsletter />}
-        {isSubPage && <FooterAccessibility />}
+        {isSubPage && !isAdminPage && <FooterNewsletter />}
+        {isSubPage && !isAdminPage && <FooterAccessibility />}
       </div>
       
-      <MobileBottomNav />
+      {!isAdminPage && <MobileBottomNav />}
 
       <SupportModal 
         isOpen={isSupportModalOpen} 

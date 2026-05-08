@@ -3,12 +3,25 @@ import { useNavigate } from 'react-router-dom'
 
 const OrderSuccess = () => {
   const navigate = useNavigate()
+  const [orderId] = React.useState(() => `CB-${Math.floor(100000 + Math.random() * 900000)}`)
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [])
-
-  const [orderId] = React.useState(() => `CB-${Math.floor(100000 + Math.random() * 900000)}`)
+    
+    // Save order to localStorage for Admin Panel
+    const savedOrders = JSON.parse(localStorage.getItem('cb_orders') || '[]');
+    if (!savedOrders.some(o => o.id === orderId)) {
+      const newOrder = {
+        id: orderId,
+        date: new Date().toISOString().split('T')[0],
+        customer: 'John Doe',
+        total: '$70.00',
+        status: 'Pending',
+        items: ['Paracetamol 500mg', 'Amoxicillin 250mg']
+      };
+      localStorage.setItem('cb_orders', JSON.stringify([...savedOrders, newOrder]));
+    }
+  }, [orderId])
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen flex items-center justify-center px-4 py-16">

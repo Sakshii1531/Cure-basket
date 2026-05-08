@@ -6,9 +6,23 @@ function UploadRxPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [fileData, setFileData] = useState(null)
 
   const handleUpload = () => {
     setIsUploading(true)
+    
+    // Save to localStorage for Admin Panel
+    const savedPrescriptions = JSON.parse(localStorage.getItem('cb_prescriptions') || '[]');
+    const newRx = {
+      id: Date.now(),
+      fileName: selectedFile.name,
+      fileSize: (selectedFile.size / 1024).toFixed(1) + ' KB',
+      fileData: fileData, // base64 string
+      date: new Date().toISOString().split('T')[0],
+      status: 'Pending'
+    };
+    localStorage.setItem('cb_prescriptions', JSON.stringify([...savedPrescriptions, newRx]));
+
     // Simulate upload
     setTimeout(() => {
       setIsUploading(false)
@@ -51,7 +65,17 @@ function UploadRxPage() {
                     type="file" 
                     id="fileInput" 
                     className="hidden" 
-                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      setSelectedFile(file);
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setFileData(reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
                     accept="image/*,.pdf"
                   />
                   
