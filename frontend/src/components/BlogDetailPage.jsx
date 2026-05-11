@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import allergyImg from '../assets/allergy.png';
 import diabetesImg from '../assets/diabetes.png';
@@ -7,10 +7,17 @@ import skinCareImg from '../assets/skin-care.png';
 const BlogDetailPage = () => {
   const navigate = useNavigate();
   const { slug } = useParams();
+  const [blogs, setBlogs] = useState([]);
 
-  // Fallback to 'splinter' if slug is not provided or not found
-  const currentSlug = slug && blogData[slug] ? slug : 'splinter';
-  const blog = blogData[currentSlug];
+  useEffect(() => {
+    const savedBlogs = localStorage.getItem('cb_blogs');
+    if (savedBlogs) {
+      setBlogs(JSON.parse(savedBlogs));
+    }
+  }, []);
+
+  const blogFromStorage = blogs.find(b => b.slug === slug);
+  const blog = blogFromStorage || blogData[slug] || blogData['splinter'];
 
   return (
     <div className="bg-white min-h-screen font-sans">
@@ -92,7 +99,33 @@ const BlogDetailPage = () => {
 
       {/* Article Content */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 md:py-12 text-gray-800 leading-relaxed space-y-10 md:space-y-12">
-        {blog.content}
+        {blog.sections ? (
+          Array.isArray(blog.sections) ? (
+            blog.sections.map((section, idx) => (
+              section.content && (
+                <section id={section.title.toLowerCase().replace(/\s+/g, '-')} key={idx} className="space-y-4">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e] capitalize">{section.title}</h2>
+                  <div className="text-gray-600 text-[15px] space-y-4">
+                    {section.content.split('\n').map((para, i) => para && <p key={i}>{para}</p>)}
+                  </div>
+                </section>
+              )
+            ))
+          ) : (
+            Object.entries(blog.sections).map(([id, content]) => (
+              content && (
+                <section id={id} key={id} className="space-y-4">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e] capitalize">{id.replace(/([A-Z])/g, ' $1')}</h2>
+                  <div className="text-gray-600 text-[15px] space-y-4">
+                    {content.split('\n').map((para, i) => para && <p key={i}>{para}</p>)}
+                  </div>
+                </section>
+              )
+            ))
+          )
+        ) : (
+          blog.content
+        )}
 
         {/* Related Posts */}
         <section id="related-posts" className="mt-16">

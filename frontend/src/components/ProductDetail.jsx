@@ -52,6 +52,27 @@ function ProductDetail({ onBack }) {
 
   // Dynamic content based on product
   const getProductData = () => {
+    // Check localStorage first
+    const savedDetails = localStorage.getItem('cb_medicine_details');
+    if (savedDetails) {
+      const details = JSON.parse(savedDetails);
+      const matchedMed = details.find(m => m.medicineName === product.name);
+      if (matchedMed) {
+        return {
+          genericName: product.generic || matchedMed.salt || 'N/A',
+          manufacturer: matchedMed.manufacturer || 'N/A',
+          salt: matchedMed.salt || 'N/A',
+          uses: matchedMed.uses ? matchedMed.uses.split('\n').filter(line => line.trim() !== '') : ['N/A'],
+          sideEffects: matchedMed.sideEffects ? matchedMed.sideEffects.split('\n').filter(line => line.trim() !== '') : ['N/A'],
+          howToUse: {
+            title: 'Usage Instructions',
+            step1: matchedMed.howToUse ? matchedMed.howToUse.split('\n')[0] : 'N/A',
+            step2: matchedMed.howToUse ? matchedMed.howToUse.split('\n')[1] : 'N/A'
+          }
+        }
+      }
+    }
+
     if (product.name.toLowerCase().includes('weight loss')) {
       return {
         genericName: 'Semaglutide / Tirzepatide',

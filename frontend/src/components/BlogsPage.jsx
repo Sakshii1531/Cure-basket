@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import blogsImg from '../assets/blogs.png';
 import allergyImg from '../assets/allergy.png';
@@ -7,6 +7,21 @@ import skinCareImg from '../assets/skin-care.png';
 
 const BlogsPage = () => {
   const navigate = useNavigate();
+  const [blogs, setBlogs] = useState([]);
+
+  useEffect(() => {
+    const savedBlogs = localStorage.getItem('cb_blogs');
+    if (savedBlogs) {
+      setBlogs(JSON.parse(savedBlogs));
+    } else {
+      const defaultBlogs = [
+        { id: 1, image: allergyImg, category: 'ALLERGY', title: 'How to Get a Splinter Out: 9 Tips to Try at Home', author: 'Shiv Sudhakar, MD', date: 'May 1, 2026', slug: 'splinter' },
+        { id: 2, image: diabetesImg, category: 'DIABETES', title: 'Managing Diabetes: Tips for daily life', author: 'Jane Doe, MD', date: 'May 5, 2026', slug: 'diabetes' },
+        { id: 3, image: skinCareImg, category: 'SKIN CARE', title: 'Skincare routine for glowing skin', author: 'John Smith, MD', date: 'May 10, 2026', slug: 'skincare' }
+      ];
+      setBlogs(defaultBlogs);
+    }
+  }, []);
   return (
     <div className="bg-white min-h-screen">
       {/* Banner */}
@@ -84,14 +99,10 @@ const BlogsPage = () => {
       <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 md:py-12">
         <h2 className="text-[22px] md:text-[28px] font-bold text-gray-900 mb-4 md:mb-6">Latest Articles</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { id: 1, img: allergyImg, category: 'ALLERGY', title: 'How to Get a Splinter Out: 9 Tips to Try at Home', author: 'Shiv Sudhakar, MD', date: 'May 1, 2026', slug: 'splinter' },
-            { id: 2, img: diabetesImg, category: 'DIABETES', title: 'Managing Diabetes: Tips for daily life', author: 'Jane Doe, MD', date: 'May 5, 2026', slug: 'diabetes' },
-            { id: 3, img: skinCareImg, category: 'SKIN CARE', title: 'Skincare routine for glowing skin', author: 'John Smith, MD', date: 'May 10, 2026', slug: 'skincare' }
-          ].map(post => (
+          {blogs.map(post => (
             <div key={post.id} onClick={() => navigate(`/blog/${post.slug}`)} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative">
-                <img src={post.img} alt={post.title} className="w-full h-56 object-cover" />
+                <img src={post.image || post.img} alt={post.title} className="w-full h-56 object-cover" />
                 <div className="absolute -bottom-3 left-4 bg-[#f5b23e] text-black text-xs font-bold px-3 py-1.5 uppercase rounded-sm shadow-sm">
                   {post.category}
                 </div>

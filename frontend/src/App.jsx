@@ -65,6 +65,8 @@ import Reviews from './admin/pages/Reviews'
 import Analytics from './admin/pages/Analytics'
 import CMS from './admin/pages/CMS'
 import AdminLogin from './admin/pages/AdminLogin'
+import Blogs from './admin/pages/Blogs'
+import MedicineDetails from './admin/pages/MedicineDetails'
 
 function HomePage({ onProductClick }) {
   return (
@@ -211,6 +213,8 @@ function AppContent() {
           <Route path="reviews" element={<Reviews />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="cms" element={<CMS />} />
+          <Route path="blogs" element={<Blogs />} />
+          <Route path="medicine-details" element={<MedicineDetails />} />
         </Route>
       </Routes>
 
