@@ -48,6 +48,8 @@ import MainBannerCarousel from './components/MainBannerCarousel'
 import SupportModal from './components/SupportModal'
 import UploadRxPage from './components/UploadRxPage'
 import MedicinesPage from './components/MedicinesPage'
+import BlogsPage from './components/BlogsPage'
+import BlogDetailPage from './components/BlogDetailPage'
 import AdminLayout from './admin/layout/AdminLayout'
 import Dashboard from './admin/pages/Dashboard'
 import Medicines from './admin/pages/Medicines'
@@ -190,6 +192,8 @@ function AppContent() {
         <Route path="/category/:categoryName" element={<CategoryProductList />} />
         <Route path="/upload-rx" element={<UploadRxPage />} />
         <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
+        <Route path="/blogs" element={<BlogsPage />} />
+        <Route path="/blog/:slug?" element={<BlogDetailPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />

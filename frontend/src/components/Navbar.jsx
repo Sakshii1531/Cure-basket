@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import curebasketLogo from '../assets/logo1.png'
 
 function Navbar({
@@ -18,7 +18,17 @@ function Navbar({
   openSupport
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false)
+  const [isMobileMensHealthOpen, setIsMobileMensHealthOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const isHomePage = location.pathname === '/'
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+    setIsMobileCategoriesOpen(false)
+    setIsMobileMensHealthOpen(false)
+  }
 
   const goToCategory = (cat) => {
     setIsAllCategoriesMenuOpen(false)
@@ -31,8 +41,19 @@ function Navbar({
       {/* Mobile Header (Hidden on Desktop) */}
       <div className="xl:hidden pl-4 pr-4 py-0 flex flex-col gap-0 border-b border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-end justify-between py-0">
-          {/* Logo */}
-          <div className="flex items-center gap-1.5 cursor-pointer py-0 mb-[-8px]">
+          {/* Logo + Back Button */}
+          <div className="flex items-center gap-2 cursor-pointer py-0 mb-[-8px]">
+            {!isHomePage && (
+              <button
+                onClick={() => navigate(-1)}
+                className="text-[#006D6D] active:scale-95 transition-transform p-1"
+                aria-label="Go back"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+              </button>
+            )}
             <img src={curebasketLogo} alt="Logo" className="w-24 h-24 object-contain" />
           </div>
 
@@ -71,6 +92,82 @@ function Navbar({
         </div>
       </div>
 
+      {/* Mobile Menu Drawer - outside desktop div so it works on mobile */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100]">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div className="absolute right-0 top-0 h-full w-[280px] bg-white shadow-2xl">
+            <div className="flex flex-col h-full">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img src={curebasketLogo} alt="Logo" className="w-8 h-8" />
+                  <span className="font-bold text-[#006D6D] text-[18px]">CureBasket</span>
+                </div>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+
+                {/* Blogs */}
+                <button onClick={() => { navigate('/blogs'); closeMobileMenu(); }} className="w-full text-left text-[15px] font-bold text-gray-800 py-1">Blogs</button>
+
+                {/* Upload Rx */}
+                <button onClick={() => { navigate('/upload-rx'); closeMobileMenu(); }} className="w-full text-left text-[15px] font-bold text-gray-800 py-1 flex items-center gap-2">
+                  Upload Rx
+                  <span className="bg-[#f39c12] text-white text-[9px] px-2 py-0.5 rounded-full">Fast order</span>
+                </button>
+
+                {/* All Categories */}
+                <div>
+                  <button onClick={() => setIsMobileCategoriesOpen(!isMobileCategoriesOpen)} className="w-full text-left text-[15px] font-bold text-gray-800 py-1 flex items-center justify-between">
+                    All Categories
+                    <svg className={`w-4 h-4 transition-transform ${isMobileCategoriesOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {isMobileCategoriesOpen && (
+                    <div className="mt-2 ml-3 space-y-2 border-l-2 border-[#f5b23e] pl-3">
+                      {['Allergy', 'Diabetes', 'Eye Care', 'Hair Loss', 'Pain Relief', 'Weight Loss', 'Asthma', 'Antibiotics', "Women's Health", "Men's Health", 'Skin Care'].map(cat => (
+                        <button key={cat} onClick={() => { goToCategory(cat); closeMobileMenu(); }} className="block w-full text-left text-[13px] text-gray-600 hover:text-[#006D6D] py-0.5">{cat}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Men's Health */}
+                <div>
+                  <button onClick={() => setIsMobileMensHealthOpen(!isMobileMensHealthOpen)} className="w-full text-left text-[15px] font-bold text-gray-800 py-1 flex items-center justify-between">
+                    {"Men's Health"}
+                    <svg className={`w-4 h-4 transition-transform ${isMobileMensHealthOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {isMobileMensHealthOpen && (
+                    <div className="mt-2 ml-3 space-y-2 border-l-2 border-[#f5b23e] pl-3">
+                      <button onClick={() => { goToCategory('Sildenafil'); closeMobileMenu(); }} className="block w-full text-left text-[13px] text-gray-600 hover:text-[#006D6D] py-0.5">The Blue Pill (Sildenafil)</button>
+                      <button onClick={() => { goToCategory('Tadalafil'); closeMobileMenu(); }} className="block w-full text-left text-[13px] text-gray-600 hover:text-[#006D6D] py-0.5">The WeekEndPill (Tadalafil)</button>
+                      <button onClick={() => { goToCategory('Vardenafil'); closeMobileMenu(); }} className="block w-full text-left text-[13px] text-gray-600 hover:text-[#006D6D] py-0.5">Vardenafil</button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Eye Care */}
+                <button onClick={() => { goToCategory('Eye Care'); closeMobileMenu(); }} className="w-full text-left text-[15px] font-bold text-gray-800 py-1">Eye Care</button>
+
+                {/* Track Order */}
+                <button onClick={() => { navigate('/track-order'); closeMobileMenu(); }} className="w-full text-left text-[15px] font-bold text-gray-800 py-1 flex items-center gap-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                  Track Order
+                </button>
+
+                <div className="pt-4 border-t border-gray-100">
+                  <button className="w-full bg-[#006D6D] text-white py-3 rounded-xl font-bold text-[14px]">Start Saving</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         className="relative hidden xl:block"
         onMouseLeave={() => {
@@ -93,7 +190,7 @@ function Navbar({
 
             {/* Nav Links */}
             <div className="flex items-center gap-6 shrink-0">
-              <button onClick={() => navigate('/medicines')} className="nav-link text-[13px]">Medicines</button>
+              <button onClick={() => navigate('/blogs')} className="nav-link text-[13px]">Blogs</button>
               
               <div 
                 className="flex flex-col items-center translate-y-2 cursor-pointer"
@@ -171,56 +268,7 @@ function Navbar({
           </div>
         </nav>
 
-        {/* Mobile Menu Drawer */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-[100] xl:hidden">
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
-            <div className="absolute right-0 top-0 h-full w-[280px] bg-white shadow-2xl animate-in slide-in-from-right duration-300">
-              <div className="flex flex-col h-full">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <img src={curebasketLogo} alt="Logo" className="w-8 h-8" />
-                    <span className="font-bold text-[#006D6D] text-[18px]">CureBasket</span>
-                  </div>
-                  <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/></svg>
-                  </button>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  <div className="space-y-4 text-left">
-                    <button 
-                      onClick={() => { navigate('/medicines'); setIsMobileMenuOpen(false); }} 
-                      className="block text-[15px] font-bold text-gray-800"
-                    >
-                      Medicines
-                    </button>
-                    <button 
-                      onClick={() => { navigate('/upload-rx'); setIsMobileMenuOpen(false); }} 
-                      className="block text-[15px] font-bold text-gray-800 flex items-center gap-2"
-                    >
-                      Upload Rx
-                      <span className="bg-[#f39c12] text-white text-[9px] px-2 py-0.5 rounded-full">Fast order</span>
-                    </button>
-                    <a href="#" className="block text-[15px] font-bold text-gray-800">All Categories</a>
-                    <a href="#" className="block text-[15px] font-bold text-gray-800">Men's Health</a>
-                    <a href="#" className="block text-[15px] font-bold text-gray-800">Eye Care</a>
-                    <a href="#" className="block text-[15px] font-bold text-gray-800 flex items-center gap-2">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                      Track Order
-                    </a>
-                  </div>
-
-                  <div className="pt-6 border-t border-gray-100">
-                    <button className="w-full bg-[#006D6D] text-white py-3 rounded-xl font-bold text-[14px]">
-                      Start Saving
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Mobile Menu Drawer - now moved above, kept here empty */}
 
         {/* All Categories Mega Menu (Desktop Only) */}
         {isAllCategoriesMenuOpen && (
