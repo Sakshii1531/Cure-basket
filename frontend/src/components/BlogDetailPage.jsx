@@ -3,6 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import allergyImg from '../assets/allergy.png';
 import diabetesImg from '../assets/diabetes.png';
 import skinCareImg from '../assets/skin-care.png';
+import blog1 from '../assets/blog-1.png';
+import blog2 from '../assets/blog-2.png';
+import blog3 from '../assets/blog-3.png';
+import blog4 from '../assets/blog-4.png';
+import blog5 from '../assets/blog-5.png';
 
 const BlogDetailPage = () => {
   const navigate = useNavigate();
@@ -62,7 +67,7 @@ const BlogDetailPage = () => {
 
           {/* Right Side — Image (extends below banner) */}
           <div className="hidden md:flex md:w-1/2 flex-col items-end" style={{ marginBottom: '-100px' }}>
-            <div className="bg-white p-4 rounded-3xl shadow-xl max-w-[450px]">
+            <div className="bg-white p-4 rounded-3xl shadow-xl max-w-[320px]">
               <img 
                 src={blog.image} 
                 alt={blog.title} 
@@ -587,6 +592,294 @@ const blogData = {
           <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Conclusion</h2>
           <div className="space-y-4 text-gray-600 text-[15px]">
             <p>Skincare is a journey, not a quick fix. Consistency is key. By following a basic routine and protecting your skin from damage, you can maintain a healthy, glowing complexion for years to come.</p>
+          </div>
+        </section>
+      </>
+    )
+  },
+  'travel-vaccines': {
+    title: 'Travel Vaccines: How to Get Vaccinated for Yellow Fever, Malaria, and More',
+    category: 'VACCINES',
+    image: blog1,
+    content: (
+      <>
+        <section id="introduction">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Introduction</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Traveling to new destinations is exciting, but it's important to protect your health. Travel vaccines are crucial for preventing diseases that may be common in other parts of the world.</p>
+            <p>This guide covers essential vaccines like Yellow Fever, Malaria prevention, and other routine immunizations you should consider before your trip.</p>
+          </div>
+        </section>
+        <section id="causes">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Causes</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Travelers face risks from exposure to diseases that are not common in their home country. These risks vary by destination, activities, and season. Common causes include exposure to contaminated food and water, disease-carrying insects, and close contact with infected individuals.</p>
+          </div>
+        </section>
+        <section id="symptoms">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Symptoms</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Symptoms of travel-related illnesses can range from mild to severe. They often include fever, headache, nausea, muscle aches, and fatigue. Some diseases, like Yellow Fever, can cause more severe symptoms like jaundice and organ failure if left untreated.</p>
+          </div>
+        </section>
+        <section id="treatment">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Treatment</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>The best treatment is prevention through vaccination before you travel. If you do contract a disease, treatment depends on the specific illness. It may include supportive care, fluids, and specific medications like antimalarials or antibiotics.</p>
+          </div>
+        </section>
+        <section id="prevention">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Prevention</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>To prevent travel-related illnesses, you should:
+              <ul className="list-disc list-inside space-y-1 mt-2">
+                <li>Get vaccinated at least 4-6 weeks before your trip.</li>
+                <li>Take antimalarial medication if recommended.</li>
+                <li>Practice safe food and water habits.</li>
+                <li>Use insect repellent and wear protective clothing.</li>
+              </ul>
+            </p>
+          </div>
+        </section>
+        <section id="when-to-see-a-doctor">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">When to See a Doctor</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>You should see a doctor or travel medicine specialist at least 4-6 weeks before your trip to discuss vaccination. Also, seek medical attention immediately if you develop a fever or become ill during or after your travel.</p>
+          </div>
+        </section>
+        <section id="conclusion">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Conclusion</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Proper planning and vaccination can ensure a safe and healthy trip. Don't let preventable diseases ruin your travel experience.</p>
+          </div>
+        </section>
+      </>
+    )
+  },
+  'female-pattern-baldness': {
+    title: 'Female-Pattern Baldness: Causes and Treatments for Genetic Hair Loss in Women',
+    category: 'WOMEN\'S HEALTH',
+    image: blog2,
+    content: (
+      <>
+        <section id="introduction">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Introduction</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Hair loss can be a distressing experience for women. Female-pattern baldness, also known as androgenetic alopecia, is a common cause of hair thinning in women.</p>
+            <p>Understanding the causes and available treatments can help manage this condition effectively.</p>
+          </div>
+        </section>
+        <section id="causes">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Causes</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Female-pattern baldness is primarily caused by genetics and aging. It involves a shrinking of the hair follicles, leading to shorter, finer hairs and eventually no hair production. Hormonal changes, particularly after menopause, can also play a role.</p>
+          </div>
+        </section>
+        <section id="symptoms">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Symptoms</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>The most common symptom is a gradual thinning of hair on the top and crown of the head. This often begins with a widening of the center part. Unlike men, women rarely develop a receding hairline or bald spot.</p>
+          </div>
+        </section>
+        <section id="treatment">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Treatment</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Treatments include:
+              <ul className="list-disc list-inside space-y-1 mt-2">
+                <li><strong>Minoxidil:</strong> A topical medication applied to the scalp.</li>
+                <li><strong>Hormone Therapy:</strong> If hair loss is related to hormonal imbalance.</li>
+                <li><strong>Hair Transplant:</strong> A surgical procedure to move hair to thinning areas.</li>
+                <li><strong>Light Therapy:</strong> Low-level laser therapy may stimulate growth.</li>
+              </ul>
+            </p>
+          </div>
+        </section>
+        <section id="prevention">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Prevention</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>While you cannot prevent genetic hair loss, you can protect your hair by avoiding harsh treatments, eating a balanced diet rich in vitamins, and managing stress.</p>
+          </div>
+        </section>
+        <section id="when-to-see-a-doctor">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">When to See a Doctor</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Consult a doctor or dermatologist if you experience sudden or patchy hair loss, or if you notice significant thinning that is causing distress.</p>
+          </div>
+        </section>
+        <section id="conclusion">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Conclusion</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Female-pattern baldness is common but manageable. With the right treatment and care, you can slow hair loss and improve the appearance of your hair.</p>
+          </div>
+        </section>
+      </>
+    )
+  },
+  '5-supplements-dementia': {
+    title: '5 Supplements That May Decrease Your Risk of Dementia',
+    category: 'DEMENTIA',
+    image: blog3,
+    content: (
+      <>
+        <section id="introduction">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Introduction</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Dementia is a growing concern as we age. While there is no cure, certain supplements and lifestyle choices may help support brain health and reduce the risk.</p>
+            <p>Here are 5 supplements that have shown promise in supporting cognitive function.</p>
+          </div>
+        </section>
+        <section id="causes">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Causes</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Dementia is caused by damage to brain cells. This damage interferes with the ability of brain cells to communicate with each other. While genetics and age are primary risk factors, lifestyle and nutrition also play a role.</p>
+          </div>
+        </section>
+        <section id="symptoms">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Symptoms</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Common symptoms include memory loss, difficulty communicating, confusion, and changes in mood or behavior. These symptoms can progress over time and affect daily activities.</p>
+          </div>
+        </section>
+        <section id="treatment">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Treatment</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>There is no cure for dementia, but treatments can help manage symptoms. Supplements like Omega-3 fatty acids, Vitamin E, and Ginkgo Biloba are often studied for their potential to support brain health.</p>
+          </div>
+        </section>
+        <section id="prevention">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Prevention</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>To reduce risk:
+              <ul className="list-disc list-inside space-y-1 mt-2">
+                <li>Eat a healthy, balanced diet.</li>
+                <li>Stay physically and mentally active.</li>
+                <li>Manage blood pressure and cholesterol.</li>
+                <li>Consider supplements after consulting a doctor.</li>
+              </ul>
+            </p>
+          </div>
+        </section>
+        <section id="when-to-see-a-doctor">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">When to See a Doctor</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>See a doctor if you or a loved one experiences significant memory loss or confusion that interferes with daily life.</p>
+          </div>
+        </section>
+        <section id="conclusion">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Conclusion</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>While research is ongoing, supporting brain health through nutrition and supplements is a proactive step you can take to reduce the risk of dementia.</p>
+          </div>
+        </section>
+      </>
+    )
+  },
+  'prescription-labels': {
+    title: 'Understanding Prescription Labels and Dosages',
+    category: 'Medication Safety',
+    image: blog4,
+    content: (
+      <>
+        <section id="introduction">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Introduction</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Reading prescription labels correctly is essential for safe medication use. Misunderstanding dosages can lead to ineffective treatment or dangerous side effects.</p>
+            <p>This article explains how to decode your medication labels and ensure you are taking your prescriptions correctly.</p>
+          </div>
+        </section>
+        <section id="causes">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Causes</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Medication errors often occur due to confusing instructions, similar-sounding drug names, or simply not reading the label carefully. Understanding the key parts of the label can prevent these errors.</p>
+          </div>
+        </section>
+        <section id="symptoms">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Symptoms</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Symptoms of taking the wrong dosage can include dizziness, nausea, allergic reactions, or the medication simply not working. Always follow the prescribed dosage.</p>
+          </div>
+        </section>
+        <section id="treatment">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Treatment</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>The best treatment for medication confusion is education. Ask your pharmacist to explain the instructions if they are unclear. Never change your dosage without consulting a doctor.</p>
+          </div>
+        </section>
+        <section id="prevention">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Prevention</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>To prevent errors:
+              <ul className="list-disc list-inside space-y-1 mt-2">
+                <li>Read the label every time you take medication.</li>
+                <li>Use a pill organizer to track doses.</li>
+                <li>Keep a list of all medications you take.</li>
+                <li>Double-check instructions with your pharmacist.</li>
+              </ul>
+            </p>
+          </div>
+        </section>
+        <section id="when-to-see-a-doctor">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">When to See a Doctor</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Contact your doctor or pharmacist immediately if you suspect you have taken the wrong dose or if you experience unusual side effects.</p>
+          </div>
+        </section>
+        <section id="conclusion">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Conclusion</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Understanding your prescription labels is a critical part of managing your health safely. Don't hesitate to ask questions if anything is unclear.</p>
+          </div>
+        </section>
+      </>
+    )
+  },
+  'healthcare-technology': {
+    title: 'Advancements in Healthcare Technology for 2026',
+    category: 'Technology',
+    image: blog5,
+    content: (
+      <>
+        <section id="introduction">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Introduction</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Technology is rapidly transforming healthcare. From AI diagnostics to remote patient monitoring, new innovations are improving care and outcomes.</p>
+            <p>Explore the top advancements in medical technology that are shaping the future of healthcare in 2026.</p>
+          </div>
+        </section>
+        <section id="causes">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Causes</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>The drive for better technology in healthcare is caused by the need for more efficient care, better patient outcomes, and the processing of large amounts of medical data.</p>
+          </div>
+        </section>
+        <section id="symptoms">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Symptoms</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Signs of technological advancement include widespread use of telemedicine, AI in radiology, and wearable health devices that monitor vitals in real-time.</p>
+          </div>
+        </section>
+        <section id="treatment">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Treatment</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Treatment methods are becoming more advanced with tech. Examples include robotic surgery, personalized medicine based on genetic profiles, and targeted drug delivery systems.</p>
+          </div>
+        </section>
+        <section id="prevention">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Prevention</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Technology aids prevention through early detection systems, predictive analytics that identify at-risk patients, and apps that encourage healthy lifestyle choices.</p>
+          </div>
+        </section>
+        <section id="when-to-see-a-doctor">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">When to See a Doctor</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>Discuss with your doctor how new technologies or wearable devices might help in monitoring or managing your specific health conditions.</p>
+          </div>
+        </section>
+        <section id="conclusion">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-[#f5b23e]">Conclusion</h2>
+          <div className="space-y-4 text-gray-600 text-[15px]">
+            <p>The future of healthcare is digital. Embracing these advancements can lead to better, more personalized care for everyone.</p>
           </div>
         </section>
       </>

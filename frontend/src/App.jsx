@@ -9,6 +9,7 @@ import ProductSection from './components/ProductSection'
 import ShopByCategory from './components/ShopByCategory'
 import WhyChoose from './components/WhyChoose'
 import AboutUs from './components/AboutUs'
+import BlogSection from './components/BlogSection'
 import FAQs from './components/FAQs'
 import Manufacturers from './components/Manufacturers'
 import Testimonials from './components/Testimonials'
@@ -82,6 +83,7 @@ function HomePage({ onProductClick }) {
       <ShopByCategory />
       <WhyChoose />
       <AboutUs />
+      <BlogSection />
       <FAQs />
       <Manufacturers />
       <Testimonials />
