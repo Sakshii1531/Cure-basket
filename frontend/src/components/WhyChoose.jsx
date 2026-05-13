@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import img_trusted from '../assets/trusted.png'
-import img_delivery from '../assets/delivery.png'
-import img_fast from '../assets/fast.png'
+import img_trusted from '../assets/image-1.png'
+import img_delivery from '../assets/image-2.png'
+import img_fast from '../assets/image-3.png'
 
 function WhyChoose() {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -15,7 +15,7 @@ function WhyChoose() {
 
         <div className="flex flex-col lg:flex-row gap-6 md:gap-12 lg:gap-20 items-start mb-6 md:mb-14">
           {/* Left: Benefit Icons */}
-          <div className="w-full lg:w-[45%] flex justify-between items-start pt-0 md:pt-4 -mt-2.5 md:mt-0">
+          <div className="w-full lg:w-[45%] flex justify-between items-start pt-0 md:pt-4 -mt-2.5 md:-mt-6">
             <div className="flex flex-col items-center text-center flex-1 px-2 group">
               <div className="flex items-end justify-center h-28 md:h-40 mb-1.5 transition-all duration-300">
                 <img src={img_trusted} alt="Trusted Medicines" className="max-w-full max-h-full object-contain" />
