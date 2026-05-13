@@ -68,6 +68,9 @@ import CMS from './admin/pages/CMS'
 import AdminLogin from './admin/pages/AdminLogin'
 import Blogs from './admin/pages/Blogs'
 import MedicineDetails from './admin/pages/MedicineDetails'
+import BankContact from './admin/pages/BankContact'
+import OrderShipping from './admin/pages/OrderShipping'
+import Dispense from './admin/pages/Dispense'
 
 function HomePage({ onProductClick }) {
   return (
@@ -211,11 +214,14 @@ function AppContent() {
           <Route path="coupons" element={<Coupons />} />
           <Route path="settings" element={<Settings />} />
           <Route path="prescriptions" element={<Prescriptions />} />
+          <Route path="dispense" element={<Dispense />} />
           <Route path="brands" element={<Brands />} />
           <Route path="reviews" element={<Reviews />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="cms" element={<CMS />} />
           <Route path="blogs" element={<Blogs />} />
+          <Route path="bank-contact" element={<BankContact />} />
+          <Route path="order-shipping" element={<OrderShipping />} />
           <Route path="medicine-details" element={<MedicineDetails />} />
         </Route>
       </Routes>

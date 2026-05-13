@@ -36,6 +36,50 @@ function Medicines() {
     localStorage.setItem('cb_medicines', JSON.stringify(medicines));
   }, [medicines]);
 
+  const [customFields, setCustomFields] = useState(() => {
+    const saved = localStorage.getItem('cb_custom_fields');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, label: 'Manufacturer', type: 'text' },
+      { id: 2, label: 'Salt Composition', type: 'text' },
+      { id: 3, label: 'Uses', type: 'textarea' },
+      { id: 4, label: 'Side Effects', type: 'textarea' },
+      { id: 5, label: 'How to Use', type: 'textarea' }
+    ];
+  });
+  
+  const [newFieldLabel, setNewFieldLabel] = useState('');
+  const [newFieldType, setNewFieldType] = useState('text');
+
+  useEffect(() => {
+    localStorage.setItem('cb_custom_fields', JSON.stringify(customFields));
+  }, [customFields]);
+
+  const handleAddCustomField = () => {
+    if (!newFieldLabel.trim()) return;
+    const newField = {
+      id: Date.now(),
+      label: newFieldLabel,
+      type: newFieldType
+    };
+    setCustomFields([...customFields, newField]);
+    setNewFieldLabel('');
+  };
+
+  const [editingFieldId, setEditingFieldId] = useState(null);
+  const [editingFieldLabel, setEditingFieldLabel] = useState('');
+
+  const handleSaveFieldLabel = (id) => {
+    if (!editingFieldLabel.trim()) return;
+    setCustomFields(customFields.map(f => f.id === id ? { ...f, label: editingFieldLabel } : f));
+    setEditingFieldId(null);
+  };
+
+  const handleDeleteField = (id) => {
+    if (window.confirm('Are you sure you want to delete this field? Data for this field in all medicines will be lost.')) {
+      setCustomFields(customFields.filter(f => f.id !== id));
+    }
+  };
+
   const filteredMedicines = medicines.filter(med => {
     const matchesSearch = med.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           med.generic.toLowerCase().includes(searchTerm.toLowerCase());
@@ -184,7 +228,7 @@ function Medicines() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-4xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-900">{currentMedicine?.id ? 'Edit Medicine' : 'Add Medicine'}</h3>
               <button 
@@ -196,128 +240,264 @@ function Medicines() {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleSave} className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1">Name</label>
-                <input 
-                  type="text" 
-                  value={currentMedicine.name}
-                  onChange={(e) => setCurrentMedicine({...currentMedicine, name: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1">Generic Name</label>
-                <input 
-                  type="text" 
-                  value={currentMedicine.generic}
-                  onChange={(e) => setCurrentMedicine({...currentMedicine, generic: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1">Brand (Optional)</label>
-                <select 
-                  value={currentMedicine.brand || ''}
-                  onChange={(e) => setCurrentMedicine({...currentMedicine, brand: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                >
-                  <option value="">No Brand</option>
-                  {brands.map(brand => (
-                    <option key={brand.id} value={brand.name}>{brand.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-1">Category</label>
-                  <select 
-                    value={currentMedicine.category}
-                    onChange={(e) => setCurrentMedicine({...currentMedicine, category: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                  >
-                    {categories.filter(c => c !== 'All').map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+            <form onSubmit={handleSave} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left Column: Basic Info */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Basic Info & Media</h4>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Name</label>
+                    <input 
+                      type="text" 
+                      value={currentMedicine.name}
+                      onChange={(e) => setCurrentMedicine({...currentMedicine, name: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Generic Name</label>
+                    <input 
+                      type="text" 
+                      value={currentMedicine.generic}
+                      onChange={(e) => setCurrentMedicine({...currentMedicine, generic: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Brand (Optional)</label>
+                    <select 
+                      value={currentMedicine.brand || ''}
+                      onChange={(e) => setCurrentMedicine({...currentMedicine, brand: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                    >
+                      <option value="">No Brand</option>
+                      {brands.map(brand => (
+                        <option key={brand.id} value={brand.name}>{brand.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Category</label>
+                      <select 
+                        value={currentMedicine.category}
+                        onChange={(e) => setCurrentMedicine({...currentMedicine, category: e.target.value})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      >
+                        {categories.filter(c => c !== 'All').map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Price ($)</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        value={currentMedicine.price}
+                        onChange={(e) => setCurrentMedicine({...currentMedicine, price: e.target.value})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Stock</label>
+                      <input 
+                        type="number" 
+                        value={currentMedicine.stock}
+                        onChange={(e) => setCurrentMedicine({...currentMedicine, stock: e.target.value})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Status</label>
+                      <select 
+                        value={currentMedicine.status}
+                        onChange={(e) => setCurrentMedicine({...currentMedicine, status: e.target.value})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Low Stock">Low Stock</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                  {/* Upload Image moved here */}
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Upload Image</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setCurrentMedicine({...currentMedicine, image: reader.result});
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                    />
+                    {currentMedicine.image && (
+                      <div className="mt-2 w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden">
+                        <img src={currentMedicine.image} alt="Preview" className="max-w-full max-h-full object-contain" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Custom Details */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Custom Details</h4>
+                  {/* Dynamic Custom Fields */}
+                  <div className="space-y-4">
+                    {customFields.map(field => (
+                      <div key={field.id}>
+                        <div className="flex justify-between items-center mb-1">
+                          {editingFieldId === field.id ? (
+                            <div className="flex gap-2 items-center w-full">
+                              <input 
+                                type="text" 
+                                value={editingFieldLabel}
+                                onChange={(e) => setEditingFieldLabel(e.target.value)}
+                                className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                              />
+                              <button 
+                                type="button" 
+                                onClick={() => handleSaveFieldLabel(field.id)}
+                                className="text-xs text-[#006D6D] font-bold hover:underline"
+                              >
+                                Save
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => setEditingFieldId(null)}
+                                className="text-xs text-gray-500 hover:underline"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <label className="text-sm font-semibold text-gray-700">{field.label}</label>
+                              <div className="flex gap-2">
+                                <button 
+                                  type="button" 
+                                  onClick={() => {
+                                    setEditingFieldId(field.id);
+                                    setEditingFieldLabel(field.label);
+                                  }}
+                                  className="text-xs text-gray-400 hover:text-[#006D6D] hover:underline"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleDeleteField(field.id)}
+                                  className="text-xs text-gray-400 hover:text-red-600 hover:underline"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        {field.type === 'textarea' ? (
+                          <textarea 
+                            value={currentMedicine.customValues?.[field.id] || ''}
+                            onChange={(e) => setCurrentMedicine({
+                              ...currentMedicine, 
+                              customValues: {
+                                ...currentMedicine.customValues,
+                                [field.id]: e.target.value
+                              }
+                            })}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                            rows="3"
+                            placeholder={`Enter ${field.label.toLowerCase()}...`}
+                          />
+                        ) : (
+                          <input 
+                            type="text" 
+                            value={currentMedicine.customValues?.[field.id] || ''}
+                            onChange={(e) => setCurrentMedicine({
+                              ...currentMedicine, 
+                              customValues: {
+                                ...currentMedicine.customValues,
+                                [field.id]: e.target.value
+                              }
+                            })}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                            placeholder={`Enter ${field.label.toLowerCase()}...`}
+                          />
+                        )}
+                      </div>
                     ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-1">Price ($)</label>
-                  <input 
-                    type="number" 
-                    step="0.01"
-                    value={currentMedicine.price}
-                    onChange={(e) => setCurrentMedicine({...currentMedicine, price: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-1">Stock</label>
-                  <input 
-                    type="number" 
-                    value={currentMedicine.stock}
-                    onChange={(e) => setCurrentMedicine({...currentMedicine, stock: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-1">Status</label>
-                  <select 
-                    value={currentMedicine.status}
-                    onChange={(e) => setCurrentMedicine({...currentMedicine, status: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Low Stock">Low Stock</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                  </div>
+
+                  {/* Add New Field Inline */}
+                  <div className="mt-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <p className="text-xs font-bold text-gray-600 mb-2">Add New Custom Field</p>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={newFieldLabel}
+                        onChange={(e) => setNewFieldLabel(e.target.value)}
+                        placeholder="Field Name (e.g. Uses)"
+                        className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      />
+                      <select 
+                        value={newFieldType}
+                        onChange={(e) => setNewFieldType(e.target.value)}
+                        className="bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      >
+                        <option value="text">Text</option>
+                        <option value="textarea">Textarea</option>
+                      </select>
+                      <button 
+                        type="button"
+                        onClick={handleAddCustomField}
+                        className="bg-[#006D6D] text-white px-3 py-1.5 rounded-lg font-semibold text-xs hover:bg-[#005c5c] transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1">Upload Image</label>
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        setCurrentMedicine({...currentMedicine, image: reader.result});
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                />
+
+              {/* Bottom Section: Checkboxes & Buttons */}
+              <div className="border-t border-gray-100 pt-4 mt-4">
+                <div className="flex gap-6">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={currentMedicine.isNewAndBest || false}
+                      onChange={(e) => setCurrentMedicine({...currentMedicine, isNewAndBest: e.target.checked})}
+                      className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D]"
+                    />
+                    Mark as "New and Best"
+                  </label>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={currentMedicine.isBestSeller || false}
+                      onChange={(e) => setCurrentMedicine({...currentMedicine, isBestSeller: e.target.checked})}
+                      className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D]"
+                    />
+                    Mark as "Best Seller"
+                  </label>
+                </div>
               </div>
-              <div className="flex gap-6 mt-2">
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={currentMedicine.isNewAndBest || false}
-                    onChange={(e) => setCurrentMedicine({...currentMedicine, isNewAndBest: e.target.checked})}
-                    className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D]"
-                  />
-                  Mark as "New and Best"
-                </label>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={currentMedicine.isBestSeller || false}
-                    onChange={(e) => setCurrentMedicine({...currentMedicine, isBestSeller: e.target.checked})}
-                    className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D]"
-                  />
-                  Mark as "Best Seller"
-                </label>
-              </div>
-              <div className="mt-6 flex justify-end gap-3">
+
+              <div className="mt-6 flex justify-end gap-3 border-t border-gray-100 pt-4">
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)}

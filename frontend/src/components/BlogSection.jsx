@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import blog1 from '../assets/blog-1.png'
 import blog2 from '../assets/blog-2.png'
@@ -6,7 +6,7 @@ import blog3 from '../assets/blog-3.png'
 import blog4 from '../assets/blog-4.png'
 import blog5 from '../assets/blog-5.png'
 
-const blogs = [
+const defaultBlogs = [
   {
     id: 1,
     image: blog1,
@@ -55,6 +55,28 @@ const blogs = [
 ]
 
 function BlogSection() {
+  const [blogs, setBlogs] = useState(defaultBlogs);
+
+  useEffect(() => {
+    const savedBlogs = localStorage.getItem('cb_blogs');
+    if (savedBlogs) {
+      const parsedBlogs = JSON.parse(savedBlogs);
+      // Filter blogs that should be shown on home page (default to true if undefined)
+      const dynamicBlogs = parsedBlogs.filter(b => b.showOnHome !== false);
+      
+      // Combine dynamic blogs with default blogs, removing duplicates by slug
+      const combined = [...dynamicBlogs];
+      
+      defaultBlogs.forEach(defBlog => {
+        if (!combined.some(b => b.slug === defBlog.slug)) {
+          combined.push(defBlog);
+        }
+      });
+      
+      // Take top 5 for the layout
+      setBlogs(combined.slice(0, 5));
+    }
+  }, []);
   return (
     <section className="bg-white pb-12 md:pb-20 pt-10 px-4 md:px-12 overflow-hidden">
       <div className="max-w-[1250px] mx-auto">

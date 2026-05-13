@@ -14,6 +14,8 @@ function Blogs() {
     author: 'CureBasket Medical Team',
     date: new Date().toISOString().split('T')[0],
     readingTime: '5 min read',
+    showOnHome: true,
+    showOnBlogsPage: true,
     sections: [
       { title: 'Introduction', content: '' },
       { title: 'Causes', content: '' },
@@ -108,6 +110,8 @@ function Blogs() {
       author: 'CureBasket Medical Team',
       date: new Date().toISOString().split('T')[0],
       readingTime: '5 min read',
+      showOnHome: true,
+      showOnBlogsPage: true,
       sections: [
         { title: 'Introduction', content: '' },
         { title: 'Causes', content: '' },
@@ -125,7 +129,7 @@ function Blogs() {
       ? blog.sections 
       : Object.entries(blog.sections || {}).map(([title, content]) => ({ title, content }));
     
-    setFormData({ ...blog, sections });
+    setFormData({ showOnHome: true, showOnBlogsPage: true, ...blog, sections });
     setIsAdding(true);
   };
 
@@ -194,16 +198,50 @@ function Blogs() {
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1">Image URL *</label>
+                <label className="text-sm font-semibold text-gray-700 block mb-1">Upload Image *</label>
                 <input
-                  type="text"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleInputChange}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setFormData(prev => ({ ...prev, image: reader.result }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                  required
+                  required={!formData.image}
                 />
+                {formData.image && (
+                  <div className="mt-2 w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 overflow-hidden">
+                    <img src={formData.image} alt="Preview" className="max-w-full max-h-full object-contain" />
+                  </div>
+                )}
               </div>
+            </div>
+
+            <div className="flex gap-6 mt-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={formData.showOnHome !== false}
+                  onChange={(e) => setFormData({...formData, showOnHome: e.target.checked})}
+                  className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D]"
+                />
+                Show on Home Page
+              </label>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={formData.showOnBlogsPage !== false}
+                  onChange={(e) => setFormData({...formData, showOnBlogsPage: e.target.checked})}
+                  className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D]"
+                />
+                Show on Blogs Page
+              </label>
             </div>
 
             <div className="border-t border-gray-100 pt-4">

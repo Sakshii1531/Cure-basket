@@ -12,7 +12,9 @@ const BlogsPage = () => {
   useEffect(() => {
     const savedBlogs = localStorage.getItem('cb_blogs');
     if (savedBlogs) {
-      setBlogs(JSON.parse(savedBlogs));
+      const parsedBlogs = JSON.parse(savedBlogs);
+      // Filter blogs that should be shown on blogs page (default to true if undefined)
+      setBlogs(parsedBlogs.filter(b => b.showOnBlogsPage !== false));
     } else {
       const defaultBlogs = [
         { id: 1, image: allergyImg, category: 'ALLERGY', title: 'How to Get a Splinter Out: 9 Tips to Try at Home', author: 'Shiv Sudhakar, MD', date: 'May 1, 2026', slug: 'splinter' },
