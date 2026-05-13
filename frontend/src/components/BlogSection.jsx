@@ -90,14 +90,14 @@ function BlogSection() {
           {/* Column 1: Card 1 */}
           <div className="lg:col-span-1 flex flex-col gap-6 md:gap-8">
             {/* Card 1 */}
-            <Link to={`/blog/${blogs[0].slug}`} className="relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col min-h-[650px] cursor-pointer">
+            <Link to={`/blog/${blogs[0].slug}`} className="relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col h-[350px] md:h-auto md:min-h-[650px] cursor-pointer">
               <img src={blogs[0].image} alt={blogs[0].title} className="w-full h-full object-cover transition-transform duration-500 absolute inset-0" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
               <div className="relative mt-auto p-6 flex flex-col items-start text-left z-10">
                 <span className="bg-[#FFD200] text-black text-[11px] font-bold uppercase py-1 px-2 rounded-sm mb-3">
                   {blogs[0].category}
                 </span>
-                <h3 className="text-[20px] md:text-[22px] font-bold text-white mb-2 leading-snug">
+                <h3 className="text-[14px] md:text-[22px] font-bold text-white mb-2 leading-snug">
                   {blogs[0].title}
                 </h3>
                 <div className="text-white/90 text-[13px] font-semibold mb-1">
@@ -113,7 +113,7 @@ function BlogSection() {
           {/* Column 2-3: Card 2, Card 4, Card 5 */}
           <div className="lg:col-span-2 flex flex-col gap-6 md:gap-8">
             {/* Card 2 */}
-            <Link to={`/blog/${blogs[1].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col md:flex-row border border-gray-100 cursor-pointer md:h-[170px]">
+            <Link to={`/blog/${blogs[1].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col md:flex-row border border-gray-100 cursor-pointer h-[350px] md:h-[170px]">
               <div className="relative w-full md:w-[45%] h-[200px] md:h-auto overflow-hidden">
                 <img src={blogs[1].image} alt={blogs[1].title} className="w-full h-full object-cover transition-transform duration-500" />
               </div>
@@ -121,7 +121,7 @@ function BlogSection() {
                 <span className="bg-[#FFD200] text-black text-[11px] font-bold uppercase py-1 px-2 rounded-sm mb-3 self-start">
                   {blogs[1].category}
                 </span>
-                <h3 className="text-[18px] md:text-[22px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
+                <h3 className="text-[14px] md:text-[22px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
                   {blogs[1].title}
                 </h3>
                 <div className="flex items-center gap-2 text-gray-500 text-[13px]">
@@ -135,7 +135,7 @@ function BlogSection() {
             {/* Grid for Card 4 and Card 5 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {/* Card 4 */}
-              <Link to={`/blog/${blogs[3].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col border border-gray-100 cursor-pointer">
+              <Link to={`/blog/${blogs[3].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col border border-gray-100 cursor-pointer h-[350px] md:h-auto">
                 <div className="relative h-[200px] md:h-[220px] overflow-hidden">
                   <img src={blogs[3].image} alt={blogs[3].title} className="w-full h-full object-cover transition-transform duration-500" />
                   <div className="absolute top-4 left-4 bg-[#004D4D] text-white text-[11px] font-bold uppercase py-1 px-3 rounded-full">
@@ -143,11 +143,11 @@ function BlogSection() {
                   </div>
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
-                  <div className="text-[#004D4D] text-[12px] font-semibold mb-2">{blogs[3].date}</div>
-                  <h3 className="text-[18px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
+                  <div className="text-[#004D4D] text-[11px] md:text-[12px] font-semibold mb-2">{blogs[3].date}</div>
+                  <h3 className="text-[14px] md:text-[18px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
                     {blogs[3].title}
                   </h3>
-                  <p className="text-gray-600 text-[13px] md:text-[14px] leading-relaxed mb-4 flex-grow">
+                  <p className="text-gray-600 text-[11px] md:text-[14px] leading-relaxed mb-4 flex-grow">
                     {blogs[3].excerpt}
                   </p>
                   <div className="mt-auto">
@@ -159,7 +159,7 @@ function BlogSection() {
               </Link>
 
               {/* Card 5 */}
-              <Link to={`/blog/${blogs[4].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col border border-gray-100 cursor-pointer">
+              <Link to={`/blog/${blogs[4].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col border border-gray-100 cursor-pointer h-[350px] md:h-auto">
                 <div className="relative h-[200px] md:h-[220px] overflow-hidden">
                   <img src={blogs[4].image} alt={blogs[4].title} className="w-full h-full object-cover transition-transform duration-500" />
                   <div className="absolute top-4 left-4 bg-[#004D4D] text-white text-[11px] font-bold uppercase py-1 px-3 rounded-full">
@@ -167,11 +167,11 @@ function BlogSection() {
                   </div>
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
-                  <div className="text-[#004D4D] text-[12px] font-semibold mb-2">{blogs[4].date}</div>
-                  <h3 className="text-[18px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
+                  <div className="text-[#004D4D] text-[11px] md:text-[12px] font-semibold mb-2">{blogs[4].date}</div>
+                  <h3 className="text-[14px] md:text-[18px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
                     {blogs[4].title}
                   </h3>
-                  <p className="text-gray-600 text-[13px] md:text-[14px] leading-relaxed mb-4 flex-grow">
+                  <p className="text-gray-600 text-[11px] md:text-[14px] leading-relaxed mb-4 flex-grow">
                     {blogs[4].excerpt}
                   </p>
                   <div className="mt-auto">
@@ -186,7 +186,7 @@ function BlogSection() {
 
           {/* Card 3 (Spans all columns) */}
           <div className="lg:col-span-3">
-            <Link to={`/blog/${blogs[2].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col md:flex-row border border-gray-100 cursor-pointer md:h-[170px]">
+            <Link to={`/blog/${blogs[2].slug}`} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col md:flex-row border border-gray-100 cursor-pointer h-[350px] md:h-[170px]">
               <div className="relative w-full md:w-[45%] h-[200px] md:h-auto overflow-hidden">
                 <img src={blogs[2].image} alt={blogs[2].title} className="w-full h-full object-cover transition-transform duration-500" />
               </div>
@@ -194,7 +194,7 @@ function BlogSection() {
                 <span className="bg-[#FFD200] text-black text-[11px] font-bold uppercase py-1 px-2 rounded-sm mb-3 self-start">
                   {blogs[2].category}
                 </span>
-                <h3 className="text-[18px] md:text-[22px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
+                <h3 className="text-[14px] md:text-[22px] font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#004D4D] transition-colors">
                   {blogs[2].title}
                 </h3>
                 <div className="flex items-center gap-2 text-gray-500 text-[13px]">
