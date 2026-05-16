@@ -42,7 +42,7 @@ function Navbar({
       <div className="xl:hidden pl-4 pr-4 py-0 flex flex-col gap-0 border-b border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-end justify-between py-0">
           {/* Logo + Back Button */}
-          <div className="flex items-center gap-2 cursor-pointer py-0 mb-[-8px]">
+          <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer py-0 mb-[-8px]">
             {!isHomePage && (
               <button
                 onClick={() => navigate(-1)}
@@ -99,7 +99,7 @@ function Navbar({
           <div className="absolute right-0 top-0 h-full w-[280px] bg-white shadow-2xl">
             <div className="flex flex-col h-full">
               <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div onClick={() => { navigate('/'); closeMobileMenu(); }} className="flex items-center gap-2 cursor-pointer">
                   <img src={curebasketLogo} alt="Logo" className="w-8 h-8" />
                   <span className="font-bold text-[#006D6D] text-[18px]">CureBasket</span>
                 </div>
@@ -188,7 +188,7 @@ function Navbar({
         <nav className="navbar h-[80px] flex items-center shadow-sm">
           <div className="max-w-[1800px] mx-auto w-full flex items-center justify-between px-8 gap-4">
             {/* Logo */}
-            <div className="flex items-center gap-2 cursor-pointer group shrink-0">
+            <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer group shrink-0">
               <img src={curebasketLogo} alt="CureBasket Logo" className="w-12 h-12 object-contain" />
               <span className="text-[24px] font-bold tracking-tight text-[#006D6D]">CureBasket</span>
             </div>
