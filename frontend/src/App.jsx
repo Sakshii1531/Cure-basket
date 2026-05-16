@@ -44,6 +44,7 @@ import LoginModal from './components/LoginModal'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import ScrollToTop from './components/ScrollToTop'
+import ErrorBoundary from './components/ErrorBoundary'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
@@ -255,7 +256,9 @@ function App() {
       <CartProvider>
         <Router>
           <ScrollToTop />
-          <AppContent />
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
         </Router>
       </CartProvider>
     </AuthProvider>

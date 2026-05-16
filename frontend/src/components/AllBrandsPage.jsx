@@ -1,25 +1,28 @@
-import React, { useEffect } from 'react'
-import brand1 from '../assets/brands/brand1.png'
-import brand2 from '../assets/brands/brand2.png'
-import brand3 from '../assets/brands/brand3.png'
-import brand4 from '../assets/brands/brand4.png'
-import brand5 from '../assets/brands/brand5.png'
-
-const brands = [
-  { id: 1, name: 'Brand 1', logo: brand1 },
-  { id: 2, name: 'Brand 2', logo: brand2 },
-  { id: 3, name: 'Brand 3', logo: brand3 },
-  { id: 4, name: 'Brand 4', logo: brand4 },
-  { id: 5, name: 'Brand 5', logo: brand5 },
-]
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import api from '../utils/api'
 
 function AllBrandsPage({ onBack }) {
+  const navigate = useNavigate()
+  const [brands, setBrands] = useState([])
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     window.scrollTo(0, 0)
+    setLoading(true)
+    api.get('/brands')
+      .then(res => {
+        const data = res.data.data
+        if (Array.isArray(data)) {
+          setBrands(data.map(b => ({ id: b._id, name: b.name, logo: b.logo || null })))
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-[#f8f9fa] min-h-screen">
       <div className="max-w-[1250px] mx-auto px-4 md:px-12 py-8 md:py-12">
         {/* Back Button */}
         <button 
@@ -43,20 +46,36 @@ function AllBrandsPage({ onBack }) {
         </div>
 
         {/* Brands Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {brands.map((brand) => (
-            <div 
-              key={brand.id}
-              className="bg-white border border-gray-200 rounded-[24px] p-4 flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all cursor-pointer h-[140px] group"
-            >
-              <img 
-                src={brand.logo} 
-                alt={brand.name} 
-                className="max-w-[100%] max-h-[100%] object-contain mix-blend-multiply"
-              />
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-[24px] h-[140px] animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+            {brands.map((brand) => (
+              <div 
+                key={brand.id}
+                onClick={() => navigate(`/medicines?brand=${brand.id}&brandName=${encodeURIComponent(brand.name)}`)}
+                className="bg-white border border-gray-100 rounded-[24px] p-4 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:border-[#006D6D]/30 transition-all cursor-pointer h-[140px] group"
+              >
+                {brand.logo ? (
+                  <img 
+                    src={brand.logo} 
+                    alt={brand.name} 
+                    className="max-w-[90%] max-h-[70%] object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300"
+                    onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }}
+                  />
+                ) : null}
+                <span className="text-[15px] md:text-[18px] font-bold text-gray-700 text-center" style={{ display: brand.logo ? 'none' : 'block' }}>
+                  {brand.name}
+                </span>
+                <p className="text-[12px] text-gray-400 mt-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity">View Medicines</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

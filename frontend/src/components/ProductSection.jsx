@@ -32,7 +32,7 @@ function ProductCard({ product }) {
   )
 }
 
-function ProductSection({ title }) {
+const ProductSection = ({ title, onProductClick }) => {
   return (
     <section className="px-4 md:px-12 pt-16 pb-10 bg-white">
       <div className="max-w-[1200px] mx-auto mb-10 flex flex-col items-center text-center">
