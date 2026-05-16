@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../utils/api'
 import { useCart } from '../context/CartContext'
 import med1 from '../assets/med1.png'
@@ -20,6 +20,11 @@ const badges = [
 function MedicinesPage({ onProductClick }) {
   const navigate = useNavigate()
   const { addToCart } = useCart()
+  const location = useLocation()
+  const queryParams = new URLSearchParams(location.search)
+  const brandFilter = queryParams.get('brand')
+  const brandName = queryParams.get('brandName')
+
   const [medicines, setMedicines] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -30,6 +35,7 @@ function MedicinesPage({ onProductClick }) {
     setLoading(true)
     const params = new URLSearchParams({ limit: 100 })
     if (search.trim()) params.set('name[regex]', search.trim())
+    if (brandFilter) params.set('brand', brandFilter)
     api.get(`/medicines?${params}`)
       .then(res => {
         let data = res.data.data || []
@@ -40,7 +46,7 @@ function MedicinesPage({ onProductClick }) {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [search, sort])
+  }, [search, sort, brandFilter])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -70,6 +76,22 @@ function MedicinesPage({ onProductClick }) {
             Browse our wide range of genuine medications. Trusted quality, delivered to you.
           </p>
         </div>
+
+        {brandName && (
+          <div className="mb-6 flex items-center gap-3">
+            <span className="bg-[#006D6D]/10 text-[#006D6D] px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+              Brand: {brandName}
+              <button 
+                onClick={() => navigate('/medicines')}
+                className="hover:text-red-500 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-8 pb-4 border-b border-gray-200">
           <div className="relative flex-1 max-w-md">

@@ -51,6 +51,7 @@ const PopularBrands = () => {
           {brands.map((brand) => (
             <div
               key={brand.id}
+              onClick={() => navigate(`/medicines?brand=${brand.id}&brandName=${encodeURIComponent(brand.name)}`)}
               className="bg-white border border-gray-200 rounded-[24px] p-2 flex items-center justify-center transition-all cursor-pointer h-[110px] min-w-[160px] md:min-w-[220px] shrink-0 hover:border-[#006D6D]/30"
             >
               {brand.logo ? (
