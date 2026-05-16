@@ -41,6 +41,8 @@ import AccountPage from './components/AccountPage'
 import EditProfilePage from './components/EditProfilePage'
 import CategoryProductList from './components/CategoryProductList'
 import LoginModal from './components/LoginModal'
+import LoginPage from './components/LoginPage'
+import SignupPage from './components/SignupPage'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import ScrollToTop from './components/ScrollToTop'
@@ -117,6 +119,7 @@ function AppContent() {
 
   const isSubPage = ['/categories', '/orders', '/account', '/edit-profile', '/upload-rx', '/medicines'].includes(location.pathname) || location.pathname.startsWith('/category/')
   const isAdminPage = location.pathname.startsWith('/admin')
+  const isAuthPage = ['/login', '/signup'].includes(location.pathname)
 
   const handleProductClick = (product) => {
     navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
@@ -136,7 +139,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background font-sans pb-[70px] md:pb-0">
       {/* Global Headers for Main Pages (Mobile & Desktop) */}
-      {!isSubPage && !isAdminPage && (
+      {!isSubPage && !isAdminPage && !isAuthPage && (
         <>
           <TopBar openSupport={openSupportModal} />
           <Navbar
@@ -159,7 +162,7 @@ function AppContent() {
       
       {/* For Desktop Subpages, always show header */}
       <div className="hidden md:block">
-        {isSubPage && !isAdminPage && (
+        {isSubPage && !isAdminPage && !isAuthPage && (
           <>
             <TopBar openSupport={openSupportModal} />
             <Navbar
@@ -203,6 +206,8 @@ function AppContent() {
         <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
         <Route path="/blogs" element={<BlogsPage />} />
         <Route path="/blog/:slug?" element={<BlogDetailPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -228,16 +233,16 @@ function AppContent() {
         </Route>
       </Routes>
 
-      {!isSubPage && !isAdminPage && <FooterNewsletter />}
-      {!isSubPage && !isAdminPage && <FooterAccessibility />}
+      {!isSubPage && !isAdminPage && !isAuthPage && <FooterNewsletter />}
+      {!isSubPage && !isAdminPage && !isAuthPage && <FooterAccessibility />}
       
       {/* For desktop subpages, show footer */}
       <div className="hidden md:block">
-        {isSubPage && !isAdminPage && <FooterNewsletter />}
-        {isSubPage && !isAdminPage && <FooterAccessibility />}
+        {isSubPage && !isAdminPage && !isAuthPage && <FooterNewsletter />}
+        {isSubPage && !isAdminPage && !isAuthPage && <FooterAccessibility />}
       </div>
       
-      {!isAdminPage && <MobileBottomNav />}
+      {!isAdminPage && !isAuthPage && <MobileBottomNav />}
 
       <SupportModal 
         isOpen={isSupportModalOpen} 

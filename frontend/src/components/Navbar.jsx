@@ -159,7 +159,12 @@ function Navbar({
                 </button>
 
                 <div className="pt-4 border-t border-gray-100">
-                  <button className="w-full bg-[#006D6D] text-white py-3 rounded-xl font-bold text-[14px]">Start Saving</button>
+                  <button 
+                    onClick={() => { navigate('/signup'); closeMobileMenu(); }}
+                    className="w-full bg-[#006D6D] text-white py-3 rounded-xl font-bold text-[14px]"
+                  >
+                    Start Saving
+                  </button>
                 </div>
 
               </div>
@@ -261,7 +266,10 @@ function Navbar({
 
             {/* Actions */}
             <div className="flex items-center gap-4 shrink-0">
-              <button className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md">
+              <button 
+                onClick={() => navigate('/signup')}
+                className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md"
+              >
                 Start Saving
               </button>
             </div>
