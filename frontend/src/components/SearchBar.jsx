@@ -13,7 +13,7 @@ function SearchBar() {
             />
             <div className="flex items-center gap-0 shrink-0">
               <div className="w-[1px] h-8 bg-gray-100 md:hidden"></div>
-              <button className="flex items-center justify-center bg-transparent md:bg-[#006D6D] text-gray-400 md:text-white w-12 h-12 md:w-10 md:h-10 rounded-none md:rounded-full hover:bg-gray-50 md:hover:bg-[#005a5a] transition-all group">
+              <button className="flex items-center justify-center bg-transparent md:bg-[#006D6D] text-gray-400 md:text-white w-12 h-12 md:w-10 md:h-10 rounded-none md:rounded-full hover:bg-gray-50 md:hover:bg-[#005a5a] transition-all group md:mr-1.5">
                 <svg 
                   className="w-6 h-6 md:w-5 md:h-5 transition-transform group-hover:scale-110" 
                   fill="none" 
@@ -23,9 +23,6 @@ function SearchBar() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              </button>
-              <button className="hidden md:block bg-[#006D6D] text-white px-8 py-2 rounded-full hover:bg-[#005a5a] transition-all ml-2 mr-1">
-                <span className="font-bold text-[15px] tracking-tight whitespace-nowrap">Start saving</span>
               </button>
             </div>
           </div>
