@@ -25,10 +25,12 @@ redis.on('connect', () => {
 });
 
 redis.on('error', (err) => {
-  if (redisConnected) {
+  if (!redisConnected) {
+    console.error('Redis unavailable — caching disabled:', err.message);
+  } else {
     console.error('Redis connection lost:', err.message);
-    redisConnected = false;
   }
+  redisConnected = false;
 });
 
 module.exports = redis;

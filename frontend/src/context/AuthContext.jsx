@@ -25,6 +25,15 @@ export function AuthProvider({ children }) {
       .finally(() => setAuthLoading(false));
   }, []);
 
+  // Execute pending intent immediately after login
+  useEffect(() => {
+    if (isLoggedIn && pendingIntent?.fn) {
+      pendingIntent.fn(...(pendingIntent.args || []));
+      clearIntent();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
+
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     setUser(res.data.user);

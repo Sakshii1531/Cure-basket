@@ -33,7 +33,8 @@ function Prescriptions() {
   const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http') || path.startsWith('data:')) return path;
-    return `http://localhost:5001${path}`;
+    const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+    return `${base}${path}`;
   };
 
   return (

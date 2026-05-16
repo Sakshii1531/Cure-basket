@@ -21,38 +21,34 @@ export function CartProvider({ children }) {
 
   const addToCart = (product, qty = 1, pkg = null) => {
     setItems(prev => {
-      // Create a unique key for the item based on product and package
-      const itemKey = pkg ? `${product._id}_${pkg.id}` : product._id;
-      
-      const existing = prev.find(i => (i.pkg?.id ? `${i._id}_${i.pkg.id}` : i._id) === itemKey);
-      
+      const itemKey = pkg ? `${product._id}_${pkg.id}` : String(product._id);
+      const existing = prev.find(i => i.itemKey === itemKey);
+
       if (existing) {
-        return prev.map(i => (i.pkg?.id ? `${i._id}_${i.pkg.id}` : i._id) === itemKey 
-          ? { ...i, qty: i.qty + qty } 
-          : i
-        );
+        return prev.map(i => i.itemKey === itemKey ? { ...i, qty: i.qty + qty } : i);
       }
-      
-      return [...prev, { 
-        ...product, 
-        qty, 
+
+      return [...prev, {
+        ...product,
+        qty,
         pkg,
+        itemKey,
         price: pkg ? pkg.price : product.price,
-        mrp: pkg ? pkg.mrp : product.mrp
+        mrp: pkg ? pkg.mrp : product.mrp,
       }];
     });
   };
 
-  const removeFromCart = (id) => {
-    setItems(prev => prev.filter(i => i._id !== id));
+  const removeFromCart = (itemKey) => {
+    setItems(prev => prev.filter(i => i.itemKey !== itemKey));
   };
 
-  const updateQty = (id, qty) => {
+  const updateQty = (itemKey, qty) => {
     if (qty <= 0) {
-      removeFromCart(id);
+      removeFromCart(itemKey);
       return;
     }
-    setItems(prev => prev.map(i => i._id === id ? { ...i, qty } : i));
+    setItems(prev => prev.map(i => i.itemKey === itemKey ? { ...i, qty } : i));
   };
 
   const clearCart = () => setItems([]);

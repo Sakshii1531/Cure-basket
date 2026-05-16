@@ -45,7 +45,7 @@ const Cart = () => {
             <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
                 {items.map((item) => (
-                  <div key={item._id || item.id} className="p-5 flex gap-5">
+                  <div key={item.itemKey || item._id} className="p-5 flex gap-5">
                     <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 shrink-0">
                       {item.image ? (
                         <img src={item.image} alt={item.name} className="max-w-full max-h-full object-contain" />
@@ -70,17 +70,17 @@ const Cart = () => {
                       <div className="flex items-center justify-between mt-3">
                         <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-gray-50 px-2 py-1">
                           <button
-                            onClick={() => updateQty(item._id || item.id, item.qty - 1)}
+                            onClick={() => updateQty(item.itemKey, item.qty - 1)}
                             className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold"
                           >−</button>
                           <span className="text-[13px] font-semibold text-gray-800 min-w-[20px] text-center">{item.qty}</span>
                           <button
-                            onClick={() => updateQty(item._id || item.id, item.qty + 1)}
+                            onClick={() => updateQty(item.itemKey, item.qty + 1)}
                             className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold"
                           >+</button>
                         </div>
                         <button
-                          onClick={() => removeFromCart(item._id || item.id)}
+                          onClick={() => removeFromCart(item.itemKey)}
                           className="text-gray-400 hover:text-red-500 transition-colors p-1"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>

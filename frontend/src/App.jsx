@@ -30,7 +30,6 @@ import AllBrandsPage from './components/AllBrandsPage'
 import Cart from './components/Cart'
 import Checkout from './components/Checkout'
 import Payment from './components/Payment'
-import Review from './components/Review'
 import OrderSuccess from './components/OrderSuccess'
 import TrackOrder from './components/TrackOrder'
 import AllReviewsPage from './components/AllReviewsPage'
@@ -117,7 +116,14 @@ function AppContent() {
     setIsSupportModalOpen(true)
   }
 
-  const isSubPage = ['/categories', '/orders', '/account', '/edit-profile', '/upload-rx', '/medicines'].includes(location.pathname) || location.pathname.startsWith('/category/')
+  const isSubPage = [
+    '/categories', '/orders', '/account', '/edit-profile', '/upload-rx', '/medicines',
+    '/cart', '/checkout', '/payment', '/order-success', '/track-order',
+    '/all-reviews', '/best-sellers', '/all-brands', '/all-products', '/blogs',
+  ].includes(location.pathname)
+    || location.pathname.startsWith('/category/')
+    || location.pathname.startsWith('/product/')
+    || location.pathname.startsWith('/blog')
   const isAdminPage = location.pathname.startsWith('/admin')
   const isAuthPage = ['/login', '/signup'].includes(location.pathname)
 
@@ -193,7 +199,6 @@ function AppContent() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment" element={<Payment />} />
-        <Route path="/review" element={<Review />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/track-order" element={<TrackOrder />} />
         <Route path="/all-reviews" element={<AllReviewsPage />} />
