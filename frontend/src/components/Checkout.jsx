@@ -198,7 +198,7 @@ const Checkout = () => {
             <h2 className="text-[15px] font-bold text-gray-900 mb-4">Order Summary</h2>
             <div className="space-y-2">
               {items.map(item => (
-                <div key={item._id || item.id} className="flex justify-between text-[13px] text-gray-600">
+                <div key={item.itemKey || item._id} className="flex justify-between text-[13px] text-gray-600">
                   <span>{item.name} × {item.qty}</span>
                   <span className="font-semibold">₹{(item.price * item.qty).toFixed(2)}</span>
                 </div>

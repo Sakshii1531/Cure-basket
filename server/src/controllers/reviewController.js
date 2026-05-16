@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Review = require('../models/Review');
 
 exports.getReviews = async (req, res) => {
@@ -18,8 +19,11 @@ exports.getReviews = async (req, res) => {
 };
 
 exports.getMedicineReviews = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.medicineId)) {
+    return res.status(400).json({ success: false, error: 'Invalid medicine ID' });
+  }
   try {
-    const reviews = await Review.find({ 
+    const reviews = await Review.find({
       medicine: req.params.medicineId,
       status: 'approved'
     })

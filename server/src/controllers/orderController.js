@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Medicine = require('../models/Medicine');
 
@@ -54,6 +55,9 @@ exports.getOrders = async (req, res, next) => {
 // @route   PUT /api/orders/:id/status
 // @access  Private/Admin
 exports.updateOrderStatus = async (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ success: false, error: 'Order not found' });
+  }
   try {
     const order = await Order.findByIdAndUpdate(
       req.params.id,

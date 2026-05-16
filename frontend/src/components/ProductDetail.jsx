@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
 import productImg from '../assets/product.png'
@@ -9,9 +9,32 @@ import api from '../utils/api'
 function ProductDetail({ onBack }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { id: urlId } = useParams()
   const { guardedAction } = useAuthGate()
   const { addToCart } = useCart()
-  const product = location.state?.product || { name: 'Product', category: 'General', image: productImg }
+  const [product, setProduct] = useState(location.state?.product || null)
+  const [productLoading, setProductLoading] = useState(!location.state?.product)
+
+  // Fetch product from API when accessed directly by URL (no navigation state)
+  useEffect(() => {
+    if (!location.state?.product && urlId) {
+      setProductLoading(true)
+      api.get(`/medicines/${urlId}`)
+        .then(res => setProduct(res.data.data))
+        .catch(() => setProduct({ name: 'Product Not Found', category: 'General', image: productImg }))
+        .finally(() => setProductLoading(false))
+    }
+  }, [urlId])
+
+  if (productLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#006D6D]"></div>
+      </div>
+    )
+  }
+
+  if (!product) return null
 
   // Dynamic Package Options
   // Dynamic Package Options
@@ -45,7 +68,7 @@ function ProductDetail({ onBack }) {
   }, [product?.packages, product?.price, product?.mrp, product?.packaging])
 
   const packageOptions = getPackageOptions()
-  const [selectedPackage, setSelectedPackage] = useState(packageOptions?.[1] || packageOptions?.[0] || { price: 0, id: 0, label: 'N/A', perUnit: 0 })
+  const [selectedPackage, setSelectedPackage] = useState(packageOptions.find(p => p.popular) || packageOptions[0] || { price: 0, mrp: 0, id: 0, label: 'N/A', perUnit: 0 })
   const [quantity, setQuantity] = useState(1)
   const [activeThumb, setActiveThumb] = useState(0)
   const [activeTab, setActiveTab] = useState('Product Information')
@@ -61,7 +84,7 @@ function ProductDetail({ onBack }) {
   // Reset state when product changes
   useEffect(() => {
     const newOptions = getPackageOptions()
-    setSelectedPackage(newOptions[1] || newOptions[0])
+    setSelectedPackage(newOptions.find(p => p.popular) || newOptions[0])
     setQuantity(1)
     setActiveThumb(0)
     setActiveTab('Product Information')
@@ -82,7 +105,7 @@ function ProductDetail({ onBack }) {
       .catch(() => {})
   }, [product?._id, product?.name, getPackageOptions])
 
-  const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', `Reviews (${reviews.length})`]
+  const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews']
 
   // Dynamic content based on product
   const getProductData = () => {
@@ -235,7 +258,7 @@ function ProductDetail({ onBack }) {
         )}
       </div>
     ),
-    [`Reviews (${reviews.length})`]: (
+    ['Reviews']: (
       <div className="space-y-6">
         {reviews.map((rev, idx) => (
           <div key={rev._id || idx} className="pb-6 border-b border-gray-50 last:border-0">
@@ -360,9 +383,9 @@ function ProductDetail({ onBack }) {
                   <span className="text-gray-900 font-bold text-[11px] md:text-[12px]">{avgRating} <span className="text-gray-400 font-medium ml-1">({reviewCount} reviews)</span></span>
                 </div>
                 <div className="hidden md:block h-3 w-[1px] bg-gray-300"></div>
-                <button 
+                <button
                   onClick={() => {
-                    setActiveTab(`Reviews (${reviewCount})`)
+                    setActiveTab('Reviews')
                     const el = document.getElementById('product-tabs')
                     if (el) el.scrollIntoView({ behavior: 'smooth' })
                   }}
@@ -418,10 +441,10 @@ function ProductDetail({ onBack }) {
             
             <div className="mb-4 md:mb-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-[24px] md:text-[26px] font-bold text-gray-900">${selectedPrice}</span>
-                <span className="text-gray-400 line-through text-[12px]">${selectedMRP}</span>
+                <span className="text-[24px] md:text-[26px] font-bold text-gray-900">₹{selectedPrice}</span>
+                <span className="text-gray-400 line-through text-[12px]">₹{selectedMRP}</span>
               </div>
-              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ${savingsAmount} ({savingsPercent}%)</div>
+              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ₹{savingsAmount} ({savingsPercent}%)</div>
             </div>
 
             {/* Package Selection */}
@@ -442,12 +465,12 @@ function ProductDetail({ onBack }) {
                     </div>
                     <div className="text-right">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-gray-900">${pkg.price.toFixed(2)}</span>
+                        <span className="text-[11px] font-bold text-gray-900">₹{pkg.price.toFixed(2)}</span>
                         {pkg.mrp > pkg.price && (
-                          <span className="text-[9px] text-gray-400 line-through font-medium">${pkg.mrp.toFixed(2)}</span>
+                          <span className="text-[9px] text-gray-400 line-through font-medium">₹{pkg.mrp.toFixed(2)}</span>
                         )}
                       </div>
-                      <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perUnit.toFixed(2)} / unit</div>
+                      <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>₹{pkg.perUnit.toFixed(2)} / unit</div>
                     </div>
                     {pkg.popular && (
                       <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[7px] md:text-[8px] font-bold text-[#FBB03B] shadow-sm z-10">
@@ -537,12 +560,12 @@ function ProductDetail({ onBack }) {
           {/* Tab Headers */}
           <div className="flex items-center gap-6 md:gap-8 px-6 md:px-8 border-b border-gray-100 overflow-x-auto no-scrollbar scroll-smooth">
             {tabs.map((tab) => (
-              <button 
-                key={tab} 
+              <button
+                key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`py-4 md:py-5 text-[12px] md:text-[13px] font-bold whitespace-nowrap transition-all relative ${activeTab === tab ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
               >
-                {tab}
+                {tab === 'Reviews' ? `Reviews (${reviews.length})` : tab}
                 {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 md:h-1 bg-[#006D6D] rounded-t-full"></div>}
               </button>
             ))}
@@ -597,7 +620,7 @@ function ProductDetail({ onBack }) {
               <div className="flex flex-col justify-between flex-1">
                 <h3 className="text-[13px] font-bold text-gray-800 line-clamp-1">{item.name}</h3>
                 <div className="flex items-center justify-between gap-2 mt-2">
-                  <span className="text-[15px] font-bold text-gray-900">${item.price}</span>
+                  <span className="text-[15px] font-bold text-gray-900">₹{item.price}</span>
                   <button className="bg-[#006D6D] text-white px-3 py-1 rounded-lg text-[11px] font-bold shrink-0">Add</button>
                 </div>
               </div>
