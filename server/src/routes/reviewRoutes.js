@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getReviews, createReview, updateReviewStatus, deleteReview } = require('../controllers/reviewController');
+const { getReviews, getMedicineReviews, createReview, updateReviewStatus, deleteReview } = require('../controllers/reviewController');
 const { protect, authorize, can } = require('../middlewares/authMiddleware');
+
+// Public: get approved reviews for a medicine
+router.get('/medicine/:medicineId', getMedicineReviews);
 
 // Admin: list all reviews (filterable by status/medicine)
 router.get('/', protect, authorize('admin', 'superadmin'), can('reviews', 'read'), getReviews);

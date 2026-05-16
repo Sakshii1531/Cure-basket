@@ -19,13 +19,27 @@ export function CartProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product, qty = 1) => {
+  const addToCart = (product, qty = 1, pkg = null) => {
     setItems(prev => {
-      const existing = prev.find(i => i._id === product._id);
+      // Create a unique key for the item based on product and package
+      const itemKey = pkg ? `${product._id}_${pkg.id}` : product._id;
+      
+      const existing = prev.find(i => (i.pkg?.id ? `${i._id}_${i.pkg.id}` : i._id) === itemKey);
+      
       if (existing) {
-        return prev.map(i => i._id === product._id ? { ...i, qty: i.qty + qty } : i);
+        return prev.map(i => (i.pkg?.id ? `${i._id}_${i.pkg.id}` : i._id) === itemKey 
+          ? { ...i, qty: i.qty + qty } 
+          : i
+        );
       }
-      return [...prev, { ...product, qty }];
+      
+      return [...prev, { 
+        ...product, 
+        qty, 
+        pkg,
+        price: pkg ? pkg.price : product.price,
+        mrp: pkg ? pkg.mrp : product.mrp
+      }];
     });
   };
 

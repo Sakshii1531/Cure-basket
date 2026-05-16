@@ -6,6 +6,19 @@ const prescriptionSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  medicine: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Medicine',
+    required: true
+  },
+  packageLabel: {
+    type: String,
+    required: true
+  },
+  quantity: {
+    type: Number,
+    required: true
+  },
   image: {
     type: String,
     required: true

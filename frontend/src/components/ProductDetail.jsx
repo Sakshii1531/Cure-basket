@@ -1,30 +1,48 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
+import { useCart } from '../context/CartContext'
 import productImg from '../assets/product.png'
 import med1 from '../assets/med1.png'
+import api from '../utils/api'
 
 function ProductDetail({ onBack }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { guardedAction } = useAuthGate()
+  const { addToCart } = useCart()
   const product = location.state?.product || { name: 'Product', category: 'General', image: productImg }
 
   // Dynamic Package Options
+  // Dynamic Package Options
   const getPackageOptions = React.useCallback(() => {
-    if (product?.name.toLowerCase().includes('weight loss')) {
-      return [
-        { id: 1, label: '1 Pen (4 doses)', price: 120.00, perUnit: 30.00 },
-        { id: 2, label: '2 Pens (8 doses)', price: 220.00, perUnit: 27.50, popular: true },
-        { id: 3, label: '3 Pens (12 doses)', price: 300.00, perUnit: 25.00 },
-      ]
+    // 1. Check if product has explicit packages set in DB
+    if (product?.packages && product.packages.length > 0) {
+      return product.packages.map((pkg, idx) => ({
+        id: pkg._id || idx,
+        label: pkg.label,
+        price: Number(pkg.price) || 0,
+        mrp: Number(pkg.mrp) || Number(pkg.price) || 0,
+        perUnit: pkg.perUnit || (Number(pkg.price) / (parseInt(pkg.label) || 1) || 0),
+        popular: pkg.popular
+      }))
     }
+
+    // 2. Default: Show a single package based on the main product price
+    const basePrice = Number(product?.price) || 0
+    const baseMRP = Number(product?.mrp) || basePrice
+    
     return [
-      { id: 1, label: '10 Tablets', price: 12.00, perUnit: 1.20 },
-      { id: 2, label: '30 Tablets', price: 30.00, perUnit: 1.00, popular: true },
-      { id: 3, label: '60 Tablets', price: 55.00, perUnit: 0.91 },
-      { id: 4, label: '120 Tablets', price: 95.00, perUnit: 0.79 },
+      { 
+        id: 'default', 
+        label: product?.packaging || '1 Pack', 
+        price: basePrice, 
+        mrp: baseMRP, 
+        perUnit: basePrice,
+        popular: true 
+      }
     ]
-  }, [product.name])
+  }, [product?.packages, product?.price, product?.mrp, product?.packaging])
 
   const packageOptions = getPackageOptions()
   const [selectedPackage, setSelectedPackage] = useState(packageOptions?.[1] || packageOptions?.[0] || { price: 0, id: 0, label: 'N/A', perUnit: 0 })
@@ -35,7 +53,10 @@ function ProductDetail({ onBack }) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
-  const { guardedAction } = useAuthGate()
+  const [reviews, setReviews] = useState([])
+
+  // Reset state when product changes
+  const [recommended, setRecommended] = useState([])
 
   // Reset state when product changes
   useEffect(() => {
@@ -46,128 +67,57 @@ function ProductDetail({ onBack }) {
     setActiveTab('Product Information')
     setUploadSuccess(false)
     window.scrollTo(0, 0)
-  }, [product.name, getPackageOptions])
 
-  const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews (120)']
+    // Fetch Recommended Products
+    api.get('/medicines?limit=10')
+      .then(res => {
+        const others = res.data.data.filter(m => String(m._id) !== String(product?._id))
+        setRecommended(others.slice(0, 4))
+      })
+      .catch(() => {})
+
+    // Fetch Reviews
+    api.get(`/reviews/medicine/${product?._id}`)
+      .then(res => setReviews(res.data.data))
+      .catch(() => {})
+  }, [product?._id, product?.name, getPackageOptions])
+
+  const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', `Reviews (${reviews.length})`]
 
   // Dynamic content based on product
   const getProductData = () => {
-    // Check localStorage first
-    const savedDetails = localStorage.getItem('cb_medicine_details');
-    if (savedDetails) {
-      try {
-        const details = JSON.parse(savedDetails);
-        if (Array.isArray(details)) {
-          const matchedMed = details.find(m => m.medicineName === product.name);
-          if (matchedMed) {
-            return {
-              genericName: product.generic || matchedMed.salt || 'N/A',
-              manufacturer: matchedMed.manufacturer || 'N/A',
-              salt: matchedMed.salt || 'N/A',
-              uses: matchedMed.uses ? matchedMed.uses.split('\n').filter(line => line.trim() !== '') : ['N/A'],
-              sideEffects: matchedMed.sideEffects ? matchedMed.sideEffects.split('\n').filter(line => line.trim() !== '') : ['N/A'],
-              howToUse: {
-                title: 'Usage Instructions',
-                step1: matchedMed.howToUse ? matchedMed.howToUse.split('\n')[0] : 'N/A',
-                step2: matchedMed.howToUse ? matchedMed.howToUse.split('\n')[1] : 'N/A'
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Error parsing medicine details from localStorage', e);
-      }
-    }
-
-    if (product.name.toLowerCase().includes('weight loss')) {
-      return {
-        genericName: 'Semaglutide / Tirzepatide',
-        manufacturer: 'Novo Nordisk / Eli Lilly',
-        salt: 'Incretin Mimetics',
-        uses: [
-          'Chronic weight management',
-          'Appetite regulation and control',
-          'Metabolic health improvement',
-          'Blood sugar regulation'
-        ],
-        sideEffects: ['Nausea', 'Vomiting', 'Diarrhea', 'Constipation', 'Abdominal pain', 'Headache', 'Fatigue'],
-        howToUse: {
-          title: 'Weekly Injection Instructions',
-          step1: 'Inject once a week on the same day each week.',
-          step2: 'Can be taken with or without food at any time of day.'
-        }
-      }
-    }
-    if (product.category === 'Diabetes') {
-      return {
-        genericName: 'Metformin / Sitagliptin',
-        manufacturer: 'Merck / Bristol-Myers Squibb',
-        salt: 'Biguanides / DPP-4 Inhibitors',
-        uses: [
-          'Type 2 Diabetes Mellitus',
-          'Blood sugar level control',
-          'PCOS management (off-label)',
-          'Prevention of diabetes complications'
-        ],
-        sideEffects: ['Stomach upset', 'Metallic taste', 'Low blood sugar', 'Loss of appetite', 'Nausea'],
-        howToUse: {
-          title: 'Daily Medication Guide',
-          step1: 'Take with meals to reduce stomach side effects.',
-          step2: 'Monitor your blood sugar levels regularly as advised.'
-        }
-      }
-    }
-    if (product.name.toLowerCase().includes('doxycycline')) {
-      return {
-        genericName: 'Doxycycline',
-        manufacturer: 'Pfizer / Cipla',
-        salt: 'Doxycycline Hydrochloride',
-        uses: ['Bacterial infections', 'Acne treatment', 'Malaria prevention', 'Cholera'],
-        sideEffects: ['Nausea', 'Photosensitivity', 'Diarrhea', 'Stomach upset'],
-        howToUse: { title: 'Dosage Guide', step1: 'Take with a full glass of water.', step2: 'Do not lie down for 30 mins after taking.' }
-      }
-    }
-    if (product.name.toLowerCase().includes('albendazole')) {
-      return {
-        genericName: 'Albendazole',
-        manufacturer: 'GSK / Abbott',
-        salt: 'Albendazole (400 mg)',
-        uses: ['Parasitic worm infections', 'Neurocysticercosis', 'Hydatid disease'],
-        sideEffects: ['Headache', 'Fever', 'Nausea', 'Temporary hair loss'],
-        howToUse: { title: 'Dosage Guide', step1: 'Can be taken with or without food.', step2: 'May be crushed or chewed if needed.' }
-      }
-    }
-    if (product.name.toLowerCase().includes('vitamin') || product.name.toLowerCase().includes('zincovit')) {
-      return {
-        genericName: 'Multivitamins & Minerals',
-        manufacturer: 'Apex Labs / Sanofi',
-        salt: 'Essential Vitamins + Zinc',
-        uses: ['Immunity boosting', 'Nutritional deficiencies', 'Recovery from illness', 'General wellness'],
-        sideEffects: ['Mild stomach upset', 'Metallic taste', 'Yellowish urine'],
-        howToUse: { title: 'Usage Guide', step1: 'Best taken after a meal.', step2: 'Avoid taking on an empty stomach.' }
-      }
-    }
-    // Default (Ivermectin/General)
+    // Return data directly from product object (DB)
     return {
-      genericName: 'Ivermectin',
-      manufacturer: 'Ajanta Pharma Ltd.',
-      salt: 'Ivermectin (12 mg)',
-      uses: [
-        'Strongyloidiasis (roundworm infection)',
-        'Onchocerciasis (river blindness)',
-        'Scabies (treatment resistant)',
-        'Certain head lice infestations'
-      ],
-      sideEffects: ['Dizziness', 'Loss of appetite', 'Nausea', 'Stomach pain', 'Joint pain', 'Skin rash'],
+      genericName: product.genericName || 'N/A',
+      manufacturer: product.manufacturer || 'N/A',
+      salt: product.saltComposition || 'N/A',
+      packaging: product.packaging || 'N/A',
+      storage: product.storage || 'N/A',
+      prescription: product.prescription || 'Required',
+      deliveryTime: product.deliveryTime || 'Usually delivers in 1-2 days',
+      uses: product.uses ? product.uses.split('\n').filter(l => l.trim()) : [],
+      sideEffects: product.sideEffects ? product.sideEffects.split('\n').filter(l => l.trim()) : [],
       howToUse: {
-        title: 'Dosage Instructions',
-        step1: 'Take on an empty stomach with a full glass of water.',
-        step2: 'Usually taken as a single dose; follow doctor\'s schedule.'
-      }
+        title: 'Usage Instructions',
+        steps: product.howToUse ? product.howToUse.split('\n').filter(l => l.trim()) : []
+      },
+      safetyAdvice: product.safetyAdvice || [],
+      faqs: product.faqs || []
     }
   }
 
   const pData = getProductData()
+  
+  // Calculate Dynamic Ratings
+  const avgRating = reviews.length > 0 
+    ? (reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length).toFixed(1) 
+    : '5.0'
+  const reviewCount = reviews.length
+
+  const selectedPrice = (selectedPackage.price * quantity).toFixed(2)
+  const selectedMRP = (selectedPackage.mrp * quantity).toFixed(2)
+  const savingsAmount = (selectedPackage.mrp * quantity - selectedPackage.price * quantity).toFixed(2)
+  const savingsPercent = Math.round(((selectedPackage.mrp - selectedPackage.price) / (selectedPackage.mrp || 1)) * 100) || 0
 
   const tabContent = {
     'Product Information': (
@@ -175,10 +125,10 @@ function ProductDetail({ onBack }) {
         {[
           { label: 'Manufacturer', value: pData.manufacturer },
           { label: 'Salt Composition', value: pData.salt },
-          { label: 'Packaging', value: '10 Tablets in 1 Strip' },
-          { label: 'Storage', value: 'Store below 30°C. Protect from light & moisture.' },
-          { label: 'Prescription', value: 'Required' },
-          { label: 'Delivery Time', value: 'Usually delivers in 1-2 days', highlight: true }
+          { label: 'Packaging', value: pData.packaging },
+          { label: 'Storage', value: pData.storage },
+          { label: 'Prescription', value: pData.prescription },
+          { label: 'Delivery Time', value: pData.deliveryTime, highlight: true }
         ].map((item, idx) => (
           <div key={idx} className="flex gap-12">
             <div className="w-32 text-[13px] font-bold text-gray-400 shrink-0">{item.label}</div>
@@ -196,31 +146,43 @@ function ProductDetail({ onBack }) {
     'Uses': (
       <div className="space-y-4">
         <h3 className="text-[16px] font-bold text-gray-900">What is it used for?</h3>
-        <p className="text-[13px] text-gray-600 leading-relaxed">
-          This medication is primarily used for the following conditions:
-        </p>
-        <ul className="list-disc pl-5 space-y-2 text-[13px] text-gray-600">
-          {pData.uses.map((use, i) => <li key={i}>{use}</li>)}
-        </ul>
+        {pData.uses.length > 0 ? (
+          <>
+            <p className="text-[13px] text-gray-600 leading-relaxed">
+              This medication is primarily used for the following conditions:
+            </p>
+            <ul className="list-disc pl-5 space-y-2 text-[13px] text-gray-600">
+              {pData.uses.map((use, i) => <li key={i}>{use}</li>)}
+            </ul>
+          </>
+        ) : (
+          <p className="text-[13px] text-gray-400 italic">No usage information available for this product.</p>
+        )}
       </div>
     ),
     'Side Effects': (
       <div className="space-y-4">
         <h3 className="text-[16px] font-bold text-gray-900">Common Side Effects</h3>
-        <p className="text-[13px] text-gray-600 leading-relaxed">
-          While most people do not experience significant side effects, some may include:
-        </p>
-        <div className="grid grid-cols-2 gap-4">
-          {pData.sideEffects.map((effect, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-              <span className="text-[13px] text-gray-600 font-medium">{effect}</span>
+        {pData.sideEffects.length > 0 ? (
+          <>
+            <p className="text-[13px] text-gray-600 leading-relaxed">
+              While most people do not experience significant side effects, some may include:
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {pData.sideEffects.map((effect, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                  <span className="text-[13px] text-gray-600 font-medium">{effect}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <p className="text-[11px] text-gray-400 italic mt-4">
-          *Contact your doctor immediately if you experience any severe allergic reactions.
-        </p>
+            <p className="text-[11px] text-gray-400 italic mt-4">
+              *Contact your doctor immediately if you experience any severe allergic reactions.
+            </p>
+          </>
+        ) : (
+          <p className="text-[13px] text-gray-400 italic">No side effects information available for this product.</p>
+        )}
       </div>
     ),
     'How to Use': (
@@ -230,66 +192,67 @@ function ProductDetail({ onBack }) {
           Follow your doctor's instructions exactly. Typical usage includes:
         </p>
         <div className="space-y-3">
-          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <div className="text-[13px] font-bold text-gray-900 mb-1">Step 1</div>
-            <p className="text-[12px] text-gray-500">{pData.howToUse.step1}</p>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <div className="text-[13px] font-bold text-gray-900 mb-1">Step 2</div>
-            <p className="text-[12px] text-gray-500">{pData.howToUse.step2}</p>
-          </div>
+          {pData.howToUse.steps.map((step, i) => (
+            <div key={i} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <div className="text-[13px] font-bold text-gray-900 mb-1">Step {i + 1}</div>
+              <p className="text-[12px] text-gray-500">{step}</p>
+            </div>
+          ))}
+          {pData.howToUse.steps.length === 0 && <p className="text-gray-400 italic">No usage instructions provided.</p>}
         </div>
       </div>
     ),
     'Safety Advice': (
       <div className="space-y-6">
-        {[
-          { label: 'Alcohol', status: 'Unsafe', desc: 'Avoid alcohol as it may increase the risk of side effects.' },
-          { label: 'Pregnancy', status: 'Consult Doctor', desc: 'Use only if clearly needed and prescribed by a physician.' },
-          { label: 'Driving', status: 'Caution', desc: 'May cause dizziness. Do not drive if you feel unwell.' },
-          { label: 'Kidney', status: 'Safe', desc: 'No dose adjustment usually required for kidney patients.' }
-        ].map((item, idx) => (
-          <div key={idx} className="flex gap-8 pb-4 border-b border-gray-50 last:border-0">
-            <div className="w-24 text-[13px] font-bold text-gray-400 shrink-0">{item.label}</div>
-            <div className="flex-1">
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${item.status === 'Safe' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
-                {item.status}
-              </span>
-              <p className="text-[12px] text-gray-500 mt-1">{item.desc}</p>
+        {pData.safetyAdvice.length > 0 ? (
+          pData.safetyAdvice.map((item, idx) => (
+            <div key={idx} className="flex gap-8 pb-4 border-b border-gray-50 last:border-0">
+              <div className="w-24 text-[13px] font-bold text-gray-400 shrink-0">{item.label}</div>
+              <div className="flex-1">
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${item.status === 'Safe' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                  {item.status}
+                </span>
+                <p className="text-[12px] text-gray-500 mt-1">{item.description}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-[13px] text-gray-400 italic">No safety advice available for this product.</p>
+        )}
       </div>
     ),
     'FAQs': (
       <div className="space-y-4">
-        {[
-          { q: 'How long does it take to work?', a: 'It starts working immediately, but full clinical effects may take time.' },
-          { q: 'Can I take it with other meds?', a: 'Consult your pharmacist about potential drug interactions.' },
-          { q: 'What if I miss a dose?', a: 'Take as soon as remembered, but never double the dose.' }
-        ].map((faq, idx) => (
-          <div key={idx} className="p-4 rounded-xl border border-gray-100 bg-white">
-            <div className="text-[13px] font-bold text-gray-900 mb-1">Q: {faq.q}</div>
-            <div className="text-[12px] text-gray-500">A: {faq.a}</div>
-          </div>
-        ))}
+        {pData.faqs.length > 0 ? (
+          pData.faqs.map((faq, idx) => (
+            <div key={idx} className="p-4 rounded-xl border border-gray-100 bg-white">
+              <div className="text-[13px] font-bold text-gray-900 mb-1">Q: {faq.question}</div>
+              <div className="text-[12px] text-gray-500">A: {faq.answer}</div>
+            </div>
+          ))
+        ) : (
+          <p className="text-[13px] text-gray-400 italic">No FAQs available for this product.</p>
+        )}
       </div>
     ),
-    'Reviews (120)': (
+    [`Reviews (${reviews.length})`]: (
       <div className="space-y-6">
-        {[
-          { name: 'John D.', date: '2 days ago', rating: 5, comment: 'Very effective! Cleared up my condition within a week.' },
-          { name: 'Sarah M.', date: '1 week ago', rating: 4, comment: 'Good product, but experienced minor initial side effects.' }
-        ].map((rev, idx) => (
-          <div key={idx} className="pb-6 border-b border-gray-50 last:border-0">
+        {reviews.map((rev, idx) => (
+          <div key={rev._id || idx} className="pb-6 border-b border-gray-50 last:border-0">
             <div className="flex justify-between items-center mb-2">
-              <div className="font-bold text-[13px] text-gray-900">{rev.name}</div>
-              <div className="text-[11px] text-gray-400">{rev.date}</div>
+              <div className="font-bold text-[13px] text-gray-900">{rev.user?.name || 'Anonymous'}</div>
+              <div className="text-[11px] text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</div>
             </div>
-            <div className="flex text-[#FFD200] text-xs mb-2">{"★★★★★".slice(0, rev.rating)}</div>
+            <div className="flex text-[#FFD200] text-xs mb-2">
+              {"★".repeat(rev.rating)}
+              <span className="text-gray-200">{"★".repeat(5 - rev.rating)}</span>
+            </div>
             <p className="text-[12px] text-gray-600 italic">"{rev.comment}"</p>
           </div>
         ))}
+        {reviews.length === 0 && (
+          <div className="py-10 text-center text-gray-400 text-sm">No reviews yet for this product.</div>
+        )}
       </div>
     )
   }
@@ -316,10 +279,10 @@ function ProductDetail({ onBack }) {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 md:gap-8 items-start">
             {/* Gallery Section */}
             <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-6 px-6 pb-8 md:pt-8 md:px-8 md:pb-12 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative">
-              <div className="absolute top-4 left-4 md:top-6 md:left-6">
-                <span className="bg-[#006D6D] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 md:px-3 py-1 rounded-full">BEST SELLER</span>
+              <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
+                <span className="bg-[#006D6D] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 md:px-3 py-1 rounded-full shadow-lg">BEST SELLER</span>
               </div>
-              <div className="absolute top-4 right-4 md:top-6 md:right-6">
+              <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20">
                 <button className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                 </button>
@@ -331,23 +294,25 @@ function ProductDetail({ onBack }) {
               </div>
 
               {/* Thumbnails */}
-              <div className="flex justify-center items-center gap-2 md:gap-3 mt-4">
-                <button className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
-                  <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                {[0, 1, 2].map(idx => (
-                  <div 
-                    key={idx}
-                    onClick={() => setActiveThumb(idx)}
-                    className={`w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-xl border-2 p-1.5 md:p-2 cursor-pointer transition-all ${activeThumb === idx ? 'border-[#006D6D]' : 'border-gray-100 hover:border-gray-200'}`}
-                  >
-                    <img src={product.image} alt="thumb" className="w-full h-full object-contain opacity-70" />
-                  </div>
-                ))}
-                <button className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
-                  <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
-                </button>
-              </div>
+              {product.images && product.images.length > 1 && (
+                <div className="flex justify-center items-center gap-2 md:gap-3 mt-4">
+                  <button className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                    <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
+                  </button>
+                  {product.images.map((img, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => setActiveThumb(idx)}
+                      className={`w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-xl border-2 p-1.5 md:p-2 cursor-pointer transition-all ${activeThumb === idx ? 'border-[#006D6D]' : 'border-gray-100 hover:border-gray-200'}`}
+                    >
+                      <img src={img} alt="thumb" className="w-full h-full object-contain opacity-70" />
+                    </div>
+                  ))}
+                  <button className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                    <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
+                  </button>
+                </div>
+              )}
 
               {/* Prescription Required Label */}
               <div className="mt-5 pt-5 border-t border-gray-100 flex items-center gap-3 md:gap-4">
@@ -371,23 +336,40 @@ function ProductDetail({ onBack }) {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-[12px] text-gray-600 leading-relaxed max-w-[480px]">
-                  {product.name} ({pData.genericName}) is used for {pData.uses[0].toLowerCase()} and other related conditions. Always follow your physician's prescription.
-                </p>
-                <button className="text-[#006D6D] text-[12px] font-bold flex items-center gap-1 hover:underline">
+              {pData.uses.length > 1 && (
+                <button 
+                  onClick={() => {
+                    setActiveTab('Uses')
+                    const el = document.getElementById('product-tabs')
+                    if (el) el.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                  className="text-[#006D6D] text-[12px] font-bold flex items-center gap-1 hover:underline w-fit"
+                >
                   View full description
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M19 9l-7 7-7-7" /></svg>
                 </button>
-              </div>
+              )}
 
               <div className="flex flex-wrap items-center gap-3 md:gap-4 pt-1">
                 <div className="flex items-center gap-2">
-                  <div className="flex text-[#FFD200]">{"★★★★★".split('').map((s, i) => <span key={i} className="text-sm md:text-base">★</span>)}</div>
-                  <span className="text-gray-900 font-bold text-[11px] md:text-[12px]">4.8 <span className="text-gray-400 font-medium ml-1">(120 reviews)</span></span>
+                  <div className="flex text-[#FFD200]">
+                    {"★★★★★".split('').map((s, i) => (
+                      <span key={i} className={`text-sm md:text-base ${i < Math.floor(avgRating) ? 'text-[#FFD200]' : 'text-gray-200'}`}>★</span>
+                    ))}
+                  </div>
+                  <span className="text-gray-900 font-bold text-[11px] md:text-[12px]">{avgRating} <span className="text-gray-400 font-medium ml-1">({reviewCount} reviews)</span></span>
                 </div>
                 <div className="hidden md:block h-3 w-[1px] bg-gray-300"></div>
-                <button className="text-[#006D6D] font-bold text-[11px] md:text-[12px] hover:underline">Write a review</button>
+                <button 
+                  onClick={() => {
+                    setActiveTab(`Reviews (${reviewCount})`)
+                    const el = document.getElementById('product-tabs')
+                    if (el) el.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                  className="text-[#006D6D] font-bold text-[11px] md:text-[12px] hover:underline"
+                >
+                  Write a review
+                </button>
               </div>
 
               {/* Trust Badges */}
@@ -432,14 +414,14 @@ function ProductDetail({ onBack }) {
         {/* Right Column: Pricing & Cart Card */}
         <div className="space-y-6">
           <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-5 px-5 pb-5 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] lg:sticky lg:top-24">
-            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save 60%</div>
+            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save {savingsPercent}%</div>
             
             <div className="mb-4 md:mb-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-[24px] md:text-[26px] font-bold text-gray-900">${selectedPackage.price.toFixed(2)}</span>
-                <span className="text-gray-400 line-through text-[12px]">${(selectedPackage.price * 2.5).toFixed(2)}</span>
+                <span className="text-[24px] md:text-[26px] font-bold text-gray-900">${selectedPrice}</span>
+                <span className="text-gray-400 line-through text-[12px]">${selectedMRP}</span>
               </div>
-              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ${(selectedPackage.price * 1.5).toFixed(2)} (60%)</div>
+              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ${savingsAmount} ({savingsPercent}%)</div>
             </div>
 
             {/* Package Selection */}
@@ -459,7 +441,12 @@ function ProductDetail({ onBack }) {
                       <span className="text-[11px] font-bold text-gray-900">{pkg.label}</span>
                     </div>
                     <div className="text-right">
-                      <div className="text-[11px] font-bold text-gray-900">${pkg.price.toFixed(2)}</div>
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold text-gray-900">${pkg.price.toFixed(2)}</span>
+                        {pkg.mrp > pkg.price && (
+                          <span className="text-[9px] text-gray-400 line-through font-medium">${pkg.mrp.toFixed(2)}</span>
+                        )}
+                      </div>
                       <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perUnit.toFixed(2)} / unit</div>
                     </div>
                     {pkg.popular && (
@@ -485,7 +472,10 @@ function ProductDetail({ onBack }) {
             {/* Action Buttons */}
             <div className="space-y-2">
               <button 
-                onClick={guardedAction(() => navigate('/cart'), 'add-to-cart')}
+                onClick={guardedAction(() => {
+                  addToCart(product, quantity, selectedPackage);
+                  navigate('/cart');
+                }, 'add-to-cart')}
                 className="w-full bg-[#FFD200] text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#FFD200]/10 text-[13px]"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
@@ -542,7 +532,7 @@ function ProductDetail({ onBack }) {
       </div>
 
       {/* Tabs Section */}
-      <div className="max-w-[1250px] mx-auto px-4 md:px-12 mt-8 mb-10 md:mb-16">
+      <div id="product-tabs" className="max-w-[1250px] mx-auto px-4 md:px-12 mt-8 mb-10 md:mb-16">
         <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
           {/* Tab Headers */}
           <div className="flex items-center gap-6 md:gap-8 px-6 md:px-8 border-b border-gray-100 overflow-x-auto no-scrollbar scroll-smooth">
@@ -595,23 +585,27 @@ function ProductDetail({ onBack }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {[
-            { name: 'Doxycycline 100 mg', price: '$8.50' },
-            { name: 'Vitamin C 500 mg', price: '$4.10' }
-          ].map((item, idx) => (
-            <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-4 flex gap-4 cursor-pointer hover:shadow-md transition-all">
+          {recommended.map((item, idx) => (
+            <div 
+              key={item._id || idx} 
+              onClick={() => navigate(`/product/${item._id}`, { state: { product: item } })}
+              className="bg-white rounded-2xl border border-gray-100 p-4 flex gap-4 cursor-pointer hover:shadow-md transition-all"
+            >
               <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
-                <img src={med1} alt={item.name} className="w-full h-full object-contain p-2" />
+                <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" />
               </div>
-              <div className="flex flex-col justify-between">
+              <div className="flex flex-col justify-between flex-1">
                 <h3 className="text-[13px] font-bold text-gray-800 line-clamp-1">{item.name}</h3>
-                <div className="flex items-center justify-between gap-4 mt-2">
-                  <span className="text-[15px] font-bold text-gray-900">{item.price}</span>
-                  <button className="bg-[#006D6D] text-white px-3 py-1 rounded-lg text-[11px] font-bold">Add</button>
+                <div className="flex items-center justify-between gap-2 mt-2">
+                  <span className="text-[15px] font-bold text-gray-900">${item.price}</span>
+                  <button className="bg-[#006D6D] text-white px-3 py-1 rounded-lg text-[11px] font-bold shrink-0">Add</button>
                 </div>
               </div>
             </div>
           ))}
+          {recommended.length === 0 && (
+            <div className="col-span-full py-8 text-center text-gray-400 text-sm">No recommended products found.</div>
+          )}
         </div>
       </div>
       {/* Upload Prescription Modal */}
@@ -687,14 +681,28 @@ function ProductDetail({ onBack }) {
                     </button>
                     <button 
                       disabled={!selectedFile || isUploading}
-                      onClick={() => {
+                      onClick={guardedAction(async () => {
                         setIsUploading(true);
-                        setTimeout(() => {
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', selectedFile);
+                          formData.append('medicine', product._id);
+                          formData.append('packageLabel', selectedPackage.label);
+                          formData.append('quantity', quantity);
+                          formData.append('notes', 'Uploaded from product page');
+
+                          await api.post('/prescriptions', formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                          });
+
                           setIsUploading(false);
                           setUploadSuccess(true);
                           setTimeout(() => setShowUploadModal(false), 2000);
-                        }, 1500);
-                      }}
+                        } catch (err) {
+                          setIsUploading(false);
+                          alert(err.response?.data?.error || 'Failed to upload prescription');
+                        }
+                      }, 'upload-prescription')}
                       className={`flex-1 py-4 rounded-xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
                     >
                       {isUploading ? (

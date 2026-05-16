@@ -8,11 +8,11 @@ import brand4 from '../assets/brands/brand4.png'
 import brand5 from '../assets/brands/brand5.png'
 
 const staticBrands = [
-  { id: 1, name: 'Brand 1', logo: brand1 },
-  { id: 2, name: 'Brand 2', logo: brand2 },
-  { id: 3, name: 'Brand 3', logo: brand3 },
-  { id: 4, name: 'Brand 4', logo: brand4 },
-  { id: 5, name: 'Brand 5', logo: brand5 },
+  { id: 1, name: 'Brand 1', image: brand1 },
+  { id: 2, name: 'Brand 2', image: brand2 },
+  { id: 3, name: 'Brand 3', image: brand3 },
+  { id: 4, name: 'Brand 4', image: brand4 },
+  { id: 5, name: 'Brand 5', image: brand5 },
 ]
 
 const PopularBrands = () => {
@@ -24,7 +24,7 @@ const PopularBrands = () => {
       .then(res => {
         const data = res.data.data
         if (Array.isArray(data) && data.length > 0) {
-          setBrands(data.map(b => ({ id: b._id, name: b.name, logo: b.logo || null })))
+          setBrands(data.map(b => ({ id: b._id, name: b.name, image: b.image || null })))
         }
       })
       .catch(() => {})
@@ -52,20 +52,23 @@ const PopularBrands = () => {
             <div
               key={brand.id}
               onClick={() => navigate(`/medicines?brand=${brand.id}&brandName=${encodeURIComponent(brand.name)}`)}
-              className="bg-white border border-gray-200 rounded-[24px] p-2 flex items-center justify-center transition-all cursor-pointer h-[110px] min-w-[160px] md:min-w-[220px] shrink-0 hover:border-[#006D6D]/30"
+              className="bg-white border border-gray-200 rounded-[24px] p-4 flex flex-col items-center justify-center transition-all cursor-pointer h-[130px] md:h-[150px] min-w-[160px] md:min-w-[220px] shrink-0 hover:border-[#006D6D]/30 group"
             >
-              {brand.logo ? (
-                <img
-                  src={brand.logo}
-                  alt={brand.name}
-                  className="max-w-[95%] max-h-[95%] object-contain mix-blend-multiply"
-                  onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
-                />
-              ) : null}
-              <span
-                className="text-[15px] font-bold text-gray-700"
-                style={{ display: brand.logo ? 'none' : 'flex' }}
-              >
+              <div className="flex-1 flex items-center justify-center w-full mb-2">
+                {brand.image ? (
+                  <img
+                    src={brand.image}
+                    alt={brand.name}
+                    className="max-w-[85%] max-h-[85%] object-contain mix-blend-multiply group-hover:scale-105 transition-transform"
+                    onError={e => { e.target.style.display = 'none' }}
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-[#006D6D]/10 rounded-full flex items-center justify-center">
+                    <span className="text-[#006D6D] font-bold text-xl">{brand.name.charAt(0)}</span>
+                  </div>
+                )}
+              </div>
+              <span className="text-[14px] md:text-[16px] font-bold text-gray-700 text-center line-clamp-1">
                 {brand.name}
               </span>
             </div>

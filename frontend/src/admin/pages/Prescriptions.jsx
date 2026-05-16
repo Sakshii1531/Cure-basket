@@ -63,8 +63,9 @@ function Prescriptions() {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
                   <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Medicine</th>
+                  <th className="px-6 py-4">Pkg/Qty</th>
                   <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Notes</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -73,8 +74,23 @@ function Prescriptions() {
                 {prescriptions.map((rx) => (
                   <tr key={rx._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">{new Date(rx.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden shrink-0 border border-gray-100">
+                          {rx.medicine?.image ? (
+                            <img src={rx.medicine.image} alt={rx.medicine.name} className="w-full h-full object-contain p-1" />
+                          ) : (
+                            <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          )}
+                        </div>
+                        <span className="font-bold text-gray-900 line-clamp-1">{rx.medicine?.name || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-xs font-bold text-gray-900">{rx.packageLabel}</div>
+                      <div className="text-[10px] text-gray-400">Qty: {rx.quantity}</div>
+                    </td>
                     <td className="px-6 py-4 font-semibold text-gray-900">{rx.user?.name || 'Unknown'}<br /><span className="text-xs text-gray-400 font-normal">{rx.user?.email}</span></td>
-                    <td className="px-6 py-4 text-gray-500 max-w-xs truncate">{rx.notes || '—'}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[rx.status] || 'bg-gray-50 text-gray-600'}`}>
                         {rx.status}

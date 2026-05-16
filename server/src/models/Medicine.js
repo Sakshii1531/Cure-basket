@@ -24,6 +24,10 @@ const medicineSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Please add a price']
   },
+  mrp: {
+    type: Number,
+    required: [true, 'Please add MRP (Original Price)']
+  },
   stock: {
     type: Number,
     required: [true, 'Please add stock quantity'],
@@ -38,6 +42,39 @@ const medicineSchema = new mongoose.Schema({
     type: String,
     default: 'no-photo.jpg'
   },
+  images: [String], // Array for multiple product images
+  packages: [
+    {
+      label: String, // e.g., "10 Tablets"
+      price: Number,
+      mrp: Number, // Original price for this package
+      perUnit: Number, // e.g., 1.20
+      popular: { type: Boolean, default: false }
+    }
+  ],
+  // Medicinal Details
+  manufacturer: String,
+  saltComposition: String,
+  packaging: String, // e.g., "10 Tablets in 1 Strip"
+  storage: String,
+  prescription: { type: String, default: 'Required' },
+  deliveryTime: { type: String, default: 'Usually delivers in 1-2 days' },
+  uses: String,
+  sideEffects: String,
+  howToUse: String,
+  safetyAdvice: [
+    {
+      label: String, // e.g., "Alcohol"
+      status: String, // e.g., "Unsafe"
+      description: String
+    }
+  ],
+  faqs: [
+    {
+      question: String,
+      answer: String
+    }
+  ],
   isNewAndBest: {
     type: Boolean,
     default: false

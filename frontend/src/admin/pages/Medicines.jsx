@@ -2,13 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import uploadImage from '../../utils/uploadImage';
 
-const DEFAULT_CUSTOM_FIELDS = [
-  { id: 'manufacturer', label: 'Manufacturer', type: 'text' },
-  { id: 'saltComposition', label: 'Salt Composition', type: 'text' },
-  { id: 'uses', label: 'Uses', type: 'textarea' },
-  { id: 'sideEffects', label: 'Side Effects', type: 'textarea' },
-  { id: 'howToUse', label: 'How to Use', type: 'textarea' },
-];
+const DEFAULT_CUSTOM_FIELDS = []; // We now use explicit fields in the model
 
 function Medicines() {
   const [medicines, setMedicines] = useState([]);
@@ -68,12 +62,28 @@ function Medicines() {
         ...med,
         category: med.category?._id || med.category || '',
         brand: med.brand?._id || med.brand || '',
+        price: med.price || '',
+        mrp: med.mrp || '',
+        images: med.images || [],
+        packages: med.packages || [],
+        manufacturer: med.manufacturer || '',
+        saltComposition: med.saltComposition || '',
+        packaging: med.packaging || '',
+        storage: med.storage || '',
+        prescription: med.prescription || 'Required',
+        deliveryTime: med.deliveryTime || 'Usually delivers in 1-2 days',
+        uses: med.uses || '',
+        sideEffects: med.sideEffects || '',
+        howToUse: med.howToUse || '',
         customValues: med.customValues ? Object.fromEntries(Object.entries(med.customValues)) : {},
       });
     } else {
       setCurrent({
         name: '', genericName: '', category: categories[0]?._id || '', brand: '',
-        price: '', stock: '', status: 'Active', image: '',
+        price: '', mrp: '', stock: '', status: 'Active', image: '', images: [],
+        packages: [], manufacturer: '', saltComposition: '', packaging: '', storage: '',
+        prescription: 'Required', deliveryTime: 'Usually delivers in 1-2 days',
+        uses: '', sideEffects: '', howToUse: '',
         isNewAndBest: false, isBestSeller: false, customValues: {},
       });
     }
@@ -84,17 +94,11 @@ function Medicines() {
     e.preventDefault();
     setSaving(true);
     const payload = {
-      name: current.name,
-      genericName: current.genericName,
-      category: current.category,
-      brand: current.brand || undefined,
+      ...current,
       price: Number(current.price),
+      mrp: Number(current.mrp || current.price),
       stock: Number(current.stock),
-      status: current.status,
-      image: current.image || undefined,
-      isNewAndBest: current.isNewAndBest,
-      isBestSeller: current.isBestSeller,
-      customValues: current.customValues || {},
+      packages: current.packages || [],
     };
     try {
       if (current._id) {
@@ -270,16 +274,22 @@ function Medicines() {
                       {brands.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
                     </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Category</label>
                       <select value={current.category} onChange={e => setCurrent({...current, category: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required>
                         {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                       </select>
                     </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Price (₹)</label>
-                      <input type="number" step="0.01" min="0" value={current.price} onChange={e => setCurrent({...current, price: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 block mb-1">Selling Price ($)</label>
+                        <input type="number" step="0.01" min="0" value={current.price} onChange={e => setCurrent({...current, price: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 block mb-1">MRP (Original Price $)</label>
+                        <input type="number" step="0.01" min="0" value={current.mrp} onChange={e => setCurrent({...current, mrp: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -328,46 +338,137 @@ function Medicines() {
                   </div>
                 </div>
 
-                {/* Right: Custom Details */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Custom Details</h4>
-                  <div className="space-y-4">
-                    {customFields.map(field => (
-                      <div key={field.id}>
-                        <div className="flex justify-between items-center mb-1">
-                          {editingFieldId === field.id ? (
-                            <div className="flex gap-2 items-center w-full">
-                              <input type="text" value={editingFieldLabel} onChange={e => setEditingFieldLabel(e.target.value)} className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
-                              <button type="button" onClick={() => handleSaveFieldLabel(field.id)} className="text-xs text-[#006D6D] font-bold hover:underline">Save</button>
-                              <button type="button" onClick={() => setEditingFieldId(null)} className="text-xs text-gray-500 hover:underline">Cancel</button>
-                            </div>
-                          ) : (
-                            <>
-                              <label className="text-sm font-semibold text-gray-700">{field.label}</label>
-                              <div className="flex gap-2">
-                                <button type="button" onClick={() => { setEditingFieldId(field.id); setEditingFieldLabel(field.label); }} className="text-xs text-gray-400 hover:text-[#006D6D] hover:underline">Edit</button>
-                                <button type="button" onClick={() => handleDeleteField(field.id)} className="text-xs text-gray-400 hover:text-red-600 hover:underline">Delete</button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        {field.type === 'textarea' ? (
-                          <textarea value={current.customValues?.[field.id] || ''} onChange={e => setCustomValue(field.id, e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="3" placeholder={`Enter ${field.label.toLowerCase()}...`} />
-                        ) : (
-                          <input type="text" value={current.customValues?.[field.id] || ''} onChange={e => setCustomValue(field.id, e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" placeholder={`Enter ${field.label.toLowerCase()}...`} />
-                        )}
-                      </div>
-                    ))}
+                {/* Right: Medicinal Details & Packages */}
+                <div className="space-y-6">
+                  <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Medicinal Details</h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Manufacturer</label>
+                      <input type="text" value={current.manufacturer} onChange={e => setCurrent({...current, manufacturer: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Salt Composition</label>
+                      <input type="text" value={current.saltComposition} onChange={e => setCurrent({...current, saltComposition: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                    </div>
                   </div>
-                  <div className="mt-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <p className="text-xs font-bold text-gray-600 mb-2">Add New Custom Field</p>
-                    <div className="flex gap-2">
-                      <input type="text" value={newFieldLabel} onChange={e => setNewFieldLabel(e.target.value)} placeholder="Field Name" className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
-                      <select value={newFieldType} onChange={e => setNewFieldType(e.target.value)} className="bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]">
-                        <option value="text">Text</option>
-                        <option value="textarea">Textarea</option>
-                      </select>
-                      <button type="button" onClick={handleAddCustomField} className="bg-[#006D6D] text-white px-3 py-1.5 rounded-lg font-semibold text-xs hover:bg-[#005c5c]">Add</button>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Packaging (e.g. 10 Tabs/Strip)</label>
+                      <input type="text" value={current.packaging} onChange={e => setCurrent({...current, packaging: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">Storage</label>
+                      <input type="text" value={current.storage} onChange={e => setCurrent({...current, storage: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Uses (One per line)</label>
+                    <textarea value={current.uses} onChange={e => setCurrent({...current, uses: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="2" />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Side Effects (One per line)</label>
+                    <textarea value={current.sideEffects} onChange={e => setCurrent({...current, sideEffects: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="2" />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">How to Use (Steps per line)</label>
+                    <textarea value={current.howToUse} onChange={e => setCurrent({...current, howToUse: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="2" />
+                  </div>
+
+                  {/* Packages Editor */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Package Options (Quantities)</h4>
+                    <div className="space-y-2">
+                      {current.packages.map((pkg, idx) => (
+                        <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+                          <input type="text" placeholder="Label (10 Tabs)" value={pkg.label} onChange={e => {
+                            const newPkgs = [...current.packages];
+                            newPkgs[idx].label = e.target.value;
+                            setCurrent({...current, packages: newPkgs});
+                          }} className="w-24 text-xs p-1 rounded" />
+                          <input type="number" placeholder="Price" value={pkg.price} onChange={e => {
+                            const newPkgs = [...current.packages];
+                            newPkgs[idx].price = Number(e.target.value);
+                            setCurrent({...current, packages: newPkgs});
+                          }} className="w-16 text-xs p-1 rounded" />
+                          <input type="number" placeholder="MRP" value={pkg.mrp} onChange={e => {
+                            const newPkgs = [...current.packages];
+                            newPkgs[idx].mrp = Number(e.target.value);
+                            setCurrent({...current, packages: newPkgs});
+                          }} className="w-16 text-xs p-1 rounded" />
+                          <label className="flex items-center gap-1 text-[10px] whitespace-nowrap">
+                            <input type="checkbox" checked={pkg.popular} onChange={e => {
+                              const newPkgs = [...current.packages];
+                              newPkgs[idx].popular = e.target.checked;
+                              setCurrent({...current, packages: newPkgs});
+                            }} /> Popular
+                          </label>
+                          <button type="button" onClick={() => setCurrent({...current, packages: current.packages.filter((_, i) => i !== idx)})} className="text-red-500 text-xs">×</button>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => setCurrent({...current, packages: [...current.packages, { label: '', price: 0, popular: false }]})} className="text-xs text-[#006D6D] font-bold">+ Add Package</button>
+                    </div>
+                  </div>
+
+                  {/* Safety Advice Editor */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Safety Advice</h4>
+                    <div className="space-y-3">
+                      {current.safetyAdvice?.map((advice, idx) => (
+                        <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+                          <div className="flex gap-2">
+                            <input type="text" placeholder="Label (e.g. Alcohol)" value={advice.label} onChange={e => {
+                              const newAdvice = [...current.safetyAdvice];
+                              newAdvice[idx].label = e.target.value;
+                              setCurrent({...current, safetyAdvice: newAdvice});
+                            }} className="flex-1 text-xs p-1.5 rounded border border-gray-200" />
+                            <select value={advice.status} onChange={e => {
+                              const newAdvice = [...current.safetyAdvice];
+                              newAdvice[idx].status = e.target.value;
+                              setCurrent({...current, safetyAdvice: newAdvice});
+                            }} className="text-xs p-1.5 rounded border border-gray-200">
+                              <option value="Safe">Safe</option>
+                              <option value="Unsafe">Unsafe</option>
+                              <option value="Caution">Caution</option>
+                              <option value="Consult Doctor">Consult Doctor</option>
+                            </select>
+                            <button type="button" onClick={() => setCurrent({...current, safetyAdvice: current.safetyAdvice.filter((_, i) => i !== idx)})} className="text-red-500 text-xs">×</button>
+                          </div>
+                          <textarea placeholder="Description" value={advice.description} onChange={e => {
+                            const newAdvice = [...current.safetyAdvice];
+                            newAdvice[idx].description = e.target.value;
+                            setCurrent({...current, safetyAdvice: newAdvice});
+                          }} className="w-full text-xs p-1.5 rounded border border-gray-200" rows="1" />
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => setCurrent({...current, safetyAdvice: [...(current.safetyAdvice || []), { label: '', status: 'Safe', description: '' }]})} className="text-xs text-[#006D6D] font-bold">+ Add Safety Advice</button>
+                    </div>
+                  </div>
+
+                  {/* FAQs Editor */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">FAQs</h4>
+                    <div className="space-y-3">
+                      {current.faqs?.map((faq, idx) => (
+                        <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2 relative">
+                          <button type="button" onClick={() => setCurrent({...current, faqs: current.faqs.filter((_, i) => i !== idx)})} className="absolute top-2 right-2 text-red-500 text-xs">×</button>
+                          <input type="text" placeholder="Question" value={faq.question} onChange={e => {
+                            const newFaqs = [...current.faqs];
+                            newFaqs[idx].question = e.target.value;
+                            setCurrent({...current, faqs: newFaqs});
+                          }} className="w-full text-xs p-1.5 rounded border border-gray-200 pr-8" />
+                          <textarea placeholder="Answer" value={faq.answer} onChange={e => {
+                            const newFaqs = [...current.faqs];
+                            newFaqs[idx].answer = e.target.value;
+                            setCurrent({...current, faqs: newFaqs});
+                          }} className="w-full text-xs p-1.5 rounded border border-gray-200" rows="2" />
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => setCurrent({...current, faqs: [...(current.faqs || []), { question: '', answer: '' }]})} className="text-xs text-[#006D6D] font-bold">+ Add FAQ</button>
                     </div>
                   </div>
                 </div>
