@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
   const requireAuth = (intent) => {
     if (isLoggedIn) return true;
     setPendingIntent(intent);
-    setIsLoginModalOpen(true);
+    window.location.href = '/login'; // Fallback for when navigate isn't available
     return false;
   };
 

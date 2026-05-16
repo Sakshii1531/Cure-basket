@@ -106,7 +106,7 @@ const AccountPage = () => {
             <div className="flex flex-col gap-1">
               <h2 className="text-[14px] font-bold text-gray-700">Not logged in</h2>
               <button
-                onClick={() => openLoginModal('login')}
+                onClick={() => navigate('/login')}
                 className="text-[12px] font-bold text-[#006D6D] hover:underline text-left"
               >
                 Login or Sign Up →
