@@ -6,7 +6,7 @@ const Medicine = require('../models/Medicine');
 // @access  Private
 exports.createOrder = async (req, res, next) => {
   try {
-    const { items, totalAmount, shippingAddress } = req.body;
+    const { items, totalAmount, shippingAddress, paymentStatus } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ success: false, error: 'No items in order' });
@@ -16,7 +16,8 @@ exports.createOrder = async (req, res, next) => {
       user: req.user.id,
       items,
       totalAmount,
-      shippingAddress
+      shippingAddress,
+      paymentStatus: paymentStatus || 'Pending',
     });
 
     res.status(201).json({ success: true, data: order });

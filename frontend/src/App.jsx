@@ -42,6 +42,7 @@ import EditProfilePage from './components/EditProfilePage'
 import CategoryProductList from './components/CategoryProductList'
 import LoginModal from './components/LoginModal'
 import { AuthProvider } from './context/AuthContext'
+import { CartProvider } from './context/CartContext'
 import ScrollToTop from './components/ScrollToTop'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
@@ -251,10 +252,12 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <AppContent />
-      </Router>
+      <CartProvider>
+        <Router>
+          <ScrollToTop />
+          <AppContent />
+        </Router>
+      </CartProvider>
     </AuthProvider>
   )
 }

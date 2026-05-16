@@ -1,11 +1,18 @@
 const Prescription = require('../models/Prescription');
+const { uploadBuffer } = require('./uploadController');
 
 // @desc    Upload prescription
 // @route   POST /api/prescriptions
 // @access  Private
 exports.uploadPrescription = async (req, res, next) => {
   try {
-    const { image, notes } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'Please upload a prescription image or PDF' });
+    }
+
+    const result = await uploadBuffer(req.file.buffer, 'cure-basket/prescriptions');
+    const image = result.secure_url;
+    const { notes } = req.body;
 
     const prescription = await Prescription.create({
       user: req.user.id,

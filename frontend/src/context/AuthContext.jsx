@@ -1,61 +1,73 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../utils/api';
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState(null)
-  const [pendingIntent, setPendingIntent] = useState(null)
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
-  const [loginModalType, setLoginModalType] = useState('contact')
+  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [pendingIntent, setPendingIntent] = useState(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginModalType, setLoginModalType] = useState('login');
 
-  // Restore login state from localStorage on app load
+  // Validate the httpOnly cookie session on app load
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('cb_user')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setUser(parsed)
-        setIsLoggedIn(true)
-      }
-    } catch {
-      localStorage.removeItem('cb_user')
-    }
-  }, [])
+    api.get('/auth/me')
+      .then((res) => {
+        setUser(res.data.user);
+        setIsLoggedIn(true);
+      })
+      .catch(() => {
+        setUser(null);
+        setIsLoggedIn(false);
+      })
+      .finally(() => setAuthLoading(false));
+  }, []);
 
-  const login = (userData) => {
-    const userObj = { ...userData, token: 'mock-token-' + Date.now() }
-    localStorage.setItem('cb_user', JSON.stringify(userObj))
-    setUser(userObj)
-    setIsLoggedIn(true)
-    setIsLoginModalOpen(false)
-  }
+  const login = async (email, password) => {
+    const res = await api.post('/auth/login', { email, password });
+    setUser(res.data.user);
+    setIsLoggedIn(true);
+    setIsLoginModalOpen(false);
+    return res.data.user;
+  };
 
-  const logout = () => {
-    localStorage.removeItem('cb_user')
-    setUser(null)
-    setIsLoggedIn(false)
-  }
+  const register = async (name, email, password, phone) => {
+    const res = await api.post('/auth/register', { name, email, password, phone });
+    setUser(res.data.user);
+    setIsLoggedIn(true);
+    setIsLoginModalOpen(false);
+    return res.data.user;
+  };
+
+  const logout = async () => {
+    await api.post('/auth/logout').catch(() => {});
+    setUser(null);
+    setIsLoggedIn(false);
+  };
 
   const requireAuth = (intent) => {
-    if (isLoggedIn) return true
-    setPendingIntent(intent)
-    setIsLoginModalOpen(true)
-    return false
-  }
+    if (isLoggedIn) return true;
+    setPendingIntent(intent);
+    setIsLoginModalOpen(true);
+    return false;
+  };
 
   const openLoginModal = (tab = 'login') => {
-    setLoginModalType(tab)
-    setIsLoginModalOpen(true)
-  }
+    setLoginModalType(tab);
+    setIsLoginModalOpen(true);
+  };
 
-  const clearIntent = () => setPendingIntent(null)
+  const clearIntent = () => setPendingIntent(null);
 
   return (
     <AuthContext.Provider value={{
-      isLoggedIn,
       user,
+      isLoggedIn,
+      authLoading,
       login,
+      register,
       logout,
       requireAuth,
       pendingIntent,
@@ -64,15 +76,15 @@ export function AuthProvider({ children }) {
       setIsLoginModalOpen,
       loginModalType,
       setLoginModalType,
-      openLoginModal
+      openLoginModal,
     }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
-  return ctx
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  return ctx;
 }

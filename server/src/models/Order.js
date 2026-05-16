@@ -36,8 +36,10 @@ const orderSchema = new mongoose.Schema({
     default: 'Pending'
   },
   shippingAddress: {
-    type: String,
-    required: true
+    name: String,
+    street: String,
+    city: String,
+    phone: String,
   },
   createdAt: {
     type: Date,

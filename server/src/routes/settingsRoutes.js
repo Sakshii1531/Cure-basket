@@ -6,7 +6,7 @@ const router = express.Router();
 
 router
   .route('/:type')
-  .get(protect, authorize('admin'), getSettings)
-  .put(protect, authorize('admin'), updateSettings);
+  .get(protect, authorize('admin', 'superadmin'), getSettings)
+  .put(protect, authorize('admin', 'superadmin'), updateSettings);
 
 module.exports = router;

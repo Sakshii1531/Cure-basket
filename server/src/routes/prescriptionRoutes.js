@@ -7,16 +7,16 @@ const {
 } = require('../controllers/prescriptionController');
 
 const router = express.Router();
-
 const { protect, authorize } = require('../middlewares/authMiddleware');
+const upload = require('../middlewares/upload');
 
 router
   .route('/')
-  .get(protect, authorize('admin'), getPrescriptions)
-  .post(protect, uploadPrescription);
+  .get(protect, authorize('admin', 'superadmin'), getPrescriptions)
+  .post(protect, upload.single('prescription'), uploadPrescription);
 
 router.get('/my-prescriptions', protect, getMyPrescriptions);
 
-router.put('/:id/status', protect, authorize('admin'), updatePrescriptionStatus);
+router.put('/:id/status', protect, authorize('admin', 'superadmin'), updatePrescriptionStatus);
 
 module.exports = router;

@@ -1,14 +1,10 @@
 import axios from 'axios';
 
+// With the Vite proxy, all /api calls go through :5173 → :5001.
+// Cookies are same-origin, so withCredentials works automatically.
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001/api',
+  baseURL: '/api',
   withCredentials: true,
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('cb_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
 });
 
 export default api;
