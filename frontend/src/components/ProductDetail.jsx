@@ -685,7 +685,7 @@ function ProductDetail({ onBack }) {
                         setIsUploading(true);
                         try {
                           const formData = new FormData();
-                          formData.append('file', selectedFile);
+                          formData.append('prescription', selectedFile);
                           formData.append('medicine', product._id);
                           formData.append('packageLabel', selectedPackage.label);
                           formData.append('quantity', quantity);
