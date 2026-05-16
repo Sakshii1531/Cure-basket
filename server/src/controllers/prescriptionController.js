@@ -12,10 +12,13 @@ exports.uploadPrescription = async (req, res, next) => {
 
     const result = await uploadBuffer(req.file.buffer, 'cure-basket/prescriptions');
     const image = result.secure_url;
-    const { notes } = req.body;
+    const { notes, medicine, packageLabel, quantity } = req.body;
 
     const prescription = await Prescription.create({
       user: req.user.id,
+      medicine,
+      packageLabel,
+      quantity,
       image,
       notes
     });
@@ -43,7 +46,7 @@ exports.getMyPrescriptions = async (req, res, next) => {
 // @access  Private/Admin
 exports.getPrescriptions = async (req, res, next) => {
   try {
-    const prescriptions = await Prescription.find().populate('user', 'name email');
+    const prescriptions = await Prescription.find().populate('user', 'name email').populate('medicine', 'name image');
     res.status(200).json({ success: true, count: prescriptions.length, data: prescriptions });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });

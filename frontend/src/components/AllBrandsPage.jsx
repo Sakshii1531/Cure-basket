@@ -14,7 +14,7 @@ function AllBrandsPage({ onBack }) {
       .then(res => {
         const data = res.data.data
         if (Array.isArray(data)) {
-          setBrands(data.map(b => ({ id: b._id, name: b.name, logo: b.logo || null })))
+          setBrands(data.map(b => ({ id: b._id, name: b.name, image: b.image || null })))
         }
       })
       .catch(() => {})
@@ -58,20 +58,26 @@ function AllBrandsPage({ onBack }) {
               <div 
                 key={brand.id}
                 onClick={() => navigate(`/medicines?brand=${brand.id}&brandName=${encodeURIComponent(brand.name)}`)}
-                className="bg-white border border-gray-100 rounded-[24px] p-4 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:border-[#006D6D]/30 transition-all cursor-pointer h-[140px] group"
+                className="bg-white border border-gray-100 rounded-[24px] p-4 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:border-[#006D6D]/30 transition-all cursor-pointer h-[160px] md:h-[180px] group"
               >
-                {brand.logo ? (
-                  <img 
-                    src={brand.logo} 
-                    alt={brand.name} 
-                    className="max-w-[90%] max-h-[70%] object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300"
-                    onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }}
-                  />
-                ) : null}
-                <span className="text-[15px] md:text-[18px] font-bold text-gray-700 text-center" style={{ display: brand.logo ? 'none' : 'block' }}>
+                <div className="flex-1 flex items-center justify-center w-full mb-3">
+                  {brand.image ? (
+                    <img 
+                      src={brand.image} 
+                      alt={brand.name} 
+                      className="max-w-[85%] max-h-[85%] object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300"
+                      onError={e => { e.target.style.display = 'none' }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-[#006D6D]/10 rounded-full flex items-center justify-center">
+                      <span className="text-[#006D6D] font-bold text-2xl">{brand.name.charAt(0)}</span>
+                    </div>
+                  )}
+                </div>
+                <span className="text-[15px] md:text-[18px] font-bold text-gray-700 text-center line-clamp-1">
                   {brand.name}
                 </span>
-                <p className="text-[12px] text-gray-400 mt-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity">View Medicines</p>
+                <p className="text-[12px] text-gray-400 mt-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">View Medicines</p>
               </div>
             ))}
           </div>

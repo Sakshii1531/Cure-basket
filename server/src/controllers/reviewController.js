@@ -17,6 +17,21 @@ exports.getReviews = async (req, res) => {
   }
 };
 
+exports.getMedicineReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({ 
+      medicine: req.params.medicineId,
+      status: 'approved'
+    })
+      .populate('user', 'name')
+      .sort('-createdAt');
+
+    res.status(200).json({ success: true, count: reviews.length, data: reviews });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 exports.createReview = async (req, res) => {
   try {
     const review = await Review.create({ ...req.body, user: req.user.id });
