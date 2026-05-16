@@ -20,6 +20,7 @@ const categories = require('./routes/categoryRoutes');
 const brands = require('./routes/brandRoutes');
 const orders = require('./routes/orderRoutes');
 const prescriptions = require('./routes/prescriptionRoutes');
+const settings = require('./routes/settingsRoutes');
 
 const app = express();
 
@@ -43,7 +44,17 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Enable CORS
-app.use(cors());
+const allowedOrigins = process.env.FRONTEND_ORIGIN
+  ? process.env.FRONTEND_ORIGIN.split(',').map((o) => o.trim())
+  : ['http://localhost:5173'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+}));
 
 // Mount routers
 app.use('/api/auth', auth);
@@ -52,6 +63,7 @@ app.use('/api/categories', categories);
 app.use('/api/brands', brands);
 app.use('/api/orders', orders);
 app.use('/api/prescriptions', prescriptions);
+app.use('/api/settings', settings);
 
 // Routes
 app.get('/', (req, res) => {
