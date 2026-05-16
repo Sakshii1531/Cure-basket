@@ -1,4 +1,5 @@
 const Brand = require('../models/Brand');
+const sanitizeError = require('../utils/sanitizeError');
 
 // @desc    Get all brands
 // @route   GET /api/brands
@@ -8,7 +9,7 @@ exports.getBrands = async (req, res, next) => {
     const brands = await Brand.find();
     res.status(200).json({ success: true, count: brands.length, data: brands });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -20,7 +21,7 @@ exports.createBrand = async (req, res, next) => {
     const brand = await Brand.create(req.body);
     res.status(201).json({ success: true, data: brand });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -40,7 +41,7 @@ exports.updateBrand = async (req, res, next) => {
 
     res.status(200).json({ success: true, data: brand });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -59,6 +60,6 @@ exports.deleteBrand = async (req, res, next) => {
 
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };

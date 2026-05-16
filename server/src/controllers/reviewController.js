@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Review = require('../models/Review');
+const sanitizeError = require('../utils/sanitizeError');
+const { clearCache } = require('../middlewares/cacheMiddleware');
 
 exports.getReviews = async (req, res) => {
   try {
@@ -14,7 +16,7 @@ exports.getReviews = async (req, res) => {
 
     res.status(200).json({ success: true, count: reviews.length, data: reviews });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -32,16 +34,17 @@ exports.getMedicineReviews = async (req, res) => {
 
     res.status(200).json({ success: true, count: reviews.length, data: reviews });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
 exports.createReview = async (req, res) => {
   try {
     const review = await Review.create({ ...req.body, user: req.user.id });
+    await clearCache(`/api/reviews/medicine/${req.body.medicine}`);
     res.status(201).json({ success: true, data: review });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -53,9 +56,10 @@ exports.updateReviewStatus = async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!review) return res.status(404).json({ success: false, error: 'Review not found' });
+    await clearCache(`/api/reviews/medicine/${review.medicine}`);
     res.status(200).json({ success: true, data: review });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -63,9 +67,10 @@ exports.deleteReview = async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
     if (!review) return res.status(404).json({ success: false, error: 'Review not found' });
+    await clearCache(`/api/reviews/medicine/${review.medicine}`);
     await review.deleteOne();
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };

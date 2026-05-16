@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const sanitizeError = require('../utils/sanitizeError');
 
 exports.getUsers = async (req, res) => {
   try {
@@ -23,7 +24,7 @@ exports.getUsers = async (req, res) => {
       data: users,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -33,7 +34,7 @@ exports.getUser = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
     res.status(200).json({ success: true, data: user });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -55,7 +56,7 @@ exports.updateUser = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
     res.status(200).json({ success: true, data: user });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -69,6 +70,6 @@ exports.deleteUser = async (req, res) => {
     await user.deleteOne();
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Medicine = require('../models/Medicine');
+const sanitizeError = require('../utils/sanitizeError');
+const { clearCache } = require('../middlewares/cacheMiddleware');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -21,9 +23,10 @@ exports.createOrder = async (req, res, next) => {
       paymentStatus: paymentStatus || 'Pending',
     });
 
+    await clearCache('/api/orders');
     res.status(201).json({ success: true, data: order });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -35,7 +38,7 @@ exports.getMyOrders = async (req, res, next) => {
     const orders = await Order.find({ user: req.user.id }).populate('items.medicine');
     res.status(200).json({ success: true, count: orders.length, data: orders });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -47,7 +50,7 @@ exports.getOrders = async (req, res, next) => {
     const orders = await Order.find().populate('user', 'name email').populate('items.medicine');
     res.status(200).json({ success: true, count: orders.length, data: orders });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -69,8 +72,9 @@ exports.updateOrderStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
 
+    await clearCache('/api/orders');
     res.status(200).json({ success: true, data: order });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
