@@ -4,17 +4,15 @@ const jwt = require('jsonwebtoken');
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
-exports.register = async (req, res, next) => {
+exports.register = async (req, res) => {
   try {
-    const { name, email, password, phone, role, address } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
-    // Create user
     const user = await User.create({
       name,
       email,
       password,
       phone,
-      role,
       address
     });
 
@@ -27,7 +25,7 @@ exports.register = async (req, res, next) => {
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -59,7 +57,7 @@ exports.login = async (req, res, next) => {
 // @desc    Get current logged in user
 // @route   GET /api/auth/me
 // @access  Private
-exports.getMe = async (req, res, next) => {
+exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     res.status(200).json({ success: true, data: user });

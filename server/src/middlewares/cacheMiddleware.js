@@ -20,17 +20,12 @@ const cache = (duration) => {
       // Store original send function
       const originalSend = res.json;
 
-      // Override res.json to cache response
       res.json = (body) => {
         res.json = originalSend;
-        
-        // Only cache successful responses
         if (res.statusCode === 200) {
           redis.set(key, JSON.stringify(body), 'EX', duration);
-          console.log(`Cached response for ${key}`);
         }
-        
-        return res.json(body);
+        return originalSend.call(res, body);
       };
 
       next();
