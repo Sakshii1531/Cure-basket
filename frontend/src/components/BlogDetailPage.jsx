@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import api from '../utils/api';
 import allergyImg from '../assets/allergy.png';
 import diabetesImg from '../assets/diabetes.png';
 import skinCareImg from '../assets/skin-care.png';
@@ -12,17 +13,26 @@ import blog5 from '../assets/blog-5.png';
 const BlogDetailPage = () => {
   const navigate = useNavigate();
   const { slug } = useParams();
-  const [blogs, setBlogs] = useState([]);
+  const [apiBlog, setApiBlog] = useState(null);
 
   useEffect(() => {
-    const savedBlogs = localStorage.getItem('cb_blogs');
-    if (savedBlogs) {
-      setBlogs(JSON.parse(savedBlogs));
-    }
-  }, []);
+    if (!slug) return;
+    api.get(`/blogs/${slug}`)
+      .then(res => {
+        const b = res.data.data;
+        if (b) setApiBlog(b);
+      })
+      .catch(() => {});
+  }, [slug]);
 
-  const blogFromStorage = blogs.find(b => b.slug === slug);
-  const blog = blogFromStorage || blogData[slug] || blogData['splinter'];
+  const blog = apiBlog
+    ? {
+        title: apiBlog.title,
+        category: (apiBlog.tags && apiBlog.tags[0]) ? apiBlog.tags[0].toUpperCase() : 'Health',
+        image: apiBlog.image || allergyImg,
+        sections: apiBlog.sections,
+      }
+    : (blogData[slug] || blogData['splinter']);
 
   return (
     <div className="bg-white min-h-screen font-sans">

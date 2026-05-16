@@ -1,43 +1,37 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../utils/api'
 
 function UploadRxPage() {
   const navigate = useNavigate()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
-  const [fileData, setFileData] = useState(null)
+  const [error, setError] = useState('')
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
+    if (!selectedFile) return
     setIsUploading(true)
-    
-    // Save to localStorage for Admin Panel
-    const savedPrescriptions = JSON.parse(localStorage.getItem('cb_prescriptions') || '[]');
-    const newRx = {
-      id: Date.now(),
-      fileName: selectedFile.name,
-      fileSize: (selectedFile.size / 1024).toFixed(1) + ' KB',
-      fileData: fileData, // base64 string
-      date: new Date().toISOString().split('T')[0],
-      status: 'Pending'
-    };
-    localStorage.setItem('cb_prescriptions', JSON.stringify([...savedPrescriptions, newRx]));
-
-    // Simulate upload
-    setTimeout(() => {
-      setIsUploading(false)
+    setError('')
+    const formData = new FormData()
+    formData.append('prescription', selectedFile)
+    try {
+      await api.post('/prescriptions', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
       setUploadSuccess(true)
-      setTimeout(() => {
-        navigate('/')
-      }, 3000)
-    }, 2000)
+      setTimeout(() => navigate('/'), 3000)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Upload failed. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#f8fdfe] py-8 px-4">
       <div className="max-w-[600px] mx-auto">
 
-        {/* Mobile Back Button */}
         <button
           onClick={() => navigate(-1)}
           className="xl:hidden flex items-center gap-1 text-[#006D6D] font-bold text-[14px] mb-4 active:scale-95 transition-transform"
@@ -48,7 +42,6 @@ function UploadRxPage() {
           Back
         </button>
 
-        {/* Header */}
         <div className="text-center mb-5">
           <div className="w-20 h-20 bg-[#E6F7F7] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm">
             <svg className="w-10 h-10 text-[#006D6D]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -63,34 +56,31 @@ function UploadRxPage() {
           </p>
         </div>
 
-        {/* Upload Card */}
         <div className="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,109,109,0.05)] border border-[#006D6D]/5 overflow-hidden">
           <div className="p-6 md:p-7">
             {!uploadSuccess ? (
               <div className="space-y-4">
-                {/* Upload Area */}
-                <div 
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 text-[13px] px-4 py-3 rounded-2xl">
+                    {error}
+                  </div>
+                )}
+
+                <div
                   onClick={() => document.getElementById('fileInput').click()}
                   className={`relative border-2 border-dashed rounded-[24px] p-6 flex flex-col items-center justify-center cursor-pointer transition-all ${selectedFile ? 'border-[#006D6D] bg-[#E6F7F7]/10' : 'border-gray-200 hover:border-[#006D6D] hover:bg-[#E6F7F7]/5'}`}
                 >
-                  <input 
-                    type="file" 
-                    id="fileInput" 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    id="fileInput"
+                    className="hidden"
                     onChange={(e) => {
-                      const file = e.target.files[0];
-                      setSelectedFile(file);
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setFileData(reader.result);
-                        };
-                        reader.readAsDataURL(file);
-                      }
+                      const file = e.target.files[0]
+                      if (file) setSelectedFile(file)
                     }}
                     accept="image/*,.pdf"
                   />
-                  
+
                   {selectedFile ? (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-[#006D6D] rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg shadow-[#006D6D]/20">
@@ -98,8 +88,8 @@ function UploadRxPage() {
                       </div>
                       <p className="text-[14px] font-bold text-gray-900 truncate max-w-[250px]">{selectedFile.name}</p>
                       <p className="text-[11px] text-gray-400 mt-1">{(selectedFile.size / 1024).toFixed(1)} KB • Ready to upload</p>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setError('') }}
                         className="mt-2 text-red-500 text-[12px] font-bold hover:underline"
                       >
                         Remove file
@@ -107,8 +97,8 @@ function UploadRxPage() {
                     </div>
                   ) : (
                     <div className="text-center">
-                      <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#E6F7F7] transition-all">
-                        <svg className="w-10 h-10 text-gray-300 group-hover:text-[#006D6D] transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2"/></svg>
+                      <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2"/></svg>
                       </div>
                       <p className="text-[14px] font-bold text-gray-900">Drag & drop your prescription or <span className="text-[#006D6D]">browse</span></p>
                       <p className="text-[11px] text-gray-400 mt-1">Supports JPG, PNG, PDF (Max 5MB)</p>
@@ -116,7 +106,6 @@ function UploadRxPage() {
                   )}
                 </div>
 
-                {/* Guidelines */}
                 <div className="bg-[#E6F7F7]/30 rounded-2xl p-4">
                   <h3 className="text-[13px] font-bold text-[#006D6D] mb-1.5 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2.5"/></svg>
@@ -138,15 +127,14 @@ function UploadRxPage() {
                   </ul>
                 </div>
 
-                {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button 
+                  <button
                     onClick={() => navigate(-1)}
                     className="w-full sm:w-auto px-10 py-3 rounded-2xl border-2 border-gray-100 text-gray-500 font-bold text-[14px] hover:bg-gray-50 transition-all"
                   >
                     Go Back
                   </button>
-                  <button 
+                  <button
                     disabled={!selectedFile || isUploading}
                     onClick={handleUpload}
                     className={`w-full sm:w-auto px-10 py-3 rounded-2xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
@@ -176,7 +164,6 @@ function UploadRxPage() {
             )}
           </div>
 
-          {/* Secure Footer */}
           <div className="bg-gray-50 px-8 py-3 border-t border-gray-100 flex items-center justify-center gap-3">
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeWidth="2.5"/></svg>
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]">Secure & HIPAA Compliant</span>

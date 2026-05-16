@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 
 const LoginModal = () => {
-  const { isLoginModalOpen, setIsLoginModalOpen, login, pendingIntent, clearIntent } = useAuth()
+  const { isLoginModalOpen, setIsLoginModalOpen, login, register, pendingIntent, clearIntent } = useAuth()
   const [tab, setTab] = useState('login')
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
   const [errors, setErrors] = useState({})
+  const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -13,6 +14,7 @@ const LoginModal = () => {
     if (!isLoginModalOpen) {
       setForm({ name: '', email: '', phone: '', password: '' })
       setErrors({})
+      setApiError('')
       setLoading(false)
       setSuccess(false)
       setTab('login')
@@ -24,57 +26,53 @@ const LoginModal = () => {
   const validate = () => {
     const errs = {}
     if (tab === 'signup' && !form.name.trim()) errs.name = 'Name is required'
-    if (!form.email.trim() && !form.phone.trim()) errs.email = 'Email or phone is required'
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
+    if (!form.email.trim()) errs.email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
     if (!form.password || form.password.length < 6) errs.password = 'Min 6 characters'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      const userData = {
-        name: form.name || form.email.split('@')[0] || 'User',
-        email: form.email || '',
-        phone: form.phone || ''
+    setApiError('')
+    try {
+      if (tab === 'login') {
+        await login(form.email, form.password)
+      } else {
+        await register(form.name, form.email, form.password, form.phone)
       }
-      setLoading(false)
       setSuccess(true)
-      setTimeout(() => {
-        login(userData)
-        // Execute pending intent after login
-        if (pendingIntent) {
-          const { fn, args } = pendingIntent
-          clearIntent()
-          setTimeout(() => fn(...(args || [])), 100)
-        }
-      }, 800)
-    }, 1200)
+      if (pendingIntent) {
+        const { fn, args } = pendingIntent
+        clearIntent()
+        setTimeout(() => fn(...(args || [])), 300)
+      }
+    } catch (err) {
+      setApiError(err.response?.data?.error || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     setErrors(er => ({ ...er, [e.target.name]: '' }))
+    setApiError('')
   }
 
   return (
     <div className="fixed inset-0 z-[1100] flex items-end md:items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={() => setIsLoginModalOpen(false)}
       />
 
-      {/* Modal Sheet */}
       <div className="relative w-full md:max-w-[420px] bg-white rounded-t-[32px] md:rounded-[32px] px-6 pt-5 pb-8 md:p-8 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95 duration-300">
-        {/* Mobile drag handle */}
         <div className="md:hidden w-12 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
 
-        {/* Close button */}
         <button
           onClick={() => setIsLoginModalOpen(false)}
           className="absolute top-4 right-4 md:top-5 md:right-5 p-1.5 bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
@@ -84,7 +82,6 @@ const LoginModal = () => {
           </svg>
         </button>
 
-        {/* Header */}
         <div className="mb-5">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-6 h-6 bg-[#E6F7F7] rounded-full flex items-center justify-center">
@@ -102,7 +99,6 @@ const LoginModal = () => {
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="flex bg-gray-100 rounded-xl p-1 mb-5 gap-1">
           <button
             onClick={() => setTab('login')}
@@ -126,10 +122,16 @@ const LoginModal = () => {
               </svg>
             </div>
             <h3 className="text-[18px] font-black text-gray-900">You're in!</h3>
-            <p className="text-gray-500 text-[13px] mt-1">Continuing your action...</p>
+            <p className="text-gray-500 text-[13px] mt-1">Welcome to CureBasket</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-[12px] font-medium px-3 py-2 rounded-xl">
+                {apiError}
+              </div>
+            )}
+
             {tab === 'signup' && (
               <div>
                 <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Full Name</label>

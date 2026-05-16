@@ -1,26 +1,37 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const orders = [
-  { id: '#CB98621', date: 'May 10, 2024', status: 'Delivered', items: 2, price: '£72.00', color: 'text-green-600 bg-green-50' },
-  { id: '#CB98622', date: 'May 05, 2024', status: 'Shipped', items: 3, price: '£55.00', color: 'text-blue-600 bg-blue-50' },
-  { id: '#CB98623', date: 'Apr 28, 2024', status: 'Delivered', items: 4, price: '£120.00', color: 'text-green-600 bg-green-50' },
-  { id: '#CB98624', date: 'Apr 20, 2024', status: 'Cancelled', items: 1, price: '£45.00', color: 'text-red-600 bg-red-50' }
-]
+import api from '../utils/api'
 
 const tabs = ['All', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
+
+const statusColor = {
+  Delivered: 'text-green-600 bg-green-50',
+  Shipped: 'text-blue-600 bg-blue-50',
+  Processing: 'text-yellow-700 bg-yellow-50',
+  Cancelled: 'text-red-600 bg-red-50',
+  Pending: 'text-orange-600 bg-orange-50',
+}
 
 const OrdersPage = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('All')
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const filteredOrders = activeTab === 'All' 
-    ? orders 
-    : orders.filter(order => order.status === activeTab)
+  useEffect(() => {
+    api.get('/orders/my-orders')
+      .then(res => setOrders(res.data.data || []))
+      .catch(err => setError(err.response?.data?.error || 'Failed to load orders'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filteredOrders = activeTab === 'All'
+    ? orders
+    : orders.filter(o => o.status === activeTab)
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen pb-20">
-      {/* Header */}
       <div className="bg-white px-4 py-4 sticky top-0 z-50 flex items-center gap-4 border-b border-gray-100">
         <button onClick={() => navigate(-1)} className="p-1">
           <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +41,6 @@ const OrdersPage = () => {
         <h1 className="text-[20px] font-bold text-gray-900">My Orders</h1>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white border-b border-gray-100 sticky top-[61px] z-40 overflow-x-auto no-scrollbar">
         <div className="flex px-4 min-w-max">
           {tabs.map((tab) => (
@@ -48,35 +58,42 @@ const OrdersPage = () => {
         </div>
       </div>
 
-      {/* Orders List */}
       <div className="p-4 space-y-4">
-        {filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => (
-            <div key={order.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex flex-col gap-0.5">
-                  <h3 className="text-[15px] font-bold text-gray-900">Order {order.id}</h3>
-                  <p className="text-[12px] text-gray-400 font-medium">{order.date}</p>
+        {loading ? (
+          <div className="text-center py-20 text-gray-400">Loading orders...</div>
+        ) : error ? (
+          <div className="text-center py-20 text-red-500 text-sm">{error}</div>
+        ) : filteredOrders.length > 0 ? (
+          filteredOrders.map((order) => {
+            const colorClass = statusColor[order.status] || 'text-gray-600 bg-gray-50'
+            const itemCount = (order.items || []).length
+            return (
+              <div key={order._id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex flex-col gap-0.5">
+                    <h3 className="text-[15px] font-bold text-gray-900">Order #{order._id.slice(-6).toUpperCase()}</h3>
+                    <p className="text-[12px] text-gray-400 font-medium">{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-[12px] font-bold ${colorClass}`}>
+                    {order.status}
+                  </span>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-[12px] font-bold ${order.color}`}>
-                  {order.status}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-end mt-6">
-                <div className="flex flex-col gap-3">
-                  <span className="text-[14px] text-gray-600 font-bold">{order.items} {order.items === 1 ? 'Item' : 'Items'}</span>
-                  <button className="flex items-center gap-1 text-[#006D6D] text-[13px] font-bold hover:underline">
-                    View Details
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
+
+                <div className="flex justify-between items-end mt-6">
+                  <div className="flex flex-col gap-3">
+                    <span className="text-[14px] text-gray-600 font-bold">{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
+                    <button className="flex items-center gap-1 text-[#006D6D] text-[13px] font-bold hover:underline">
+                      View Details
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span className="text-[20px] font-black text-gray-900">₹{order.totalAmount}</span>
                 </div>
-                <span className="text-[20px] font-black text-gray-900">{order.price}</span>
               </div>
-            </div>
-          ))
+            )
+          })
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">

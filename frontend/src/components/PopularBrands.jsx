@@ -1,12 +1,13 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../utils/api'
 import brand1 from '../assets/brands/brand1.png'
 import brand2 from '../assets/brands/brand2.png'
 import brand3 from '../assets/brands/brand3.png'
 import brand4 from '../assets/brands/brand4.png'
 import brand5 from '../assets/brands/brand5.png'
 
-const brands = [
+const staticBrands = [
   { id: 1, name: 'Brand 1', logo: brand1 },
   { id: 2, name: 'Brand 2', logo: brand2 },
   { id: 3, name: 'Brand 3', logo: brand3 },
@@ -16,6 +17,18 @@ const brands = [
 
 const PopularBrands = () => {
   const navigate = useNavigate()
+  const [brands, setBrands] = useState(staticBrands)
+
+  useEffect(() => {
+    api.get('/brands?limit=10')
+      .then(res => {
+        const data = res.data.data
+        if (Array.isArray(data) && data.length > 0) {
+          setBrands(data.map(b => ({ id: b._id, name: b.name, logo: b.logo || null })))
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <section className="bg-white pt-8 pb-2 md:py-12 px-4 md:px-12">
@@ -24,7 +37,7 @@ const PopularBrands = () => {
           <h2 className="text-[22px] md:text-[34px] font-semibold text-gray-900 tracking-tight">
             Popular Brands
           </h2>
-          <button 
+          <button
             onClick={() => navigate('/all-brands')}
             className="flex items-center gap-1 md:gap-2 text-[#006D6D] font-bold text-[14px] md:text-[16px] hover:underline"
           >
@@ -36,15 +49,24 @@ const PopularBrands = () => {
         </div>
         <div className="flex overflow-x-auto gap-6 pb-4 scrollbar-hide no-scrollbar">
           {brands.map((brand) => (
-            <div 
+            <div
               key={brand.id}
               className="bg-white border border-gray-200 rounded-[24px] p-2 flex items-center justify-center transition-all cursor-pointer h-[110px] min-w-[160px] md:min-w-[220px] shrink-0 hover:border-[#006D6D]/30"
             >
-              <img 
-                src={brand.logo} 
-                alt={brand.name} 
-                className="max-w-[95%] max-h-[95%] object-contain mix-blend-multiply"
-              />
+              {brand.logo ? (
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  className="max-w-[95%] max-h-[95%] object-contain mix-blend-multiply"
+                  onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                />
+              ) : null}
+              <span
+                className="text-[15px] font-bold text-gray-700"
+                style={{ display: brand.logo ? 'none' : 'flex' }}
+              >
+                {brand.name}
+              </span>
             </div>
           ))}
         </div>

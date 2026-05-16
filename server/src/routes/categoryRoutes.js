@@ -14,11 +14,11 @@ const { cache } = require('../middlewares/cacheMiddleware');
 router
   .route('/')
   .get(cache(3600), getCategories)
-  .post(protect, authorize('admin'), createCategory);
+  .post(protect, authorize('admin', 'superadmin'), createCategory);
 
 router
   .route('/:id')
-  .put(protect, authorize('admin'), updateCategory)
-  .delete(protect, authorize('admin'), deleteCategory);
+  .put(protect, authorize('admin', 'superadmin'), updateCategory)
+  .delete(protect, authorize('admin', 'superadmin'), deleteCategory);
 
 module.exports = router;

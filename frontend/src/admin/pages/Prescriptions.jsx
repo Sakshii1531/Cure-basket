@@ -1,20 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import api from '../../utils/api';
+
+const STATUS_COLORS = {
+  Pending: 'bg-amber-50 text-amber-600',
+  Reviewed: 'bg-blue-50 text-blue-600',
+  Dispensed: 'bg-emerald-50 text-emerald-600',
+  Rejected: 'bg-red-50 text-red-600',
+};
 
 function Prescriptions() {
-  const [prescriptions, setPrescriptions] = useState(() => {
-    const saved = localStorage.getItem('cb_prescriptions');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem('cb_prescriptions', JSON.stringify(prescriptions));
-  }, [prescriptions]);
+    api.get('/prescriptions')
+      .then(res => setPrescriptions(res.data.data))
+      .catch(err => setError(err.response?.data?.error || 'Failed to load prescriptions'))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleStatusChange = (id, status) => {
-    setPrescriptions(prescriptions.map(p => p.id === id ? { ...p, status } : p));
+  const handleStatusChange = async (id, status) => {
+    try {
+      const res = await api.put(`/prescriptions/${id}/status`, { status });
+      setPrescriptions(prev => prev.map(p => p._id === id ? res.data.data : p));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update status');
+    }
   };
 
-  const [selectedImage, setSelectedImage] = useState(null);
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    return `http://localhost:5001${path}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -23,7 +43,11 @@ function Prescriptions() {
         <p className="text-gray-500 text-sm">Review and manage user uploaded prescriptions.</p>
       </div>
 
-      {prescriptions.length === 0 ? (
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
+
+      {loading ? (
+        <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400 text-sm">Loading...</div>
+      ) : prescriptions.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-100 p-6 flex items-center justify-center min-h-[300px]">
           <div className="text-center">
             <svg className="w-16 h-16 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,65 +58,62 @@ function Prescriptions() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">File Name</th>
-                <th className="px-6 py-4">Size</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {prescriptions.map((rx) => (
-                <tr key={rx.id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">{rx.date}</td>
-                  <td className="px-6 py-4 font-semibold text-gray-900">{rx.fileName}</td>
-                  <td className="px-6 py-4 text-gray-500">{rx.fileSize}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                      rx.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' :
-                      rx.status === 'Rejected' ? 'bg-red-50 text-red-600' :
-                      'bg-amber-50 text-amber-600'
-                    }`}>
-                      {rx.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button 
-                        onClick={() => setSelectedImage(rx.fileData)}
-                        className="px-3 py-1.5 bg-[#006D6D] text-white rounded-lg text-xs font-bold hover:bg-[#005c5c] transition-colors"
-                      >
-                        View
-                      </button>
-                      <select 
-                        value={rx.status}
-                        onChange={(e) => handleStatusChange(rx.id, e.target.value)}
-                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Approved">Approve</option>
-                        <option value="Rejected">Reject</option>
-                      </select>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Notes</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {prescriptions.map((rx) => (
+                  <tr key={rx._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">{new Date(rx.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 font-semibold text-gray-900">{rx.user?.name || 'Unknown'}<br /><span className="text-xs text-gray-400 font-normal">{rx.user?.email}</span></td>
+                    <td className="px-6 py-4 text-gray-500 max-w-xs truncate">{rx.notes || '—'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[rx.status] || 'bg-gray-50 text-gray-600'}`}>
+                        {rx.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {rx.image && (
+                          <button
+                            onClick={() => setSelectedImage(getImageUrl(rx.image))}
+                            className="px-3 py-1.5 bg-[#006D6D] text-white rounded-lg text-xs font-bold hover:bg-[#005c5c] transition-colors"
+                          >
+                            View
+                          </button>
+                        )}
+                        <select
+                          value={rx.status}
+                          onChange={(e) => handleStatusChange(rx._id, e.target.value)}
+                          className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="Reviewed">Reviewed</option>
+                          <option value="Dispensed">Dispensed</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {/* Image Modal */}
       {selectedImage && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setSelectedImage(null)}>
           <div className="relative max-w-3xl max-h-[90vh] bg-white rounded-xl overflow-hidden p-2" onClick={e => e.stopPropagation()}>
-            <button 
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors"
-            >
+            <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6L18 18" />
               </svg>

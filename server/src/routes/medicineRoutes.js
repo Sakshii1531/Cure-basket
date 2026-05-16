@@ -15,12 +15,12 @@ const { cache } = require('../middlewares/cacheMiddleware');
 router
   .route('/')
   .get(cache(3600), getMedicines)
-  .post(protect, authorize('admin'), createMedicine);
+  .post(protect, authorize('admin', 'superadmin'), createMedicine);
 
 router
   .route('/:id')
   .get(cache(3600), getMedicine)
-  .put(protect, authorize('admin'), updateMedicine)
-  .delete(protect, authorize('admin'), deleteMedicine);
+  .put(protect, authorize('admin', 'superadmin'), updateMedicine)
+  .delete(protect, authorize('admin', 'superadmin'), deleteMedicine);
 
 module.exports = router;

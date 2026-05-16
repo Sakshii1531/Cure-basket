@@ -1,17 +1,20 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./config/db');
+const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 
+const connectDB = require('./config/db');
+const seedSuperAdmin = require('./utils/seed');
+
 // Load env vars
 dotenv.config();
 
-// Connect to database
-connectDB();
+// Connect to database, then seed super admin
+connectDB().then(seedSuperAdmin).catch((err) => console.error('Seed error:', err.message));
 
 // Route files
 const auth = require('./routes/authRoutes');
@@ -21,11 +24,24 @@ const brands = require('./routes/brandRoutes');
 const orders = require('./routes/orderRoutes');
 const prescriptions = require('./routes/prescriptionRoutes');
 const settings = require('./routes/settingsRoutes');
+const roles = require('./routes/roleRoutes');
+const blogs = require('./routes/blogRoutes');
+const reviews = require('./routes/reviewRoutes');
+const coupons = require('./routes/couponRoutes');
+const banners = require('./routes/bannerRoutes');
+const users = require('./routes/userRoutes');
+const analytics = require('./routes/analyticsRoutes');
+const uploadRoute = require('./routes/uploadRoutes');
+
+const path = require('path');
 
 const app = express();
 
 // Body parser
 app.use(express.json());
+
+// Cookie parser (required for httpOnly cookie auth)
+app.use(cookieParser());
 
 // Sanitize data
 app.use(mongoSanitize());
@@ -38,8 +54,8 @@ app.use(xss());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 mins
-  max: 100
+  windowMs: 10 * 60 * 1000,
+  max: 100,
 });
 app.use(limiter);
 
@@ -56,6 +72,9 @@ app.use(cors({
   credentials: true,
 }));
 
+// Serve uploaded prescription files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Mount routers
 app.use('/api/auth', auth);
 app.use('/api/medicines', medicines);
@@ -64,22 +83,24 @@ app.use('/api/brands', brands);
 app.use('/api/orders', orders);
 app.use('/api/prescriptions', prescriptions);
 app.use('/api/settings', settings);
+app.use('/api/roles', roles);
+app.use('/api/blogs', blogs);
+app.use('/api/reviews', reviews);
+app.use('/api/coupons', coupons);
+app.use('/api/banners', banners);
+app.use('/api/users', users);
+app.use('/api/analytics', analytics);
+app.use('/api/upload', uploadRoute);
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
+app.get('/', (req, res) => res.send('API is running...'));
 
 const PORT = process.env.PORT || 5001;
 
-const server = app.listen(
-  PORT,
+const server = app.listen(PORT, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
-  // Close server & exit process
+process.on('unhandledRejection', (err) => {
+  console.error(`Error: ${err.message}`);
   server.close(() => process.exit(1));
 });
