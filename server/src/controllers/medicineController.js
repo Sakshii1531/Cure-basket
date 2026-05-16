@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Medicine = require('../models/Medicine');
 const { clearCache } = require('../middlewares/cacheMiddleware');
+const sanitizeError = require('../utils/sanitizeError');
 
 // @desc    Get all medicines
 // @route   GET /api/medicines
@@ -77,7 +78,7 @@ exports.getMedicines = async (req, res, next) => {
       data: medicines
     });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -97,7 +98,7 @@ exports.getMedicine = async (req, res, next) => {
 
     res.status(200).json({ success: true, data: medicine });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -110,7 +111,7 @@ exports.createMedicine = async (req, res, next) => {
     await clearCache('/api/medicines');
     res.status(201).json({ success: true, data: medicine });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -133,7 +134,7 @@ exports.updateMedicine = async (req, res, next) => {
     await clearCache('/api/medicines');
     res.status(200).json({ success: true, data: medicine });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -153,6 +154,6 @@ exports.deleteMedicine = async (req, res, next) => {
     await clearCache('/api/medicines');
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };

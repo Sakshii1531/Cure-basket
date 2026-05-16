@@ -1,32 +1,32 @@
 import React from 'react'
 import promoImg from '../assets/promo_banner.png'
+import usePromoBanners from '../hooks/usePromoBanners'
 
 function QualityCareBanner() {
+  const cms = usePromoBanners('qualityCare')
+
   return (
     <section className="bg-white py-4 md:py-6 px-4 md:px-12">
       <div className="max-w-[1250px] mx-auto bg-[#f0fafa] rounded-[24px] p-8 md:p-10 flex flex-col md:flex-row items-center relative overflow-hidden">
-        {/* Left Section: Text and CTA */}
         <div className="flex-1 z-10">
           <h1 className="text-[28px] md:text-[40px] font-bold leading-tight">
-            <span className="text-[#006D6D]">Quality care,</span><br />
-            <span className="text-[#FBB03B]">better savings</span>
+            <span className="text-[#006D6D]">{cms.title1}</span><br />
+            <span className="text-[#FBB03B]">{cms.title2}</span>
           </h1>
           <p className="text-[14px] md:text-[16px] text-gray-700 mt-4 max-w-[400px]">
-            Trusted medicines. Expert care. Savings you can count on.
+            {cms.description}
           </p>
-          
           <div className="mt-8 flex flex-col md:flex-row items-center gap-4">
             <button className="bg-[#FBB03B] text-white px-8 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 hover:bg-[#e6a035] transition-all shadow-md">
-              Upload Prescription
+              {cms.buttonText}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
             </button>
-            <span className="text-[#006D6D] font-semibold text-[14px]">It only takes 30 seconds!</span>
+            <span className="text-[#006D6D] font-semibold text-[14px]">{cms.badge}</span>
           </div>
         </div>
 
-        {/* Middle Section: Trust Pillars */}
         <div className="hidden lg:flex flex-1 justify-center gap-8 z-10 px-4">
           <div className="flex flex-col items-center text-center min-w-[100px]">
             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
@@ -37,9 +37,7 @@ function QualityCareBanner() {
             </div>
             <span className="text-[13px] font-bold text-gray-800 leading-tight">Affordable<br/>prices</span>
           </div>
-          
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
-
           <div className="flex flex-col items-center text-center min-w-[100px]">
             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
               <svg className="w-8 h-8 text-[#006D6D]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -48,9 +46,7 @@ function QualityCareBanner() {
             </div>
             <span className="text-[13px] font-bold text-gray-800 leading-tight">Secure &<br/>trusted</span>
           </div>
-
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
-
           <div className="flex flex-col items-center text-center min-w-[100px]">
             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
               <svg className="w-8 h-8 text-[#FBB03B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -61,16 +57,13 @@ function QualityCareBanner() {
           </div>
         </div>
 
-        {/* Right Section: Graphic */}
         <div className="flex-1 hidden md:flex justify-end relative z-10">
           <div className="relative">
             <img src={promoImg} alt="CureBasket Medicines" className="w-[480px] object-contain" />
-            {/* Soft decorative elements behind image */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#006D6D] opacity-[0.05] rounded-full blur-3xl -z-10" />
           </div>
         </div>
 
-        {/* Background Decorative Blob */}
         <div className="absolute right-[-80px] top-[-80px] w-[400px] h-[400px] bg-[#006D6D] opacity-[0.03] rounded-full pointer-events-none" />
       </div>
     </section>

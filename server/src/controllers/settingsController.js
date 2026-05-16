@@ -1,6 +1,7 @@
 const Settings = require('../models/Settings');
+const sanitizeError = require('../utils/sanitizeError');
 
-const ALLOWED_TYPES = ['bank_contact', 'dispense', 'cms', 'order_shipping'];
+const ALLOWED_TYPES = ['bank_contact', 'dispense', 'cms', 'order_shipping', 'promo_banners'];
 
 exports.getSettings = async (req, res) => {
   const { type } = req.params;
@@ -12,7 +13,7 @@ exports.getSettings = async (req, res) => {
     const settings = await Settings.findOne({ type });
     res.status(200).json({ success: true, data: settings ? settings.data : null });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -41,6 +42,6 @@ exports.updateSettings = async (req, res) => {
 
     res.status(200).json({ success: true, data: settings.data });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };

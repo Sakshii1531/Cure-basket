@@ -1,5 +1,6 @@
 const Category = require('../models/Category');
 const { clearCache } = require('../middlewares/cacheMiddleware');
+const sanitizeError = require('../utils/sanitizeError');
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -9,7 +10,7 @@ exports.getCategories = async (req, res, next) => {
     const categories = await Category.find();
     res.status(200).json({ success: true, count: categories.length, data: categories });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -22,7 +23,7 @@ exports.createCategory = async (req, res, next) => {
     await clearCache('/api/categories');
     res.status(201).json({ success: true, data: category });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -43,7 +44,7 @@ exports.updateCategory = async (req, res, next) => {
     await clearCache('/api/categories');
     res.status(200).json({ success: true, data: category });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -63,6 +64,6 @@ exports.deleteCategory = async (req, res, next) => {
     await clearCache('/api/categories');
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };

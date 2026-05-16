@@ -2,10 +2,12 @@ const Redis = require('ioredis');
 
 const redisOptions = {
   retryStrategy(times) {
+    if (process.env.NODE_ENV === 'test') return null; // disable retries in test env
     const delay = Math.min(times * 50, 2000);
     return delay;
   },
   maxRetriesPerRequest: 3,
+  lazyConnect: process.env.NODE_ENV === 'test',
 };
 
 const redis = process.env.REDIS_URL 
