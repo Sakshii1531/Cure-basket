@@ -30,17 +30,24 @@ const STATUS_COLORS = {
 };
 
 function Dashboard() {
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Wait until auth has finished loading and a user is confirmed
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      setError('Not authorized');
+      return;
+    }
     api.get('/analytics/summary')
       .then(res => setSummary(res.data.data))
       .catch(err => setError(err.response?.data?.error || 'Failed to load dashboard data'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [authLoading, user]);
 
   const stats = summary ? [
     { name: 'Total Orders', value: summary.orders.total.toLocaleString() },
