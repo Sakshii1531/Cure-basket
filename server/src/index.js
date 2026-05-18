@@ -92,6 +92,14 @@ app.use('/api/users', users);
 app.use('/api/analytics', analytics);
 app.use('/api/upload', uploadRoute);
 
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date(),
+    uptime: process.uptime()
+  });
+});
+
 app.get('/', (req, res) => res.send('API is running...'));
 
 const PORT = process.env.PORT || 5001;
