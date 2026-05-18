@@ -4,8 +4,8 @@ const sanitizeError = require('../utils/sanitizeError');
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+  secure: process.env.NODE_ENV === 'production', // true on Render (HTTPS)
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' on production (cross-site), 'lax' on development
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
 };
 
