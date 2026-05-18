@@ -11,8 +11,16 @@ export function AuthProvider({ children }) {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [loginModalType, setLoginModalType] = useState('login');
 
-  // Validate the httpOnly cookie session on app load
+  // Validate the session on app load
   useEffect(() => {
+    const token = localStorage.getItem('cb_token');
+    if (!token) {
+      setUser(null);
+      setIsLoggedIn(false);
+      setAuthLoading(false);
+      return;
+    }
+
     api.get('/auth/me')
       .then((res) => {
         setUser(res.data.user);
@@ -21,6 +29,7 @@ export function AuthProvider({ children }) {
       .catch(() => {
         setUser(null);
         setIsLoggedIn(false);
+        localStorage.removeItem('cb_token'); // Clear stale or invalid token
       })
       .finally(() => setAuthLoading(false));
   }, []);
