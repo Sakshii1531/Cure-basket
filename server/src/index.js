@@ -37,6 +37,24 @@ const path = require('path');
 
 const app = express();
 
+// Enable CORS
+const allowedOrigins = process.env.FRONTEND_ORIGIN
+  ? process.env.FRONTEND_ORIGIN.split(',').map((o) => o.trim())
+  : ['http://localhost:5173'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    // Allow explicitly listed origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow any Vercel deployment URL (production + preview branches)
+    if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+}));
+
 // Body parser
 app.use(express.json());
 
@@ -59,23 +77,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Enable CORS
-const allowedOrigins = process.env.FRONTEND_ORIGIN
-  ? process.env.FRONTEND_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:5173'];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
-    if (!origin) return callback(null, true);
-    // Allow explicitly listed origins
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Allow any Vercel deployment URL (production + preview branches)
-    if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
-    callback(new Error(`CORS: origin ${origin} not allowed`));
-  },
-  credentials: true,
-}));
 
 // Serve uploaded prescription files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
