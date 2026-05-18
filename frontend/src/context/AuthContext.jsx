@@ -26,10 +26,14 @@ export function AuthProvider({ children }) {
         setUser(res.data.user);
         setIsLoggedIn(true);
       })
-      .catch(() => {
+      .catch((err) => {
         setUser(null);
         setIsLoggedIn(false);
-        localStorage.removeItem('cb_token'); // Clear stale or invalid token
+        // Only wipe the token when the server explicitly rejects it (401).
+        // Network errors or server failures (5xx) should not evict a valid token.
+        if (err.response?.status === 401) {
+          localStorage.removeItem('cb_token');
+        }
       })
       .finally(() => setAuthLoading(false));
   }, []);

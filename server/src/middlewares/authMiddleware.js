@@ -1,29 +1,38 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Verifies JWT from httpOnly cookie or Authorization header and attaches req.user
+// Verifies JWT from httpOnly cookie or Authorization header and attaches req.user.
+// Both tokens are tried in order so a stale cookie never blocks a valid Bearer token.
 exports.protect = async (req, res, next) => {
-  let token = req.cookies?.cb_token;
+  const cookieToken = req.cookies?.cb_token;
+  const bearerToken = req.headers.authorization?.startsWith('Bearer')
+    ? req.headers.authorization.split(' ')[1]
+    : null;
 
-  // Fallback to Bearer token inside Authorization header (for cross-site CORS environments)
-  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
+  const candidates = [cookieToken, bearerToken].filter(Boolean);
 
-  if (!token) {
+  if (candidates.length === 0) {
     return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).populate('customRole');
-    if (!req.user) {
-      return res.status(401).json({ success: false, error: 'User not found' });
+  for (const token of candidates) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id).populate('customRole');
+      if (user) {
+        req.user = user;
+        return next();
+      }
+    } catch (err) {
+      if (err.name !== 'JsonWebTokenError' && err.name !== 'TokenExpiredError' && err.name !== 'NotBeforeError') {
+        // Non-JWT error (e.g. DB connection issue) — don't swallow as auth failure
+        return res.status(500).json({ success: false, error: 'Server error during authentication' });
+      }
+      // JWT error — try the next candidate
     }
-    next();
-  } catch {
-    return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
   }
+
+  return res.status(401).json({ success: false, error: 'Not authorized, token failed' });
 };
 
 // Simple role gate — used for broad checks (e.g. admin or superadmin only)
