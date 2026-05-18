@@ -17,6 +17,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   res.status(statusCode).cookie('cb_token', token, COOKIE_OPTIONS).json({
     success: true,
+    token,
     user: {
       id: user._id,
       name: user.name,

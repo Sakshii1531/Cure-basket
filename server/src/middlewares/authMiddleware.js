@@ -1,9 +1,14 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Verifies JWT from httpOnly cookie and attaches req.user
+// Verifies JWT from httpOnly cookie or Authorization header and attaches req.user
 exports.protect = async (req, res, next) => {
-  const token = req.cookies?.cb_token;
+  let token = req.cookies?.cb_token;
+
+  // Fallback to Bearer token inside Authorization header (for cross-site CORS environments)
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
   if (!token) {
     return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
