@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 
 function StatCard({ label, value, sub, loading }) {
   return (
@@ -21,16 +22,24 @@ function StatCard({ label, value, sub, loading }) {
 }
 
 function Analytics() {
+  const { user, authLoading } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Wait until auth has finished loading and a user is confirmed
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      setError('Not authorized');
+      return;
+    }
     api.get('/analytics/summary')
       .then(res => setSummary(res.data.data))
       .catch(err => setError(err.response?.data?.error || 'Failed to load analytics'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [authLoading, user]);
 
   const growthBadge = (pct) => {
     if (pct === null || pct === undefined) return null;
