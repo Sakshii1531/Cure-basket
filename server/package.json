@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "build": "echo 'No build step required'",
+    "build": "npm install",
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch --runInBand"
   },
