@@ -36,6 +36,9 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
+    if (res.data.token) {
+      localStorage.setItem('cb_token', res.data.token);
+    }
     setUser(res.data.user);
     setIsLoggedIn(true);
     setIsLoginModalOpen(false);
@@ -44,6 +47,9 @@ export function AuthProvider({ children }) {
 
   const register = async (name, email, password, phone) => {
     const res = await api.post('/auth/register', { name, email, password, phone });
+    if (res.data.token) {
+      localStorage.setItem('cb_token', res.data.token);
+    }
     setUser(res.data.user);
     setIsLoggedIn(true);
     setIsLoginModalOpen(false);
@@ -52,6 +58,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     await api.post('/auth/logout').catch(() => {});
+    localStorage.removeItem('cb_token');
     setUser(null);
     setIsLoggedIn(false);
   };
