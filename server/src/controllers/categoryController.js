@@ -7,8 +7,26 @@ const sanitizeError = require('../utils/sanitizeError');
 // @access  Public
 exports.getCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find();
-    res.status(200).json({ success: true, count: categories.length, data: categories });
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 500, 500);
+    const skip = (page - 1) * limit;
+
+    const [categories, total] = await Promise.all([
+      Category.find().sort('name').skip(skip).limit(limit),
+      Category.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: categories.length,
+      total,
+      pagination: {
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      data: categories,
+    });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });
   }

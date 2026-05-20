@@ -47,8 +47,30 @@ exports.getMyPrescriptions = async (req, res, next) => {
 // @access  Private/Admin
 exports.getPrescriptions = async (req, res, next) => {
   try {
-    const prescriptions = await Prescription.find().populate('user', 'name email').populate('medicine', 'name image');
-    res.status(200).json({ success: true, count: prescriptions.length, data: prescriptions });
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (req.query.status) filter.status = req.query.status;
+
+    const [prescriptions, total] = await Promise.all([
+      Prescription.find(filter)
+        .populate('user', 'name email')
+        .populate('medicine', 'name image')
+        .sort('-createdAt')
+        .skip(skip)
+        .limit(limit),
+      Prescription.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: prescriptions.length,
+      total,
+      pagination: { page, limit, pages: Math.ceil(total / limit) },
+      data: prescriptions,
+    });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });
   }

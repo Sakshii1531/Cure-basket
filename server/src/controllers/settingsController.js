@@ -1,7 +1,7 @@
 const Settings = require('../models/Settings');
 const sanitizeError = require('../utils/sanitizeError');
 
-const ALLOWED_TYPES = ['bank_contact', 'dispense', 'cms', 'order_shipping', 'promo_banners'];
+const ALLOWED_TYPES = ['bank_contact', 'dispense', 'cms', 'order_shipping', 'promo_banners', 'general'];
 
 exports.getSettings = async (req, res) => {
   const { type } = req.params;

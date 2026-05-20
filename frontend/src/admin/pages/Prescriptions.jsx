@@ -1,3 +1,4 @@
+import { SkeletonTable } from '../components/Skeleton';
 import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
@@ -48,7 +49,7 @@ function Prescriptions() {
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
 
       {loading ? (
-        <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400 text-sm">Loading...</div>
+        <SkeletonTable />
       ) : prescriptions.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-100 p-6 flex items-center justify-center min-h-[300px]">
           <div className="text-center">

@@ -4,8 +4,22 @@ const sanitizeError = require('../utils/sanitizeError');
 
 exports.getRoles = async (req, res) => {
   try {
-    const roles = await Role.find().sort('name');
-    res.status(200).json({ success: true, count: roles.length, data: roles });
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 100, 200);
+    const skip = (page - 1) * limit;
+
+    const [roles, total] = await Promise.all([
+      Role.find().sort('name').skip(skip).limit(limit),
+      Role.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: roles.length,
+      total,
+      pagination: { page, limit, pages: Math.ceil(total / limit) },
+      data: roles,
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: sanitizeError(err) });
   }

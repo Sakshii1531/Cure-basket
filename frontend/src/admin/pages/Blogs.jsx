@@ -1,3 +1,4 @@
+import { SkeletonTable } from '../components/Skeleton';
 import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
@@ -199,7 +200,7 @@ function Blogs() {
       ) : (
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-gray-400 text-sm">Loading...</div>
+            <SkeletonTable />
           ) : (
             <table className="w-full text-sm text-left text-gray-500">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
@@ -224,7 +225,7 @@ function Blogs() {
                     <td className="px-6 py-4">{new Date(blog.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => handleEdit(blog)} className="p-2 text-gray-500 hover:text-primary hover:bg-[#E6F7F7] rounded-lg transition-colors">
+                        <button onClick={() => handleEdit(blog)} className="p-2 text-gray-500 hover:text-primary hover:bg-secondary rounded-lg transition-colors">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
                           </svg>

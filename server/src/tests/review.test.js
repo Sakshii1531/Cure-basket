@@ -3,6 +3,7 @@ const app = require('./helpers/app');
 const db = require('./helpers/db');
 const Medicine = require('../models/Medicine');
 const Category = require('../models/Category');
+const Order = require('../models/Order');
 const User = require('../models/User');
 
 beforeAll(() => db.connect());
@@ -18,10 +19,12 @@ const VALID_USER = {
 
 let authCookie;
 let medicineId;
+let userId;
 
 beforeEach(async () => {
   const res = await request(app).post('/api/auth/register').send(VALID_USER);
   authCookie = res.headers['set-cookie'];
+  userId = res.body.user.id;
 
   const cat = await Category.create({ name: 'Vitamins' });
   const med = await Medicine.create({
@@ -33,6 +36,16 @@ beforeEach(async () => {
     category: cat._id,
   });
   medicineId = med._id.toString();
+
+  // Create a Delivered order so the purchase-verification check passes
+  await Order.create({
+    user: userId,
+    items: [{ medicine: med._id, name: med.name, price: 30, quantity: 1 }],
+    totalAmount: 30,
+    status: 'Delivered',
+    paymentStatus: 'Paid',
+    shippingAddress: { name: 'Test', street: '1 St', city: 'City', state: 'ST', zip: '000000', phone: '9000000000' },
+  });
 });
 
 describe('POST /api/reviews', () => {

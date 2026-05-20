@@ -3,8 +3,22 @@ const sanitizeError = require('../utils/sanitizeError');
 
 exports.getCoupons = async (req, res) => {
   try {
-    const coupons = await Coupon.find().sort('-createdAt');
-    res.status(200).json({ success: true, count: coupons.length, data: coupons });
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+    const skip = (page - 1) * limit;
+
+    const [coupons, total] = await Promise.all([
+      Coupon.find().sort('-createdAt').skip(skip).limit(limit),
+      Coupon.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: coupons.length,
+      total,
+      pagination: { page, limit, pages: Math.ceil(total / limit) },
+      data: coupons,
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: sanitizeError(err) });
   }
