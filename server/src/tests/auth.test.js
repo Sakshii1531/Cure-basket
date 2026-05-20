@@ -2,6 +2,9 @@ const request = require('supertest');
 const app = require('./helpers/app');
 const db = require('./helpers/db');
 
+// Prevent actual SMTP calls during tests
+jest.mock('../utils/sendEmail', () => jest.fn().mockResolvedValue(true));
+
 beforeAll(() => db.connect());
 afterEach(() => db.clear());
 afterAll(() => db.disconnect());
@@ -121,5 +124,72 @@ describe('POST /api/auth/logout', () => {
       .set('Cookie', cookie);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
+  });
+});
+
+describe('Account lockout', () => {
+  beforeEach(async () => {
+    await request(app).post('/api/auth/register').send(VALID_USER);
+  });
+
+  it('returns remaining attempts message after each failed login', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: VALID_USER.email, password: 'wrong1' });
+    expect(res.status).toBe(401);
+    expect(res.body.error).toMatch(/attempt/i);
+  });
+
+  it('locks account after 5 failed attempts', async () => {
+    for (let i = 0; i < 5; i++) {
+      await request(app)
+        .post('/api/auth/login')
+        .send({ email: VALID_USER.email, password: 'wrongpass' });
+    }
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: VALID_USER.email, password: VALID_USER.password });
+    expect(res.status).toBe(423);
+    expect(res.body.error).toMatch(/locked/i);
+  });
+
+  it('resets attempts on successful login', async () => {
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: VALID_USER.email, password: 'wrong' });
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: VALID_USER.email, password: VALID_USER.password });
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('POST /api/auth/forgot-password', () => {
+  it('always returns 200 regardless of whether email exists (prevents enumeration)', async () => {
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'nonexistent@test.com' });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('returns 200 for a registered email too', async () => {
+    await request(app).post('/api/auth/register').send(VALID_USER);
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: VALID_USER.email });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+});
+
+describe('PUT /api/auth/reset-password/:token', () => {
+  it('returns 400 for an invalid token', async () => {
+    const res = await request(app)
+      .put('/api/auth/reset-password/invalidtoken123')
+      .send({ password: 'newpassword123' });
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 });

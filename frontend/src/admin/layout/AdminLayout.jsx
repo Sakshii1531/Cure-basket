@@ -60,9 +60,9 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-section flex">
       {/* Sidebar */}
-      <div className="w-64 bg-[#0a7678] flex flex-col fixed h-full z-30 text-white">
+      <div className="w-64 bg-primary flex flex-col fixed h-full z-30 text-white">
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold text-white">Cure<span className="text-[#f5b74b]">Basket</span></Link>
+          <Link to="/" className="text-2xl font-bold text-white">Cure<span className="text-accent">Basket</span></Link>
           <span className="text-xs bg-white/20 text-white px-2 py-1 rounded-full font-bold">Admin</span>
         </div>
 
@@ -76,7 +76,7 @@ function AdminLayout() {
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-[#f5b74b] text-gray-900 shadow-md'
+                    ? 'bg-accent text-gray-900 shadow-md'
                     : 'text-teal-50 hover:bg-white/10 hover:text-white'
                 }`}
               >
@@ -91,7 +91,7 @@ function AdminLayout() {
 
         <div className="p-4 border-t border-white/10">
           <button
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold text-[#f5b74b] hover:bg-white/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold text-accent hover:bg-white/10 transition-colors"
             onClick={handleLogout}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

@@ -1,3 +1,4 @@
+import { SkeletonForm } from '../components/Skeleton';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
@@ -54,7 +55,7 @@ function Dispense() {
   };
 
   if (loading) {
-    return <div className="text-gray-400 text-sm p-6">Loading...</div>;
+    return <SkeletonForm />;
   }
 
   return (
