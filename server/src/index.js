@@ -4,8 +4,8 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 
 const connectDB = require('./config/db');
 const seedSuperAdmin = require('./utils/seed');
@@ -50,11 +50,16 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) return callback(null, true);
     // Allow any Vercel deployment URL (production + preview branches)
     if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
-    callback(new Error(`CORS: origin ${origin} not allowed`));
+    return callback(null, false);
   },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 }));
+
+// Request logging (skip in test to keep output clean)
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+}
 
 // Body parser
 app.use(express.json());
@@ -67,9 +72,6 @@ app.use(mongoSanitize());
 
 // Set security headers
 app.use(helmet());
-
-// Prevent XSS attacks
-app.use(xss());
 
 // Rate limiting
 const limiter = rateLimit({
@@ -109,6 +111,21 @@ app.get('/api/health', (req, res) => {
 });
 
 app.get('/', (req, res) => res.send('API is running...'));
+
+// 404 — unknown routes
+app.use('*', (req, res) => {
+  res.status(404).json({ success: false, error: `Route ${req.originalUrl} not found` });
+});
+
+// Global error handler — must have 4 args so Express treats it as error middleware
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  const status = err.statusCode || 500;
+  const message =
+    process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message;
+  res.status(status).json({ success: false, error: message });
+});
 
 const PORT = process.env.PORT || 5001;
 

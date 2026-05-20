@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 
 function Settings() {
@@ -18,7 +19,7 @@ function Settings() {
 
   const handleSave = (e) => {
     e.preventDefault();
-    alert('Settings saved successfully!');
+    toast.success('Settings saved');
   };
 
   return (
@@ -36,7 +37,7 @@ function Settings() {
               type="text" 
               value={settings.siteName}
               onChange={(e) => setSettings({...settings, siteName: e.target.value})}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
@@ -45,7 +46,7 @@ function Settings() {
               type="email" 
               value={settings.email}
               onChange={(e) => setSettings({...settings, email: e.target.value})}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
@@ -54,7 +55,7 @@ function Settings() {
               type="text" 
               value={settings.phone}
               onChange={(e) => setSettings({...settings, phone: e.target.value})}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
@@ -62,14 +63,14 @@ function Settings() {
             <textarea 
               value={settings.address}
               onChange={(e) => setSettings({...settings, address: e.target.value})}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               rows="3"
             ></textarea>
           </div>
           <div className="mt-6">
             <button 
               type="submit" 
-              className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] transition-colors"
+              className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors"
             >
               Save Settings
             </button>

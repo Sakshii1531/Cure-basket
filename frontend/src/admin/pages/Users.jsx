@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
@@ -23,12 +24,12 @@ function Users() {
   useEffect(() => { fetchUsers(); }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await api.delete(`/users/${id}`);
       setUsers(prev => prev.filter(u => u._id !== id));
+      toast.success('User deleted');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete user');
+      toast.error(err.response?.data?.error || 'Failed to delete user');
     }
   };
 

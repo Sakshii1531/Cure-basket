@@ -1,5 +1,6 @@
 const Prescription = require('../models/Prescription');
 const { uploadBuffer } = require('./uploadController');
+const sanitizeError = require('../utils/sanitizeError');
 
 // @desc    Upload prescription
 // @route   POST /api/prescriptions
@@ -25,7 +26,7 @@ exports.uploadPrescription = async (req, res, next) => {
 
     res.status(201).json({ success: true, data: prescription });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -37,7 +38,7 @@ exports.getMyPrescriptions = async (req, res, next) => {
     const prescriptions = await Prescription.find({ user: req.user.id });
     res.status(200).json({ success: true, count: prescriptions.length, data: prescriptions });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -49,7 +50,7 @@ exports.getPrescriptions = async (req, res, next) => {
     const prescriptions = await Prescription.find().populate('user', 'name email').populate('medicine', 'name image');
     res.status(200).json({ success: true, count: prescriptions.length, data: prescriptions });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -70,6 +71,6 @@ exports.updatePrescriptionStatus = async (req, res, next) => {
 
     res.status(200).json({ success: true, data: prescription });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };

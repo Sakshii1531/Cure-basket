@@ -10,23 +10,15 @@ exports.getMedicines = async (req, res, next) => {
   try {
     let query;
 
-    // Copy req.query
-    const reqQuery = { ...req.query };
-
-    // Fields to exclude
-    const removeFields = ['select', 'sort', 'page', 'limit'];
-
-    // Loop over removeFields and delete them from reqQuery
-    removeFields.forEach(param => delete reqQuery[param]);
-
-    // Create query string
-    let queryStr = JSON.stringify(reqQuery);
-
-    // Create operators ($gt, $gte, etc)
-    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+    // Explicit allowlist of fields that may be used as filters — prevents MongoDB operator injection
+    const ALLOWED_FILTERS = ['status', 'category', 'brand', 'isBestSeller', 'isNewAndBest', 'prescription'];
+    const filter = {};
+    for (const key of ALLOWED_FILTERS) {
+      if (req.query[key] !== undefined) filter[key] = req.query[key];
+    }
 
     // Finding resource
-    query = Medicine.find(JSON.parse(queryStr)).populate('category brand');
+    query = Medicine.find(filter).populate('category brand');
 
     // Select Fields
     if (req.query.select) {
@@ -47,7 +39,7 @@ exports.getMedicines = async (req, res, next) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    const total = await Medicine.countDocuments(JSON.parse(queryStr));
+    const total = await Medicine.countDocuments(filter);
 
     query = query.skip(startIndex).limit(limit);
 
@@ -120,16 +112,14 @@ exports.createMedicine = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateMedicine = async (req, res, next) => {
   try {
-    let medicine = await Medicine.findById(req.params.id);
+    const medicine = await Medicine.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!medicine) {
       return res.status(404).json({ success: false, error: 'Medicine not found' });
     }
-
-    medicine = await Medicine.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
 
     await clearCache('/api/medicines');
     res.status(200).json({ success: true, data: medicine });

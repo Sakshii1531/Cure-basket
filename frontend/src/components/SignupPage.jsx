@@ -15,7 +15,8 @@ const SignupPage = () => {
     if (!form.name.trim()) errs.name = 'Full name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
-    if (!form.password || form.password.length < 6) errs.password = 'Min 6 characters'
+    if (form.phone && !/^[+]?[\d\s\-().]{7,20}$/.test(form.phone)) errs.phone = 'Enter a valid phone number'
+    if (!form.password || form.password.length < 8) errs.password = 'Min 8 characters'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -100,8 +101,9 @@ const SignupPage = () => {
               value={form.phone}
               onChange={handleChange}
               placeholder="+1 800 000 0000"
-              className="w-full border-2 border-gray-100 focus:border-primary bg-gray-50 focus:bg-white rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all"
+              className={`w-full border-2 rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all ${errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
             />
+            {errors.phone && <p className="text-red-500 text-[10px] mt-0.5 font-medium">{errors.phone}</p>}
           </div>
 
           <div>
@@ -111,7 +113,7 @@ const SignupPage = () => {
               type="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="Min. 6 characters"
+              placeholder="Min. 8 characters"
               className={`w-full border-2 rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
             />
             {errors.password && <p className="text-red-500 text-[10px] mt-0.5 font-medium">{errors.password}</p>}

@@ -12,7 +12,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/src/tests/**/*.test.js"],
+    "testMatch": [
+      "**/src/tests/**/*.test.js"
+    ],
     "testTimeout": 30000
   },
   "dependencies": {
@@ -29,8 +31,9 @@
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.4.1",
+    "morgan": "^1.10.0",
     "multer": "^2.1.1",
-    "xss-clean": "^0.1.4"
+    "nodemailer": "^8.0.7"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",

@@ -79,7 +79,7 @@ function Dashboard() {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-gray-900">Recent Orders</h3>
-            <Link to="/admin/orders" className="text-[#006D6D] text-sm font-semibold hover:underline">View All</Link>
+            <Link to="/admin/orders" className="text-primary text-sm font-semibold hover:underline">View All</Link>
           </div>
           {loading ? (
             <div className="animate-pulse space-y-3">
@@ -123,7 +123,7 @@ function Dashboard() {
             <div className="space-y-3">
               <Link
                 to="/admin/medicines"
-                className="w-full bg-[#E6F7F7] text-[#006D6D] px-4 py-3 rounded-xl font-semibold text-sm hover:bg-[#CFF4F4] transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#E6F7F7] text-primary px-4 py-3 rounded-xl font-semibold text-sm hover:bg-[#CFF4F4] transition-colors flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

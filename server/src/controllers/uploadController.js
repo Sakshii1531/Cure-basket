@@ -1,4 +1,5 @@
 const cloudinary = require('../config/cloudinary');
+const sanitizeError = require('../utils/sanitizeError');
 
 const uploadBuffer = (buffer, folder, options = {}) =>
   new Promise((resolve, reject) => {
@@ -21,7 +22,7 @@ exports.uploadImage = async (req, res) => {
     const result = await uploadBuffer(req.file.buffer, folder);
     res.status(200).json({ success: true, url: result.secure_url, public_id: result.public_id });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 

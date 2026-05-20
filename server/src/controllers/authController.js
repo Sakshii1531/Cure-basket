@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const sanitizeError = require('../utils/sanitizeError');
+const sendEmail = require('../utils/sendEmail');
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -38,6 +40,9 @@ exports.register = async (req, res) => {
   }
 };
 
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -46,11 +51,106 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Please provide an email and password' });
     }
 
-    const user = await User.findOne({ email }).select('+password').populate('customRole');
+    const user = await User.findOne({ email }).select('+password +loginAttempts +lockUntil').populate('customRole');
 
-    if (!user || !(await user.matchPassword(password))) {
+    if (!user) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
+
+    // Account locked
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      return res.status(423).json({
+        success: false,
+        error: `Account locked. Try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`,
+      });
+    }
+
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      const attempts = (user.loginAttempts || 0) + 1;
+      const update = { loginAttempts: attempts };
+      if (attempts >= MAX_LOGIN_ATTEMPTS) {
+        update.lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
+        update.loginAttempts = 0;
+      }
+      await User.findByIdAndUpdate(user._id, update);
+
+      const remaining = MAX_LOGIN_ATTEMPTS - attempts;
+      const msg = attempts >= MAX_LOGIN_ATTEMPTS
+        ? 'Too many failed attempts. Account locked for 15 minutes.'
+        : `Invalid credentials. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`;
+
+      return res.status(401).json({ success: false, error: msg });
+    }
+
+    // Successful login — reset lockout counters
+    if (user.loginAttempts > 0 || user.lockUntil) {
+      await User.findByIdAndUpdate(user._id, { loginAttempts: 0, lockUntil: null });
+    }
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      // Don't reveal whether email exists — always return 200
+      return res.status(200).json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+    }
+
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+    const resetUrl = `${frontendOrigin}/reset-password/${resetToken}`;
+
+    const html = `
+      <h2>Password Reset Request</h2>
+      <p>You requested a password reset for your CureBasket account.</p>
+      <p>Click the link below to reset your password. This link expires in <strong>10 minutes</strong>.</p>
+      <a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#006D6D;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Reset Password</a>
+      <p>If you did not request this, please ignore this email.</p>
+    `;
+
+    await sendEmail({ to: user.email, subject: 'CureBasket — Password Reset', html });
+
+    res.status(200).json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+  } catch (err) {
+    // Clear token fields if email send fails so user can retry
+    await User.findOneAndUpdate(
+      { email: req.body.email },
+      { resetPasswordToken: undefined, resetPasswordExpire: undefined }
+    );
+    res.status(500).json({ success: false, error: 'Email could not be sent. Please try again.' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired reset token.' });
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
 
     sendTokenResponse(user, 200, res);
   } catch (err) {

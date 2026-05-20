@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Medicine = require('../models/Medicine');
 const Prescription = require('../models/Prescription');
+const sanitizeError = require('../utils/sanitizeError');
 
 exports.getSummary = async (req, res) => {
   try {
@@ -86,7 +87,7 @@ exports.getSummary = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -110,6 +111,6 @@ exports.getRevenueChart = async (req, res) => {
 
     res.status(200).json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };

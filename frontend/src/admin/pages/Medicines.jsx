@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import uploadImage from '../../utils/uploadImage';
@@ -10,7 +11,11 @@ function Medicines() {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [deleteId, setDeleteId] = useState(null)
+  const [deleteError, setDeleteError] = useState('')
+  const [deleting, setDeleting] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -46,13 +51,19 @@ function Medicines() {
     return matchSearch && matchCat;
   });
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this medicine?')) return;
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    setDeleteError('');
     try {
-      await api.delete(`/medicines/${id}`);
-      setMedicines(prev => prev.filter(m => m._id !== id));
+      await api.delete(`/medicines/${deleteId}`);
+      setMedicines(prev => prev.filter(m => m._id !== deleteId));
+      setDeleteId(null);
+      toast.success('Medicine deleted');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete');
+      setDeleteError(err.response?.data?.error || 'Failed to delete');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -100,17 +111,20 @@ function Medicines() {
       stock: Number(current.stock),
       packages: current.packages || [],
     };
+    setSaveError('');
     try {
       if (current._id) {
         const res = await api.put(`/medicines/${current._id}`, payload);
         setMedicines(prev => prev.map(m => m._id === current._id ? res.data.data : m));
+        toast.success('Medicine updated');
       } else {
         const res = await api.post('/medicines', payload);
         setMedicines(prev => [res.data.data, ...prev]);
+        toast.success('Medicine added');
       }
       setIsModalOpen(false);
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save medicine');
+      setSaveError(err.response?.data?.error || 'Failed to save medicine');
     } finally {
       setSaving(false);
     }
@@ -144,7 +158,7 @@ function Medicines() {
           <h2 className="text-2xl font-bold text-gray-900">Medicines Management</h2>
           <p className="text-gray-500 text-sm">Manage your inventory, prices, and stock levels.</p>
         </div>
-        <button onClick={() => openModal()} className="bg-[#006D6D] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#005c5c] transition-colors flex items-center justify-center gap-2 shadow-sm">
+        <button onClick={() => openModal()} className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
           </svg>
@@ -161,7 +175,7 @@ function Medicines() {
             placeholder="Search medicines..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D] w-full"
+            className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full"
           />
           <svg className="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -169,7 +183,7 @@ function Medicines() {
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
           <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Category:</span>
-          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D] px-3 py-2 w-full md:w-auto">
+          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary px-3 py-2 w-full md:w-auto">
             <option value="All">All</option>
             {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
@@ -220,12 +234,12 @@ function Medicines() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => openModal(med)} className="p-1.5 text-gray-400 hover:text-[#006D6D] hover:bg-teal-50 rounded-lg transition-colors">
+                        <button onClick={() => openModal(med)} className="p-1.5 text-gray-400 hover:text-primary hover:bg-teal-50 rounded-lg transition-colors">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.128-1.897l8.934-8.934Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                           </svg>
                         </button>
-                        <button onClick={() => handleDelete(med._id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button onClick={() => { setDeleteId(med._id); setDeleteError(''); }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
@@ -261,15 +275,15 @@ function Medicines() {
                   <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Basic Info & Media</h4>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Name</label>
-                    <input type="text" value={current.name} onChange={e => setCurrent({...current, name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                    <input type="text" value={current.name} onChange={e => setCurrent({...current, name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Generic Name</label>
-                    <input type="text" value={current.genericName} onChange={e => setCurrent({...current, genericName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                    <input type="text" value={current.genericName} onChange={e => setCurrent({...current, genericName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Brand (Optional)</label>
-                    <select value={current.brand || ''} onChange={e => setCurrent({...current, brand: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]">
+                    <select value={current.brand || ''} onChange={e => setCurrent({...current, brand: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                       <option value="">No Brand</option>
                       {brands.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
                     </select>
@@ -277,29 +291,29 @@ function Medicines() {
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Category</label>
-                      <select value={current.category} onChange={e => setCurrent({...current, category: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required>
+                      <select value={current.category} onChange={e => setCurrent({...current, category: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required>
                         {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                       </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-semibold text-gray-700 block mb-1">Selling Price ($)</label>
-                        <input type="number" step="0.01" min="0" value={current.price} onChange={e => setCurrent({...current, price: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                        <input type="number" step="0.01" min="0" value={current.price} onChange={e => setCurrent({...current, price: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                       </div>
                       <div>
                         <label className="text-sm font-semibold text-gray-700 block mb-1">MRP (Original Price $)</label>
-                        <input type="number" step="0.01" min="0" value={current.mrp} onChange={e => setCurrent({...current, mrp: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                        <input type="number" step="0.01" min="0" value={current.mrp} onChange={e => setCurrent({...current, mrp: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Stock</label>
-                      <input type="number" min="0" value={current.stock} onChange={e => setCurrent({...current, stock: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                      <input type="number" min="0" value={current.stock} onChange={e => setCurrent({...current, stock: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Status</label>
-                      <select value={current.status} onChange={e => setCurrent({...current, status: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]">
+                      <select value={current.status} onChange={e => setCurrent({...current, status: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                         <option value="Active">Active</option>
                         <option value="Low Stock">Low Stock</option>
                         <option value="Inactive">Inactive</option>
@@ -318,7 +332,7 @@ function Medicines() {
                       } catch {
                         setCurrent(prev => ({...prev, image: ''}));
                       }
-                    }} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                    }} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                     {current.image === '__uploading__' && (
                       <p className="text-xs text-gray-400 mt-1">Uploading...</p>
                     )}
@@ -345,38 +359,38 @@ function Medicines() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Manufacturer</label>
-                      <input type="text" value={current.manufacturer} onChange={e => setCurrent({...current, manufacturer: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                      <input type="text" value={current.manufacturer} onChange={e => setCurrent({...current, manufacturer: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Salt Composition</label>
-                      <input type="text" value={current.saltComposition} onChange={e => setCurrent({...current, saltComposition: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                      <input type="text" value={current.saltComposition} onChange={e => setCurrent({...current, saltComposition: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Packaging (e.g. 10 Tabs/Strip)</label>
-                      <input type="text" value={current.packaging} onChange={e => setCurrent({...current, packaging: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                      <input type="text" value={current.packaging} onChange={e => setCurrent({...current, packaging: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-gray-700 block mb-1">Storage</label>
-                      <input type="text" value={current.storage} onChange={e => setCurrent({...current, storage: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                      <input type="text" value={current.storage} onChange={e => setCurrent({...current, storage: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Uses (One per line)</label>
-                    <textarea value={current.uses} onChange={e => setCurrent({...current, uses: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="2" />
+                    <textarea value={current.uses} onChange={e => setCurrent({...current, uses: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="2" />
                   </div>
 
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Side Effects (One per line)</label>
-                    <textarea value={current.sideEffects} onChange={e => setCurrent({...current, sideEffects: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="2" />
+                    <textarea value={current.sideEffects} onChange={e => setCurrent({...current, sideEffects: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="2" />
                   </div>
 
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">How to Use (Steps per line)</label>
-                    <textarea value={current.howToUse} onChange={e => setCurrent({...current, howToUse: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="2" />
+                    <textarea value={current.howToUse} onChange={e => setCurrent({...current, howToUse: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="2" />
                   </div>
 
                   {/* Packages Editor */}
@@ -410,7 +424,7 @@ function Medicines() {
                           <button type="button" onClick={() => setCurrent({...current, packages: current.packages.filter((_, i) => i !== idx)})} className="text-red-500 text-xs">×</button>
                         </div>
                       ))}
-                      <button type="button" onClick={() => setCurrent({...current, packages: [...current.packages, { label: '', price: 0, popular: false }]})} className="text-xs text-[#006D6D] font-bold">+ Add Package</button>
+                      <button type="button" onClick={() => setCurrent({...current, packages: [...current.packages, { label: '', price: 0, popular: false }]})} className="text-xs text-primary font-bold">+ Add Package</button>
                     </div>
                   </div>
 
@@ -445,7 +459,7 @@ function Medicines() {
                           }} className="w-full text-xs p-1.5 rounded border border-gray-200" rows="1" />
                         </div>
                       ))}
-                      <button type="button" onClick={() => setCurrent({...current, safetyAdvice: [...(current.safetyAdvice || []), { label: '', status: 'Safe', description: '' }]})} className="text-xs text-[#006D6D] font-bold">+ Add Safety Advice</button>
+                      <button type="button" onClick={() => setCurrent({...current, safetyAdvice: [...(current.safetyAdvice || []), { label: '', status: 'Safe', description: '' }]})} className="text-xs text-primary font-bold">+ Add Safety Advice</button>
                     </div>
                   </div>
 
@@ -468,17 +482,34 @@ function Medicines() {
                           }} className="w-full text-xs p-1.5 rounded border border-gray-200" rows="2" />
                         </div>
                       ))}
-                      <button type="button" onClick={() => setCurrent({...current, faqs: [...(current.faqs || []), { question: '', answer: '' }]})} className="text-xs text-[#006D6D] font-bold">+ Add FAQ</button>
+                      <button type="button" onClick={() => setCurrent({...current, faqs: [...(current.faqs || []), { question: '', answer: '' }]})} className="text-xs text-primary font-bold">+ Add FAQ</button>
                     </div>
                   </div>
                 </div>
               </div>
 
+              {saveError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{saveError}</div>
+              )}
               <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete medicine?</h3>
+            <p className="text-sm text-gray-500 mb-4">This action cannot be undone.</p>
+            {deleteError && <p className="text-sm text-red-600 mb-3">{deleteError}</p>}
+            <div className="flex justify-end gap-3">
+              <button onClick={() => { setDeleteId(null); setDeleteError(''); }} disabled={deleting} className="px-4 py-2 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+              <button onClick={confirmDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700 disabled:opacity-60">{deleting ? 'Deleting...' : 'Delete'}</button>
+            </div>
           </div>
         </div>
       )}

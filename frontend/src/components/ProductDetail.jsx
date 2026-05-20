@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
@@ -723,7 +724,7 @@ function ProductDetail({ onBack }) {
                           setTimeout(() => setShowUploadModal(false), 2000);
                         } catch (err) {
                           setIsUploading(false);
-                          alert(err.response?.data?.error || 'Failed to upload prescription');
+                          toast.error(err.response?.data?.error || 'Failed to upload prescription');
                         }
                       }, 'upload-prescription')}
                       className={`flex-1 py-4 rounded-xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}

@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import uploadImage from '../../utils/uploadImage';
@@ -21,12 +22,12 @@ function Categories() {
   useEffect(() => { fetchCategories(); }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this category?')) return;
     try {
       await api.delete(`/categories/${id}`);
       setCategories(prev => prev.filter(c => c._id !== id));
+      toast.success('Category deleted');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete category');
+      toast.error(err.response?.data?.error || 'Failed to delete category');
     }
   };
 
@@ -46,6 +47,7 @@ function Categories() {
           description: currentCategory.description,
         });
         setCategories(prev => prev.map(c => c._id === currentCategory._id ? res.data.data : c));
+        toast.success('Category updated');
       } else {
         const res = await api.post('/categories', {
           name: currentCategory.name,
@@ -53,10 +55,11 @@ function Categories() {
           description: currentCategory.description,
         });
         setCategories(prev => [...prev, res.data.data]);
+        toast.success('Category added');
       }
       setIsModalOpen(false);
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save category');
+      toast.error(err.response?.data?.error || 'Failed to save category');
     } finally {
       setSaving(false);
     }
@@ -71,7 +74,7 @@ function Categories() {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-[#006D6D] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#005c5c] transition-colors flex items-center gap-2"
+          className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -113,7 +116,7 @@ function Categories() {
                   <td className="px-6 py-4 text-gray-500">{cat.description || '—'}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => handleOpenModal(cat)} className="p-1.5 text-gray-400 hover:text-[#006D6D] rounded-lg transition-colors">
+                      <button onClick={() => handleOpenModal(cat)} className="p-1.5 text-gray-400 hover:text-primary rounded-lg transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.128-1.897l8.934-8.934Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                         </svg>
@@ -153,7 +156,7 @@ function Categories() {
                   type="text"
                   value={currentCategory.name}
                   onChange={(e) => setCurrentCategory({ ...currentCategory, name: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
@@ -163,7 +166,7 @@ function Categories() {
                   type="text"
                   value={currentCategory.description || ''}
                   onChange={(e) => setCurrentCategory({ ...currentCategory, description: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -182,7 +185,7 @@ function Categories() {
                       setCurrentCategory(prev => ({ ...prev, image: '' }));
                     }
                   }}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 {currentCategory.image === '__uploading__' && (
                   <p className="text-xs text-gray-400 mt-1">Uploading...</p>
@@ -193,7 +196,7 @@ function Categories() {
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] disabled:opacity-60">
+                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">
                   {saving ? 'Saving...' : 'Save'}
                 </button>
               </div>

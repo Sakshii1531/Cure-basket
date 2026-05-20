@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -18,12 +19,11 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please add a password'],
-    minlength: 6,
+    minlength: 8,
     select: false,
   },
   phone: {
     type: String,
-    required: [true, 'Please add a phone number'],
   },
   // 'user' = customer, 'admin' = staff with a custom Role, 'superadmin' = full access
   role: {
@@ -40,6 +40,17 @@ const userSchema = new mongoose.Schema({
   address: {
     type: String,
   },
+  // Account lockout
+  loginAttempts: {
+    type: Number,
+    default: 0,
+  },
+  lockUntil: {
+    type: Date,
+  },
+  // Password reset
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   createdAt: {
     type: Date,
     default: Date.now,
@@ -54,6 +65,13 @@ userSchema.pre('save', async function () {
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
+};
+
+userSchema.methods.getResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return resetToken;
 };
 
 // Returns true if the user can perform `action` on `module`

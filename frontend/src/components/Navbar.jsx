@@ -2,24 +2,16 @@ import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import curebasketLogo from '../assets/logo1.png'
 
-function Navbar({
-  isPrescriptionMenuOpen,
-  setIsPrescriptionMenuOpen,
-  isOnlineCareMenuOpen,
-  setIsOnlineCareMenuOpen,
-  isHealthInfoMenuOpen,
-  setIsHealthInfoMenuOpen,
-  isGoldMembershipMenuOpen,
-  setIsGoldMembershipMenuOpen,
-  isAllCategoriesMenuOpen,
-  setIsAllCategoriesMenuOpen,
-  isMensHealthOpen,
-  setIsMensHealthOpen,
-  openSupport
-}) {
+function Navbar({ openSupport }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false)
   const [isMobileMensHealthOpen, setIsMobileMensHealthOpen] = useState(false)
+  const [isPrescriptionMenuOpen, setIsPrescriptionMenuOpen] = useState(false)
+  const [isOnlineCareMenuOpen, setIsOnlineCareMenuOpen] = useState(false)
+  const [isHealthInfoMenuOpen, setIsHealthInfoMenuOpen] = useState(false)
+  const [isGoldMembershipMenuOpen, setIsGoldMembershipMenuOpen] = useState(false)
+  const [isAllCategoriesMenuOpen, setIsAllCategoriesMenuOpen] = useState(false)
+  const [isMensHealthOpen, setIsMensHealthOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const isHomePage = location.pathname === '/'

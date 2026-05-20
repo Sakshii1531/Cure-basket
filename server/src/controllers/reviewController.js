@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Review = require('../models/Review');
+const Order = require('../models/Order');
 const sanitizeError = require('../utils/sanitizeError');
 const { clearCache } = require('../middlewares/cacheMiddleware');
 
@@ -40,8 +41,27 @@ exports.getMedicineReviews = async (req, res) => {
 
 exports.createReview = async (req, res) => {
   try {
-    const review = await Review.create({ ...req.body, user: req.user.id });
-    await clearCache(`/api/reviews/medicine/${req.body.medicine}`);
+    const { medicine, rating, comment } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(medicine)) {
+      return res.status(400).json({ success: false, error: 'Invalid medicine ID' });
+    }
+
+    const hasPurchased = await Order.exists({
+      user: req.user.id,
+      'items.medicine': medicine,
+      status: { $in: ['Delivered', 'Completed'] },
+    });
+
+    if (!hasPurchased) {
+      return res.status(403).json({
+        success: false,
+        error: 'You can only review medicines you have purchased and received.',
+      });
+    }
+
+    const review = await Review.create({ medicine, rating, comment, user: req.user.id });
+    await clearCache(`/api/reviews/medicine/${medicine}`);
     res.status(201).json({ success: true, data: review });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });

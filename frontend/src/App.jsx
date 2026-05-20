@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect, lazy, Suspense } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
@@ -42,10 +42,15 @@ import CategoryProductList from './components/CategoryProductList'
 import LoginModal from './components/LoginModal'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
+import ForgotPasswordPage from './components/ForgotPasswordPage'
+import ResetPasswordPage from './components/ResetPasswordPage'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
+import ProtectedRoute from './components/ProtectedRoute'
+import { useAuth } from './context/AuthContext'
+import { Toaster } from 'sonner'
 
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
@@ -54,26 +59,61 @@ import UploadRxPage from './components/UploadRxPage'
 import MedicinesPage from './components/MedicinesPage'
 import BlogsPage from './components/BlogsPage'
 import BlogDetailPage from './components/BlogDetailPage'
-import AdminLayout from './admin/layout/AdminLayout'
-import Dashboard from './admin/pages/Dashboard'
-import Medicines from './admin/pages/Medicines'
-import Categories from './admin/pages/Categories'
-import Orders from './admin/pages/Orders'
-import Users from './admin/pages/Users'
-import Banners from './admin/pages/Banners'
-import Coupons from './admin/pages/Coupons'
-import Settings from './admin/pages/Settings'
-import Prescriptions from './admin/pages/Prescriptions'
-import Brands from './admin/pages/Brands'
-import Reviews from './admin/pages/Reviews'
-import Analytics from './admin/pages/Analytics'
-import CMS from './admin/pages/CMS'
-import AdminLogin from './admin/pages/AdminLogin'
-import Blogs from './admin/pages/Blogs'
-import MedicineDetails from './admin/pages/MedicineDetails'
-import BankContact from './admin/pages/BankContact'
-import OrderShipping from './admin/pages/OrderShipping'
-import Dispense from './admin/pages/Dispense'
+
+const AdminLayout = lazy(() => import('./admin/layout/AdminLayout'))
+const Dashboard = lazy(() => import('./admin/pages/Dashboard'))
+const Medicines = lazy(() => import('./admin/pages/Medicines'))
+const Categories = lazy(() => import('./admin/pages/Categories'))
+const Orders = lazy(() => import('./admin/pages/Orders'))
+const Users = lazy(() => import('./admin/pages/Users'))
+const Banners = lazy(() => import('./admin/pages/Banners'))
+const Coupons = lazy(() => import('./admin/pages/Coupons'))
+const Settings = lazy(() => import('./admin/pages/Settings'))
+const Prescriptions = lazy(() => import('./admin/pages/Prescriptions'))
+const Brands = lazy(() => import('./admin/pages/Brands'))
+const Reviews = lazy(() => import('./admin/pages/Reviews'))
+const Analytics = lazy(() => import('./admin/pages/Analytics'))
+const CMS = lazy(() => import('./admin/pages/CMS'))
+const AdminLogin = lazy(() => import('./admin/pages/AdminLogin'))
+const Blogs = lazy(() => import('./admin/pages/Blogs'))
+const MedicineDetails = lazy(() => import('./admin/pages/MedicineDetails'))
+const BankContact = lazy(() => import('./admin/pages/BankContact'))
+const OrderShipping = lazy(() => import('./admin/pages/OrderShipping'))
+const Dispense = lazy(() => import('./admin/pages/Dispense'))
+
+function AdminSpinner() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <svg className="animate-spin h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+    </div>
+  )
+}
+
+function NotFound() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-4">
+      <span className="text-6xl font-bold text-primary">404</span>
+      <p className="text-xl text-gray-600">Page not found</p>
+      <a href="/" className="mt-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+        Go home
+      </a>
+    </div>
+  )
+}
+
+// Synchronous guard — runs before any lazy admin bundle is fetched,
+// preventing the brief unauthenticated flash that a lazy-only guard would allow.
+function AdminRoute({ children }) {
+  const { isLoggedIn, authLoading, user } = useAuth()
+  if (authLoading) return <AdminSpinner />
+  if (!isLoggedIn || !['admin', 'superadmin'].includes(user?.role)) {
+    return <Navigate to="/admin/login" replace />
+  }
+  return children
+}
 
 function HomePage({ onProductClick }) {
   return (
@@ -98,19 +138,23 @@ function HomePage({ onProductClick }) {
 }
 
 function AppContent() {
-  const [isPrescriptionMenuOpen, setIsPrescriptionMenuOpen] = useState(false)
-  const [isOnlineCareMenuOpen, setIsOnlineCareMenuOpen] = useState(false)
-  const [isHealthInfoMenuOpen, setIsHealthInfoMenuOpen] = useState(false)
-  const [isGoldMembershipMenuOpen, setIsGoldMembershipMenuOpen] = useState(false)
-  const [isAllCategoriesMenuOpen, setIsAllCategoriesMenuOpen] = useState(false)
-  const [isMensHealthOpen, setIsMensHealthOpen] = useState(false)
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false)
   const [supportModalType, setSupportModalType] = useState('contact')
   const [isHcpPageOpen, setIsHcpPageOpen] = useState(() => window.location.hash === '#hcp')
-  
+  const { redirectTo, setRedirectTo } = useAuth()
+
   const navigate = useNavigate()
   const location = useLocation()
-  
+
+  // Consume requireAuth redirects — AuthContext can't call useNavigate directly
+  // because it lives outside <Router>, so it sets redirectTo and we navigate here.
+  useEffect(() => {
+    if (redirectTo) {
+      navigate(redirectTo);
+      setRedirectTo(null);
+    }
+  }, [redirectTo]);
+
   const openSupportModal = (type) => {
     setSupportModalType(type)
     setIsSupportModalOpen(true)
@@ -125,7 +169,8 @@ function AppContent() {
     || location.pathname.startsWith('/product/')
     || location.pathname.startsWith('/blog')
   const isAdminPage = location.pathname.startsWith('/admin')
-  const isAuthPage = ['/login', '/signup'].includes(location.pathname)
+  const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(location.pathname)
+    || location.pathname.startsWith('/reset-password/')
 
   const handleProductClick = (product) => {
     navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
@@ -148,21 +193,7 @@ function AppContent() {
       {!isSubPage && !isAdminPage && !isAuthPage && (
         <>
           <TopBar openSupport={openSupportModal} />
-          <Navbar
-            openSupport={openSupportModal}
-            isPrescriptionMenuOpen={isPrescriptionMenuOpen}
-            setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
-            isOnlineCareMenuOpen={isOnlineCareMenuOpen}
-            setIsOnlineCareMenuOpen={setIsOnlineCareMenuOpen}
-            isHealthInfoMenuOpen={isHealthInfoMenuOpen}
-            setIsHealthInfoMenuOpen={setIsHealthInfoMenuOpen}
-            isGoldMembershipMenuOpen={isGoldMembershipMenuOpen}
-            setIsGoldMembershipMenuOpen={setIsGoldMembershipMenuOpen}
-            isAllCategoriesMenuOpen={isAllCategoriesMenuOpen}
-            setIsAllCategoriesMenuOpen={setIsAllCategoriesMenuOpen}
-            isMensHealthOpen={isMensHealthOpen}
-            setIsMensHealthOpen={setIsMensHealthOpen}
-          />
+          <Navbar openSupport={openSupportModal} />
         </>
       )}
       
@@ -171,21 +202,7 @@ function AppContent() {
         {isSubPage && !isAdminPage && !isAuthPage && (
           <>
             <TopBar openSupport={openSupportModal} />
-            <Navbar
-              openSupport={openSupportModal}
-              isPrescriptionMenuOpen={isPrescriptionMenuOpen}
-              setIsPrescriptionMenuOpen={setIsPrescriptionMenuOpen}
-              isOnlineCareMenuOpen={isOnlineCareMenuOpen}
-              setIsOnlineCareMenuOpen={setIsOnlineCareMenuOpen}
-              isHealthInfoMenuOpen={isHealthInfoMenuOpen}
-              setIsHealthInfoMenuOpen={setIsHealthInfoMenuOpen}
-              isGoldMembershipMenuOpen={isGoldMembershipMenuOpen}
-              setIsGoldMembershipMenuOpen={setIsGoldMembershipMenuOpen}
-              isAllCategoriesMenuOpen={isAllCategoriesMenuOpen}
-              setIsAllCategoriesMenuOpen={setIsAllCategoriesMenuOpen}
-              isMensHealthOpen={isMensHealthOpen}
-              setIsMensHealthOpen={setIsMensHealthOpen}
-            />
+            <Navbar openSupport={openSupportModal} />
           </>
         )}
       </div>
@@ -197,15 +214,15 @@ function AppContent() {
         <Route path="/best-sellers" element={<BestSellersPage onProductClick={handleProductClick} onBack={() => navigate('/')} />} />
         <Route path="/all-brands" element={<AllBrandsPage onBack={() => navigate('/')} />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+        <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+        <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
         <Route path="/track-order" element={<TrackOrder />} />
         <Route path="/all-reviews" element={<AllReviewsPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/edit-profile" element={<EditProfilePage />} />
+        <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+        <Route path="/edit-profile" element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
         <Route path="/category/:categoryName" element={<CategoryProductList />} />
         <Route path="/upload-rx" element={<UploadRxPage />} />
         <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
@@ -213,29 +230,33 @@ function AppContent() {
         <Route path="/blog/:slug?" element={<BlogDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
         {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="medicines" element={<Medicines />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="users" element={<Users />} />
-          <Route path="banners" element={<Banners />} />
-          <Route path="coupons" element={<Coupons />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="prescriptions" element={<Prescriptions />} />
-          <Route path="dispense" element={<Dispense />} />
-          <Route path="brands" element={<Brands />} />
-          <Route path="reviews" element={<Reviews />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="cms" element={<CMS />} />
-          <Route path="blogs" element={<Blogs />} />
-          <Route path="bank-contact" element={<BankContact />} />
-          <Route path="order-shipping" element={<OrderShipping />} />
-          <Route path="medicine-details" element={<MedicineDetails />} />
+        <Route path="/admin/login" element={<Suspense fallback={<AdminSpinner />}><AdminLogin /></Suspense>} />
+        <Route path="/admin" element={<AdminRoute><Suspense fallback={<AdminSpinner />}><AdminLayout /></Suspense></AdminRoute>}>
+          <Route index element={<Suspense fallback={<AdminSpinner />}><Dashboard /></Suspense>} />
+          <Route path="medicines" element={<Suspense fallback={<AdminSpinner />}><Medicines /></Suspense>} />
+          <Route path="categories" element={<Suspense fallback={<AdminSpinner />}><Categories /></Suspense>} />
+          <Route path="orders" element={<Suspense fallback={<AdminSpinner />}><Orders /></Suspense>} />
+          <Route path="users" element={<Suspense fallback={<AdminSpinner />}><Users /></Suspense>} />
+          <Route path="banners" element={<Suspense fallback={<AdminSpinner />}><Banners /></Suspense>} />
+          <Route path="coupons" element={<Suspense fallback={<AdminSpinner />}><Coupons /></Suspense>} />
+          <Route path="settings" element={<Suspense fallback={<AdminSpinner />}><Settings /></Suspense>} />
+          <Route path="prescriptions" element={<Suspense fallback={<AdminSpinner />}><Prescriptions /></Suspense>} />
+          <Route path="dispense" element={<Suspense fallback={<AdminSpinner />}><Dispense /></Suspense>} />
+          <Route path="brands" element={<Suspense fallback={<AdminSpinner />}><Brands /></Suspense>} />
+          <Route path="reviews" element={<Suspense fallback={<AdminSpinner />}><Reviews /></Suspense>} />
+          <Route path="analytics" element={<Suspense fallback={<AdminSpinner />}><Analytics /></Suspense>} />
+          <Route path="cms" element={<Suspense fallback={<AdminSpinner />}><CMS /></Suspense>} />
+          <Route path="blogs" element={<Suspense fallback={<AdminSpinner />}><Blogs /></Suspense>} />
+          <Route path="bank-contact" element={<Suspense fallback={<AdminSpinner />}><BankContact /></Suspense>} />
+          <Route path="order-shipping" element={<Suspense fallback={<AdminSpinner />}><OrderShipping /></Suspense>} />
+          <Route path="medicine-details" element={<Suspense fallback={<AdminSpinner />}><MedicineDetails /></Suspense>} />
         </Route>
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {!isSubPage && !isAdminPage && !isAuthPage && <FooterNewsletter />}
@@ -256,6 +277,7 @@ function AppContent() {
       />
 
       <LoginModal />
+      <Toaster position="top-right" richColors closeButton />
     </div>
   )
 }

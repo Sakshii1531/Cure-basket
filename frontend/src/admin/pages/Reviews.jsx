@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
@@ -27,18 +28,19 @@ function Reviews() {
     try {
       const res = await api.put(`/reviews/${id}/status`, { status });
       setReviews(prev => prev.map(r => r._id === id ? res.data.data : r));
+      toast.success(`Review ${status}`);
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update status');
+      toast.error(err.response?.data?.error || 'Failed to update status');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this review?')) return;
     try {
       await api.delete(`/reviews/${id}`);
       setReviews(prev => prev.filter(r => r._id !== id));
+      toast.success('Review deleted');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete review');
+      toast.error(err.response?.data?.error || 'Failed to delete review');
     }
   };
 
@@ -54,7 +56,7 @@ function Reviews() {
             <button
               key={s}
               onClick={() => handleFilterChange(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${statusFilter === s ? 'bg-[#006D6D] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${statusFilter === s ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
@@ -108,7 +110,7 @@ function Reviews() {
                       <select
                         value={review.status}
                         onChange={(e) => handleStatusChange(review._id, e.target.value)}
-                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         <option value="pending">Pending</option>
                         <option value="approved">Approve</option>
