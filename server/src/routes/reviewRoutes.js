@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { getReviews, getMedicineReviews, createReview, updateReviewStatus, deleteReview } = require('../controllers/reviewController');
+const { getPublicReviews, getReviews, getMedicineReviews, createReview, updateReviewStatus, deleteReview } = require('../controllers/reviewController');
 const { protect, authorize, can } = require('../middlewares/authMiddleware');
 const { cache } = require('../middlewares/cacheMiddleware');
 const validate = require('../middlewares/validate');
 const { createReviewRules, updateReviewStatusRules } = require('../validators/reviewValidators');
+
+// Public: all approved reviews with pagination + avg rating
+router.get('/approved', cache(300), getPublicReviews);
 
 // Public: get approved reviews for a medicine
 router.get('/medicine/:medicineId', cache(300), getMedicineReviews);

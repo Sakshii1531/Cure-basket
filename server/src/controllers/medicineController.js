@@ -12,9 +12,16 @@ exports.getMedicines = async (req, res, next) => {
 
     // Explicit allowlist of fields that may be used as filters — prevents MongoDB operator injection
     const ALLOWED_FILTERS = ['status', 'category', 'brand', 'isBestSeller', 'isNewAndBest', 'prescription'];
+    const BOOLEAN_FILTERS = new Set(['isBestSeller', 'isNewAndBest']);
     const filter = {};
     for (const key of ALLOWED_FILTERS) {
-      if (req.query[key] !== undefined) filter[key] = req.query[key];
+      if (req.query[key] !== undefined) {
+        if (BOOLEAN_FILTERS.has(key)) {
+          filter[key] = req.query[key] === 'true';
+        } else {
+          filter[key] = req.query[key];
+        }
+      }
     }
 
     // Finding resource

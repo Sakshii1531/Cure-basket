@@ -4,6 +4,41 @@ const Order = require('../models/Order');
 const sanitizeError = require('../utils/sanitizeError');
 const { clearCache } = require('../middlewares/cacheMiddleware');
 
+exports.getPublicReviews = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const [reviews, total, ratingAgg] = await Promise.all([
+      Review.find({ status: 'approved' })
+        .populate('user', 'name')
+        .populate('medicine', 'name')
+        .sort('-createdAt')
+        .skip(skip)
+        .limit(limit),
+      Review.countDocuments({ status: 'approved' }),
+      Review.aggregate([
+        { $match: { status: 'approved' } },
+        { $group: { _id: null, avg: { $avg: '$rating' } } },
+      ]),
+    ]);
+
+    const avgRating = ratingAgg.length > 0 ? Math.round(ratingAgg[0].avg * 10) / 10 : 0;
+
+    res.status(200).json({
+      success: true,
+      count: reviews.length,
+      total,
+      pages: Math.ceil(total / limit),
+      avgRating,
+      data: reviews,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
 exports.getReviews = async (req, res) => {
   try {
     const filter = {};
