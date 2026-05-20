@@ -13,11 +13,22 @@ require('../../models/Category');
 require('../../models/Brand');
 require('../../models/Order');
 require('../../models/Review');
+require('../../models/Coupon');
+require('../../models/Blog');
+require('../../models/Banner');
 
 const auth = require('../../routes/authRoutes');
 const medicines = require('../../routes/medicineRoutes');
 const orders = require('../../routes/orderRoutes');
 const reviews = require('../../routes/reviewRoutes');
+const categories = require('../../routes/categoryRoutes');
+const brands = require('../../routes/brandRoutes');
+const coupons = require('../../routes/couponRoutes');
+const blogs = require('../../routes/blogRoutes');
+const banners = require('../../routes/bannerRoutes');
+const roles = require('../../routes/roleRoutes');
+const analytics = require('../../routes/analyticsRoutes');
+const settings = require('../../routes/settingsRoutes');
 
 const app = express();
 app.use(express.json());
@@ -27,5 +38,13 @@ app.use('/api/auth', auth);
 app.use('/api/medicines', medicines);
 app.use('/api/orders', orders);
 app.use('/api/reviews', reviews);
+app.use('/api/categories', categories);
+app.use('/api/brands', brands);
+app.use('/api/coupons', coupons);
+app.use('/api/blogs', blogs);
+app.use('/api/banners', banners);
+app.use('/api/roles', roles);
+app.use('/api/analytics', analytics);
+app.use('/api/settings', settings);
 
 module.exports = app;

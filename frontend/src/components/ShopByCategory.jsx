@@ -1,5 +1,8 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../utils/api'
+
+// Local images as fallback keyed by lowercase category name
 import weightLossImg from '../assets/allergy.png'
 import skinCareImg from '../assets/skin-care.png'
 import diabetesImg from '../assets/diabetes.png'
@@ -11,139 +14,55 @@ import cancerImg from '../assets/anti-cancer.png'
 import eyeImg from '../assets/eye-care.png'
 import antibioticImg from '../assets/antibiotic.png'
 
-const treatments = [
-  {
-    id: 1,
-    titleLine1: "Allergy",
-    titleLine2: "treatment",
-    slug: "allergy",
-    price: "39",
-    image: weightLossImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-gray-900",
-    titleColor2: "text-[#004D4D]",
-    isWeightLoss: true,
-    hasLeftBar: true
-  },
-  {
-    id: 2,
-    titleLine1: "Beauty &",
-    titleLine2: "Skin Care",
-    slug: "skin-care",
-    price: "16",
-    image: skinCareImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 3,
-    titleLine1: "Diabetes",
-    titleLine2: "treatment",
-    slug: "diabetes",
-    price: "18",
-    image: diabetesImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 4,
-    titleLine1: "Hair Loss",
-    titleLine2: "treatment",
-    slug: "hair-loss",
-    price: "16",
-    image: med2,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 5,
-    titleLine1: "Acne",
-    titleLine2: "treatment",
-    slug: "acne",
-    price: "12",
-    image: acneImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 6,
-    titleLine1: "Pain",
-    titleLine2: "Relief",
-    slug: "pain",
-    price: "9",
-    image: painImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 7,
-    titleLine1: "Anti",
-    titleLine2: "Cancer",
-    slug: "anti-cancer",
-    price: "89",
-    image: cancerImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 8,
-    titleLine1: "Eye",
-    titleLine2: "Care",
-    slug: "eye-care",
-    price: "15",
-    image: eyeImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 9,
-    titleLine1: "Antibiotics",
-    titleLine2: "treatment",
-    slug: "antibiotics",
-    price: "14",
-    image: antibioticImg,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  },
-  {
-    id: 10,
-    titleLine1: "Sexual",
-    titleLine2: "Wellness",
-    slug: "sexual-wellness",
-    price: "22",
-    image: med5,
-    bg: "bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8]",
-    titleColor1: "text-[#004D4D]",
-    titleColor2: "text-gray-900",
-    hasLeftBar: true
-  }
-]
+const IMAGE_MAP = {
+  'allergy': weightLossImg,
+  'skin care': skinCareImg,
+  'beauty & skin care': skinCareImg,
+  'beauty': skinCareImg,
+  'diabetes': diabetesImg,
+  'hair loss': med2,
+  'acne': acneImg,
+  'pain relief': painImg,
+  'pain': painImg,
+  'anti cancer': cancerImg,
+  'anti-cancer': cancerImg,
+  'cancer': cancerImg,
+  'eye care': eyeImg,
+  'antibiotics': antibioticImg,
+  'antibiotic': antibioticImg,
+  'sexual wellness': med5,
+}
 
-const scrollTreatments = [...treatments, ...treatments]
+function getCategoryImage(name) {
+  return IMAGE_MAP[name.toLowerCase()] || weightLossImg
+}
+
+function splitTitle(name) {
+  const words = name.trim().split(' ')
+  if (words.length <= 1) return [name, '']
+  const mid = Math.ceil(words.length / 2)
+  return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')]
+}
 
 function ShopByCategory() {
   const navigate = useNavigate()
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    api.get('/categories?limit=500')
+      .then(res => setCategories(res.data.data || []))
+      .catch(() => {})
+  }, [])
+
+  // Double for infinite scroll animation
+  const scrollItems = categories.length > 0 ? [...categories, ...categories] : []
+
+  if (categories.length === 0) return null
 
   return (
     <section className="relative -mt-[140px] md:-mt-[180px] pt-32 md:pt-44 pb-10 md:pb-12 overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[160%] h-[200%] bg-[#fef6f6] rounded-t-[100%] translate-y-24 md:translate-y-32"></div>
-      
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[160%] h-[200%] bg-[#fef6f6] rounded-t-[100%] translate-y-24 md:translate-y-32" />
+
       <div className="relative z-10 w-full text-center overflow-hidden">
         <h2 className="text-[28px] md:text-[44px] font-semibold text-black leading-tight mb-2 px-4">
           Category
@@ -173,52 +92,46 @@ function ShopByCategory() {
         `}} />
 
         <div className="animate-scroll gap-4 md:gap-6 px-4">
-          {scrollTreatments.map((item, index) => (
-            <div 
-              key={`${item.id}-${index}`} 
-              onClick={() => navigate(`/all-products?category=${item.slug}`)}
-              className={`${item.bg} rounded-[20px] md:rounded-[24px] p-6 md:p-8 relative overflow-hidden flex flex-col items-start text-left h-[180px] md:h-[220px] w-[280px] md:w-[410px] shadow-sm hover:shadow-md transition-all active:scale-[0.98] group cursor-pointer border border-gray-100 shrink-0`}
-            >
-              {item.hasLeftBar && (
-                <div className="absolute left-0 top-0 h-[60%] w-2 md:w-3 bg-[#004D4D] rounded-br-[40px] z-20"></div>
-              )}
+          {scrollItems.map((cat, index) => {
+            const [line1, line2] = splitTitle(cat.name)
+            const img = getCategoryImage(cat.name)
+            return (
+              <div
+                key={`${cat._id}-${index}`}
+                onClick={() => navigate(`/category/${encodeURIComponent(cat.name)}`)}
+                className="bg-gradient-to-r from-[#e0f2fe] via-[#fdf2f8] to-[#fdf2f8] rounded-[20px] md:rounded-3xl p-6 md:p-8 relative overflow-hidden flex flex-col items-start text-left h-[180px] md:h-[220px] w-[280px] md:w-[410px] shadow-sm hover:shadow-md transition-all active:scale-[0.98] group cursor-pointer border border-gray-100 shrink-0"
+              >
+                <div className="absolute left-0 top-0 h-[60%] w-2 md:w-3 bg-primary rounded-br-[40px] z-20" />
 
-              <div className="flex flex-col z-10">
-                <span className={`${item.titleColor1} text-[22px] md:text-[34px] font-semibold leading-[1.1]`}>
-                  {item.titleLine1}
-                </span>
-                <span className={`${item.titleColor2} text-[22px] md:text-[34px] font-semibold leading-[1.1]`}>
-                  {item.titleLine2}
-                </span>
-              </div>
-
-              <div className="mt-2 md:mt-2 z-10">
-                <svg className="w-16 h-16 md:w-24 md:h-24 text-[#004D4D]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M25,25 Q40,80 85,80" />
-                  <path d="M68,68 L85,80 L70,92" />
-                </svg>
-              </div>
-
-              <div className="absolute top-6 right-6 md:top-8 md:right-8 w-18 h-18 md:w-24 md:h-24 rounded-full bg-[#FFD200] flex flex-col items-center justify-center z-20 shadow-lg border-[3px] md:border-[4px] border-white/20">
-                <span className="text-[7px] md:text-[10px] font-bold text-gray-800 uppercase tracking-tight">Starting at</span>
-                <div className="flex items-start">
-                  <span className="text-[10px] md:text-[14px] font-bold text-gray-900 mt-0.5 md:mt-1">$</span>
-                  <span className="text-[24px] md:text-[34px] font-black text-gray-900 leading-none">{item.price}</span>
+                <div className="flex flex-col z-10">
+                  <span className="text-primary text-[22px] md:text-[34px] font-semibold leading-[1.1]">{line1}</span>
+                  {line2 && (
+                    <span className="text-gray-900 text-[22px] md:text-[34px] font-semibold leading-[1.1]">{line2}</span>
+                  )}
                 </div>
-                <span className="text-[7px] md:text-[10px] font-bold text-gray-800 lowercase">per month</span>
-              </div>
 
-              <div className="absolute bottom-0 right-0 w-[65%] h-[55%] bg-[#004D4D] rounded-tl-[100%] z-0"></div>
+                <div className="mt-2 z-10">
+                  <svg className="w-16 h-16 md:w-24 md:h-24 text-primary" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M25,25 Q40,80 85,80" />
+                    <path d="M68,68 L85,80 L70,92" />
+                  </svg>
+                </div>
 
-              <div className={`absolute bottom-0 right-2 md:right-4 z-10 ${item.id === 1 ? 'w-[130px] md:w-[180px]' : item.id === 2 ? 'w-[140px] md:w-[190px]' : item.id === 3 ? 'w-[130px] md:w-[180px]' : item.id === 6 ? 'w-[80px] md:w-[110px]' : 'w-[130px] md:w-[180px]'} h-auto pointer-events-none`}>
-                <img 
-                   src={item.image} 
-                   alt={item.titleLine1} 
-                   className="w-full h-full object-contain drop-shadow-xl"
-                />
+                <div className="absolute top-6 right-6 md:top-8 md:right-8 w-18 h-18 md:w-24 md:h-24 rounded-full bg-accent flex flex-col items-center justify-center z-20 shadow-lg border-[3px] md:border-4 border-white/20">
+                  <span className="text-[9px] md:text-[11px] font-black text-gray-900 uppercase tracking-tight">Explore</span>
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-900 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </div>
+
+                <div className="absolute bottom-0 right-0 w-[65%] h-[55%] bg-primary rounded-tl-[100%] z-0" />
+
+                <div className="absolute bottom-0 right-2 md:right-4 z-10 w-[130px] md:w-[180px] h-auto pointer-events-none">
+                  <img src={img} alt={cat.name} className="w-full h-full object-contain drop-shadow-xl" loading="lazy" />
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>
