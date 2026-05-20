@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
@@ -19,12 +20,12 @@ function Coupons() {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this coupon?')) return;
     try {
       await api.delete(`/coupons/${id}`);
       setCoupons(prev => prev.filter(c => c._id !== id));
+      toast.success('Coupon deleted');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete');
+      toast.error(err.response?.data?.error || 'Failed to delete');
     }
   };
 
@@ -59,13 +60,15 @@ function Coupons() {
       if (current._id) {
         const res = await api.put(`/coupons/${current._id}`, payload);
         setCoupons(prev => prev.map(c => c._id === current._id ? res.data.data : c));
+        toast.success('Coupon updated');
       } else {
         const res = await api.post('/coupons', payload);
         setCoupons(prev => [...prev, res.data.data]);
+        toast.success('Coupon added');
       }
       setIsModalOpen(false);
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save coupon');
+      toast.error(err.response?.data?.error || 'Failed to save coupon');
     } finally {
       setSaving(false);
     }
@@ -80,7 +83,7 @@ function Coupons() {
           <h2 className="text-2xl font-bold text-gray-900">Coupons & Offers</h2>
           <p className="text-gray-500 text-sm">Manage discount coupons and promotional offers.</p>
         </div>
-        <button onClick={() => openModal()} className="bg-[#006D6D] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#005c5c] transition-colors flex items-center gap-2">
+        <button onClick={() => openModal()} className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
           </svg>
@@ -93,10 +96,10 @@ function Coupons() {
       {loading ? (
         <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400 text-sm">Loading...</div>
       ) : coupons.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 p-6 flex items-center justify-center min-h-[300px]">
+        <div className="bg-white rounded-xl border border-gray-100 p-6 flex items-center justify-center min-h-75">
           <div className="text-center">
             <p className="text-gray-400 text-sm font-medium mb-4">No coupons created yet.</p>
-            <button onClick={() => openModal()} className="bg-[#006D6D] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#005c5c]">Create Coupon</button>
+            <button onClick={() => openModal()} className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary/90">Create Coupon</button>
           </div>
         </div>
       ) : (
@@ -128,7 +131,7 @@ function Coupons() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => openModal(c)} className="p-1.5 text-gray-400 hover:text-[#006D6D] rounded-lg transition-colors">
+                      <button onClick={() => openModal(c)} className="p-1.5 text-gray-400 hover:text-primary rounded-lg transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.128-1.897l8.934-8.934Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                         </svg>
@@ -159,39 +162,39 @@ function Coupons() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Coupon Code</label>
-                <input type="text" value={current.code} onChange={e => setCurrent({...current, code: e.target.value.toUpperCase()})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D] font-mono" placeholder="WELCOME10" required />
+                <input type="text" value={current.code} onChange={e => setCurrent({...current, code: e.target.value.toUpperCase()})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-mono" placeholder="WELCOME10" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Discount Type</label>
-                  <select value={current.discountType} onChange={e => setCurrent({...current, discountType: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]">
+                  <select value={current.discountType} onChange={e => setCurrent({...current, discountType: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="percent">Percentage (%)</option>
                     <option value="flat">Flat Amount (₹)</option>
                   </select>
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Value</label>
-                  <input type="number" min="0" step="0.01" value={current.value} onChange={e => setCurrent({...current, value: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                  <input type="number" min="0" step="0.01" value={current.value} onChange={e => setCurrent({...current, value: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Min Order (₹)</label>
-                  <input type="number" min="0" value={current.minOrder} onChange={e => setCurrent({...current, minOrder: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                  <input type="number" min="0" value={current.minOrder} onChange={e => setCurrent({...current, minOrder: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Max Discount (₹) <span className="text-gray-400 font-normal">optional</span></label>
-                  <input type="number" min="0" value={current.maxDiscount} onChange={e => setCurrent({...current, maxDiscount: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" placeholder="No cap" />
+                  <input type="number" min="0" value={current.maxDiscount} onChange={e => setCurrent({...current, maxDiscount: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="No cap" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Usage Limit <span className="text-gray-400 font-normal">optional</span></label>
-                  <input type="number" min="1" value={current.usageLimit} onChange={e => setCurrent({...current, usageLimit: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" placeholder="Unlimited" />
+                  <input type="number" min="1" value={current.usageLimit} onChange={e => setCurrent({...current, usageLimit: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Unlimited" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Expiry Date <span className="text-gray-400 font-normal">optional</span></label>
-                  <input type="date" value={current.expiresAt} onChange={e => setCurrent({...current, expiresAt: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                  <input type="date" value={current.expiresAt} onChange={e => setCurrent({...current, expiresAt: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
               </div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
@@ -200,7 +203,7 @@ function Coupons() {
               </label>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
               </div>
             </form>
           </div>

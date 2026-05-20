@@ -21,14 +21,58 @@ function StatCard({ label, value, sub, loading }) {
   );
 }
 
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function RevenueChart({ data, loading }) {
+  if (loading) {
+    return (
+      <div className="animate-pulse flex items-end gap-2 h-32 pt-4">
+        {[60,80,45,90,70,100].map((h, i) => (
+          <div key={i} className="flex-1 bg-gray-100 rounded-t" style={{ height: `${h}%` }} />
+        ))}
+      </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return <p className="text-sm text-gray-400 text-center py-8">No revenue data yet.</p>;
+  }
+  const max = Math.max(...data.map(d => d.revenue), 1);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-end gap-1.5 h-36 pt-4">
+        {data.map((d, i) => {
+          const pct = Math.round((d.revenue / max) * 100);
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+              <div className="relative w-full">
+                <div
+                  className="w-full bg-primary rounded-t transition-all duration-500 hover:bg-primary/90 cursor-default"
+                  style={{ height: `${Math.max(pct, 4)}px`, minHeight: '4px' }}
+                  title={`₹${d.revenue.toLocaleString()}`}
+                />
+                <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                  ₹{(d.revenue / 1000).toFixed(1)}k
+                </span>
+              </div>
+              <span className="text-[10px] text-gray-400">{MONTH_NAMES[(d._id.month - 1)]}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Analytics() {
   const { user, authLoading } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [revenue, setRevenue] = useState([]);
+  const [revenueLoading, setRevenueLoading] = useState(false);
+  const [revenueMonths, setRevenueMonths] = useState(6);
 
   useEffect(() => {
-    // Wait until auth has finished loading and a user is confirmed
     if (authLoading) return;
     if (!user) {
       setLoading(false);
@@ -40,6 +84,15 @@ function Analytics() {
       .catch(err => setError(err.response?.data?.error || 'Failed to load analytics'))
       .finally(() => setLoading(false));
   }, [authLoading, user]);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    setRevenueLoading(true);
+    api.get(`/analytics/revenue?months=${revenueMonths}`)
+      .then(res => setRevenue(res.data.data || []))
+      .catch(() => setRevenue([]))
+      .finally(() => setRevenueLoading(false));
+  }, [authLoading, user, revenueMonths]);
 
   const growthBadge = (pct) => {
     if (pct === null || pct === undefined) return null;
@@ -65,6 +118,22 @@ function Analytics() {
         <StatCard label="Pending Prescriptions" value={summary ? summary.prescriptions.pending.toLocaleString() : '—'} loading={loading} />
       </div>
 
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-gray-900">Revenue Trend</h3>
+          <select
+            value={revenueMonths}
+            onChange={e => setRevenueMonths(Number(e.target.value))}
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value={3}>Last 3 months</option>
+            <option value={6}>Last 6 months</option>
+            <option value={12}>Last 12 months</option>
+          </select>
+        </div>
+        <RevenueChart data={revenue} loading={revenueLoading} />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-4">Orders by Status</h3>
@@ -81,7 +150,7 @@ function Analytics() {
                       <span className="font-bold text-gray-900">{count} <span className="text-gray-400 font-normal">({pct}%)</span></span>
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#006D6D] rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );

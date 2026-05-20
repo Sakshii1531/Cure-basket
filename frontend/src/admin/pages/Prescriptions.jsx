@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
@@ -26,7 +27,7 @@ function Prescriptions() {
       const res = await api.put(`/prescriptions/${id}/status`, { status });
       setPrescriptions(prev => prev.map(p => p._id === id ? res.data.data : p));
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update status');
+      toast.error(err.response?.data?.error || 'Failed to update status');
     }
   };
 
@@ -102,7 +103,7 @@ function Prescriptions() {
                         {rx.image && (
                           <button
                             onClick={() => setSelectedImage(getImageUrl(rx.image))}
-                            className="px-3 py-1.5 bg-[#006D6D] text-white rounded-lg text-xs font-bold hover:bg-[#005c5c] transition-colors"
+                            className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
                           >
                             View
                           </button>
@@ -110,7 +111,7 @@ function Prescriptions() {
                         <select
                           value={rx.status}
                           onChange={(e) => handleStatusChange(rx._id, e.target.value)}
-                          className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                          className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                           <option value="Pending">Pending</option>
                           <option value="Reviewed">Reviewed</option>

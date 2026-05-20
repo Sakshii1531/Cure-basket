@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLogin = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isLoggedIn, authLoading, user } = useAuth();
+
+  // Redirect already-authenticated admins straight to the dashboard
+  if (!authLoading && isLoggedIn && (user?.role === 'admin' || user?.role === 'superadmin')) {
+    return <Navigate to="/admin" replace />;
+  }
 
   const validate = () => {
     const errs = {};
@@ -23,18 +29,18 @@ const AdminLogin = () => {
     if (!validate()) return;
 
     setLoading(true);
+    setApiError('');
     try {
       const user = await login(form.email, form.password);
 
       if (user.role !== 'admin' && user.role !== 'superadmin') {
-        setErrors({ email: 'You do not have admin access.' });
+        setApiError('You do not have admin access.');
         return;
       }
 
       navigate('/admin');
     } catch (err) {
-      const msg = err.response?.data?.error || 'Login failed. Please try again.';
-      setErrors({ email: msg });
+      setApiError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -43,6 +49,7 @@ const AdminLogin = () => {
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setErrors((er) => ({ ...er, [e.target.name]: '' }));
+    setApiError('');
   };
 
   return (
@@ -62,6 +69,15 @@ const AdminLogin = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {apiError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-[12px] font-medium px-3 py-2.5 rounded-xl flex items-center gap-2">
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {apiError}
+            </div>
+          )}
+
           <div>
             <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Email Address</label>
             <input
@@ -76,7 +92,10 @@ const AdminLogin = () => {
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Password</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider block">Password</label>
+              <Link to="/forgot-password" className="text-[11px] font-bold text-primary hover:underline">Forgot?</Link>
+            </div>
             <input
               name="password"
               type="password"

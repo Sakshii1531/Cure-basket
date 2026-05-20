@@ -1,4 +1,5 @@
 const Blog = require('../models/Blog');
+const sanitizeError = require('../utils/sanitizeError');
 
 exports.getBlogs = async (req, res) => {
   try {
@@ -9,7 +10,7 @@ exports.getBlogs = async (req, res) => {
     const blogs = await Blog.find(filter).sort('-createdAt');
     res.status(200).json({ success: true, count: blogs.length, data: blogs });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -21,7 +22,7 @@ exports.getBlog = async (req, res) => {
     if (!blog) return res.status(404).json({ success: false, error: 'Blog not found' });
     res.status(200).json({ success: true, data: blog });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -30,7 +31,7 @@ exports.createBlog = async (req, res) => {
     const blog = await Blog.create(req.body);
     res.status(201).json({ success: true, data: blog });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -44,7 +45,7 @@ exports.updateBlog = async (req, res) => {
 
     res.status(200).json({ success: true, data: blog });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -55,6 +56,6 @@ exports.deleteBlog = async (req, res) => {
     await blog.deleteOne();
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };

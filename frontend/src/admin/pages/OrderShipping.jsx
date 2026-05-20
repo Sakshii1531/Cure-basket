@@ -34,7 +34,7 @@ function OrderShipping() {
     }
   };
 
-  const inputClass = 'w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]';
+  const inputClass = 'w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary';
 
   return (
     <div className="space-y-6">
@@ -94,7 +94,7 @@ function OrderShipping() {
           <button
             type="submit"
             disabled={saving}
-            className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] transition-colors disabled:opacity-60"
+            className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>

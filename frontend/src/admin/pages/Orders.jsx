@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
@@ -26,7 +27,7 @@ function Orders() {
       const res = await api.put(`/orders/${id}/status`, { status });
       setOrders(prev => prev.map(o => o._id === id ? res.data.data : o));
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update status');
+      toast.error(err.response?.data?.error || 'Failed to update status');
     }
   };
 
@@ -68,7 +69,7 @@ function Orders() {
               <tbody className="divide-y divide-gray-50">
                 {orders.map((order) => (
                   <tr key={order._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-[#006D6D] font-mono text-xs">{order._id.slice(-8).toUpperCase()}</td>
+                    <td className="px-6 py-4 font-bold text-primary font-mono text-xs">{order._id.slice(-8).toUpperCase()}</td>
                     <td className="px-6 py-4">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 font-semibold text-gray-900">{order.user?.name || 'Unknown'}</td>
                     <td className="px-6 py-4 font-bold">₹{order.totalAmount}</td>
@@ -86,7 +87,7 @@ function Orders() {
                       <select
                         value={order.status}
                         onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                        className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         <option value="Pending">Pending</option>
                         <option value="Processing">Processing</option>

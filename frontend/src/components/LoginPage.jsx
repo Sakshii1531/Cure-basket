@@ -14,7 +14,7 @@ const LoginPage = () => {
     const errs = {}
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
-    if (!form.password || form.password.length < 6) errs.password = 'Min 6 characters'
+    if (!form.password || form.password.length < 8) errs.password = 'Min 8 characters'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -89,7 +89,7 @@ const LoginPage = () => {
           <div>
             <div className="flex justify-between items-center mb-0.5">
               <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider block">Password</label>
-              <button type="button" className="text-[11px] font-bold text-primary hover:underline">Forgot?</button>
+              <Link to="/forgot-password" className="text-[11px] font-bold text-primary hover:underline">Forgot?</Link>
             </div>
             <div className="relative">
               <input

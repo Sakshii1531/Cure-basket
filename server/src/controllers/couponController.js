@@ -1,11 +1,12 @@
 const Coupon = require('../models/Coupon');
+const sanitizeError = require('../utils/sanitizeError');
 
 exports.getCoupons = async (req, res) => {
   try {
     const coupons = await Coupon.find().sort('-createdAt');
     res.status(200).json({ success: true, count: coupons.length, data: coupons });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -14,7 +15,7 @@ exports.createCoupon = async (req, res) => {
     const coupon = await Coupon.create(req.body);
     res.status(201).json({ success: true, data: coupon });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -27,7 +28,7 @@ exports.updateCoupon = async (req, res) => {
     if (!coupon) return res.status(404).json({ success: false, error: 'Coupon not found' });
     res.status(200).json({ success: true, data: coupon });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -38,11 +39,11 @@ exports.deleteCoupon = async (req, res) => {
     await coupon.deleteOne();
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
-// Public — validates a coupon code against an order total
+// Public — validates a coupon code against an order total and increments usedCount
 exports.validateCoupon = async (req, res) => {
   try {
     const { code, orderTotal } = req.body;
@@ -72,6 +73,9 @@ exports.validateCoupon = async (req, res) => {
     if (coupon.maxDiscount !== null) discount = Math.min(discount, coupon.maxDiscount);
     discount = Math.min(discount, orderTotal);
 
+    // Atomically increment usedCount so concurrent requests don't double-count
+    await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: 1 } });
+
     res.status(200).json({
       success: true,
       data: {
@@ -83,6 +87,6 @@ exports.validateCoupon = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };

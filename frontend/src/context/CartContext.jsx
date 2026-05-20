@@ -53,6 +53,13 @@ export function CartProvider({ children }) {
 
   const clearCart = () => setItems([]);
 
+  // Clear cart when the user logs out (AuthContext dispatches this event)
+  useEffect(() => {
+    const handler = () => clearCart();
+    window.addEventListener('cb:logout', handler);
+    return () => window.removeEventListener('cb:logout', handler);
+  }, []);
+
   const cartCount = items.reduce((sum, i) => sum + i.qty, 0);
   const cartTotal = items.reduce((sum, i) => sum + (i.price || 0) * i.qty, 0);
 

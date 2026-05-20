@@ -95,7 +95,7 @@ function CMS() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-semibold capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? 'border-[#006D6D] text-[#006D6D]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-2 text-sm font-semibold capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             {tab === 'pages' ? 'Static Pages' : 'Promo Banners'}
           </button>
@@ -116,7 +116,7 @@ function CMS() {
                 <textarea
                   value={pages[key] || ''}
                   onChange={(e) => setPages(prev => ({ ...prev, [key]: e.target.value }))}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   rows="5"
                 />
               </div>
@@ -124,7 +124,7 @@ function CMS() {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] transition-colors disabled:opacity-60"
+              className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60"
             >
               {saving ? 'Saving...' : 'Save Pages'}
             </button>
@@ -152,7 +152,7 @@ function CMS() {
                         type="text"
                         value={banners[bannerKey]?.[field] || ''}
                         onChange={(e) => updateBanner(bannerKey, field, e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                   ))}
@@ -161,7 +161,7 @@ function CMS() {
                     <textarea
                       value={banners[bannerKey]?.description || ''}
                       onChange={(e) => updateBanner(bannerKey, 'description', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       rows="2"
                     />
                   </div>
@@ -171,7 +171,7 @@ function CMS() {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] transition-colors disabled:opacity-60"
+              className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60"
             >
               {saving ? 'Saving...' : 'Save Banners'}
             </button>

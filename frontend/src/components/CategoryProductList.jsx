@@ -1,6 +1,8 @@
+import { toast } from 'sonner'
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
+import { useCart } from '../context/CartContext'
 import med1 from '../assets/med1.png'
 import med2 from '../assets/med2.png'
 import med3 from '../assets/med3.png'
@@ -93,6 +95,7 @@ const CategoryProductList = () => {
   const { categoryName } = useParams()
   const decodedName = decodeURIComponent(categoryName)
   const { guardedAction } = useAuthGate()
+  const { addToCart } = useCart()
 
   const products = productsData[decodedName] || defaultProducts
 
@@ -185,7 +188,7 @@ const CategoryProductList = () => {
                 </span>
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); guardedAction(() => alert('Added to cart!'))() }}
+                onClick={(e) => { e.stopPropagation(); guardedAction(() => { addToCart(product); toast.success('Added to cart!'); })() }}
                 className="w-7 h-7 md:w-10 md:h-10 bg-[#FFD200] rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform"
               >
                 <svg className="w-3.5 h-3.5 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">

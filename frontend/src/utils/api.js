@@ -8,16 +8,25 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Interceptor to inject the token from localStorage if it exists (for cross-domain deployments)
+// Inject Bearer token for cross-domain deployments
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('cb_token');
-    if (token) {
-      config.headers.set('Authorization', `Bearer ${token}`);
-    }
+    if (token) config.headers.set('Authorization', `Bearer ${token}`);
     return config;
   },
+  (error) => Promise.reject(error)
+);
+
+// On 401: wipe the local token and notify AuthContext via a custom DOM event.
+// We can't import AuthContext here (circular dep), so we use a lightweight event bus.
+api.interceptors.response.use(
+  (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('cb_token');
+      window.dispatchEvent(new Event('cb:unauthorized'));
+    }
     return Promise.reject(error);
   }
 );

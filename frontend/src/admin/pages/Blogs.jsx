@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import uploadImage from '../../utils/uploadImage';
@@ -52,12 +53,12 @@ function Blogs() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this blog post?')) return;
     try {
       await api.delete(`/blogs/${id}`);
       setBlogs(prev => prev.filter(b => b._id !== id));
+      toast.success('Blog post deleted');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete');
+      toast.error(err.response?.data?.error || 'Failed to delete');
     }
   };
 
@@ -80,9 +81,10 @@ function Blogs() {
         const res = await api.post('/blogs', payload);
         setBlogs(prev => [res.data.data, ...prev]);
       }
+      toast.success(editingId ? 'Blog updated' : 'Blog published');
       resetForm();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save blog');
+      toast.error(err.response?.data?.error || 'Failed to save blog');
     } finally {
       setSaving(false);
     }
@@ -107,7 +109,7 @@ function Blogs() {
           <p className="text-gray-500 text-sm">Manage your website's blog posts.</p>
         </div>
         {!isAdding && (
-          <button onClick={() => setIsAdding(true)} className="px-4 py-2 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] transition-colors flex items-center gap-2">
+          <button onClick={() => setIsAdding(true)} className="px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Add New Blog
           </button>
@@ -123,15 +125,15 @@ function Blogs() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Title *</label>
-                <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value, slug: form.slug || e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" required />
+                <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value, slug: form.slug || e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Slug (URL)</label>
-                <input type="text" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" placeholder="auto-generated from title" />
+                <input type="text" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="auto-generated from title" />
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Tags <span className="text-gray-400 font-normal">(comma separated)</span></label>
-                <input type="text" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" placeholder="health, medicine, tips" />
+                <input type="text" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="health, medicine, tips" />
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Cover Image</label>
@@ -145,7 +147,7 @@ function Blogs() {
                   } catch {
                     setForm(prev => ({...prev, image: ''}));
                   }
-                }} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" />
+                }} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 {form.image === '__uploading__' && (
                   <p className="text-xs text-gray-400 mt-1">Uploading...</p>
                 )}
@@ -163,18 +165,18 @@ function Blogs() {
             <div className="border-t border-gray-100 pt-4">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-md font-bold text-gray-900">Blog Sections</h4>
-                <button type="button" onClick={addSection} className="text-sm text-[#006D6D] font-bold hover:underline flex items-center gap-1">
+                <button type="button" onClick={addSection} className="text-sm text-primary font-bold hover:underline flex items-center gap-1">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   Add Section
                 </button>
               </div>
               <div className="space-y-6">
                 {form.sections.map((section, index) => (
-                  <div key={index} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm border-l-4 border-l-[#006D6D] space-y-4">
+                  <div key={index} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm border-l-4 border-l-primary space-y-4">
                     <div className="flex justify-between items-center gap-4">
                       <div className="flex items-center gap-3 w-full">
-                        <span className="w-6 h-6 bg-[#006D6D]/10 text-[#006D6D] rounded-full flex items-center justify-center text-xs font-bold shrink-0">{index + 1}</span>
-                        <input type="text" value={section.title} onChange={e => updateSection(index, 'title', e.target.value)} className="font-bold text-gray-800 bg-transparent border-b-2 border-dashed border-gray-200 focus:outline-none focus:border-[#006D6D] text-sm w-full py-1" placeholder="Section title..." required />
+                        <span className="w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-bold shrink-0">{index + 1}</span>
+                        <input type="text" value={section.title} onChange={e => updateSection(index, 'title', e.target.value)} className="font-bold text-gray-800 bg-transparent border-b-2 border-dashed border-gray-200 focus:outline-none focus:border-primary text-sm w-full py-1" placeholder="Section title..." required />
                       </div>
                       <button type="button" onClick={() => removeSection(index)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -182,7 +184,7 @@ function Blogs() {
                         </svg>
                       </button>
                     </div>
-                    <textarea value={section.content} onChange={e => updateSection(index, 'content', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]" rows="5" placeholder="Section content..." required />
+                    <textarea value={section.content} onChange={e => updateSection(index, 'content', e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="5" placeholder="Section content..." required />
                   </div>
                 ))}
               </div>
@@ -190,7 +192,7 @@ function Blogs() {
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button type="button" onClick={resetForm} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-              <button type="submit" disabled={saving} className="px-5 py-2.5 bg-[#006D6D] text-white rounded-lg font-semibold text-sm hover:bg-[#005c5c] disabled:opacity-60">{saving ? 'Saving...' : editingId ? 'Update Blog' : 'Save Blog'}</button>
+              <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">{saving ? 'Saving...' : editingId ? 'Update Blog' : 'Save Blog'}</button>
             </div>
           </form>
         </div>
@@ -222,7 +224,7 @@ function Blogs() {
                     <td className="px-6 py-4">{new Date(blog.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => handleEdit(blog)} className="p-2 text-gray-500 hover:text-[#006D6D] hover:bg-[#E6F7F7] rounded-lg transition-colors">
+                        <button onClick={() => handleEdit(blog)} className="p-2 text-gray-500 hover:text-primary hover:bg-[#E6F7F7] rounded-lg transition-colors">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
                           </svg>

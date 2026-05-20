@@ -1,12 +1,13 @@
 const Role = require('../models/Role');
 const User = require('../models/User');
+const sanitizeError = require('../utils/sanitizeError');
 
 exports.getRoles = async (req, res) => {
   try {
     const roles = await Role.find().sort('name');
     res.status(200).json({ success: true, count: roles.length, data: roles });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -15,7 +16,7 @@ exports.createRole = async (req, res) => {
     const role = await Role.create(req.body);
     res.status(201).json({ success: true, data: role });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -28,7 +29,7 @@ exports.updateRole = async (req, res) => {
     if (!role) return res.status(404).json({ success: false, error: 'Role not found' });
     res.status(200).json({ success: true, data: role });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -43,7 +44,7 @@ exports.deleteRole = async (req, res) => {
 
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
 
@@ -65,6 +66,6 @@ exports.assignRole = async (req, res) => {
 
     res.status(200).json({ success: true, data: user });
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };

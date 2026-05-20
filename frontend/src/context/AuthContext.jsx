@@ -10,6 +10,17 @@ export function AuthProvider({ children }) {
   const [pendingIntent, setPendingIntent] = useState(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [loginModalType, setLoginModalType] = useState('login');
+  const [redirectTo, setRedirectTo] = useState(null);
+
+  // Clear auth state when api.js detects a 401 (expired/revoked token)
+  useEffect(() => {
+    const handler = () => {
+      setUser(null);
+      setIsLoggedIn(false);
+    };
+    window.addEventListener('cb:unauthorized', handler);
+    return () => window.removeEventListener('cb:unauthorized', handler);
+  }, []);
 
   // Validate the session on app load
   useEffect(() => {
@@ -74,12 +85,13 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('cb_token');
     setUser(null);
     setIsLoggedIn(false);
+    window.dispatchEvent(new Event('cb:logout'));
   };
 
   const requireAuth = (intent) => {
     if (isLoggedIn) return true;
     setPendingIntent(intent);
-    window.location.href = '/login'; // Fallback for when navigate isn't available
+    setRedirectTo('/login');
     return false;
   };
 
@@ -106,6 +118,8 @@ export function AuthProvider({ children }) {
       loginModalType,
       setLoginModalType,
       openLoginModal,
+      redirectTo,
+      setRedirectTo,
     }}>
       {children}
     </AuthContext.Provider>
