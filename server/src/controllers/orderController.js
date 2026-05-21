@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Medicine = require('../models/Medicine');
+const Prescription = require('../models/Prescription');
+const User = require('../models/User');
 const sanitizeError = require('../utils/sanitizeError');
 const { clearCache } = require('../middlewares/cacheMiddleware');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -17,7 +20,7 @@ exports.createOrder = async (req, res) => {
 
     // Fetch all medicines in one query to recalculate the total server-side
     const medicineIds = items.map((i) => i.medicine);
-    const medicines = await Medicine.find({ _id: { $in: medicineIds } }).select('price stock name');
+    const medicines = await Medicine.find({ _id: { $in: medicineIds } }).select('price stock name prescription');
 
     const medicineMap = Object.fromEntries(medicines.map((m) => [m._id.toString(), m]));
 
@@ -38,6 +41,27 @@ exports.createOrder = async (req, res) => {
       }
       orderItems.push({ medicine: med._id, name: med.name, price: med.price, quantity: item.quantity });
       totalAmount += med.price * item.quantity;
+    }
+
+    // Enforce prescription requirement: any medicine with prescription === 'Required'
+    // must have an admin-approved (Reviewed/Dispensed) prescription from this user.
+    const rxRequired = medicines.filter(m => m.prescription === 'Required');
+    if (rxRequired.length > 0) {
+      const approvedRx = await Prescription.find({
+        user: req.user.id,
+        medicine: { $in: rxRequired.map(m => m._id) },
+        status: { $in: ['Reviewed', 'Dispensed'] },
+      }).select('medicine');
+
+      const approvedMedIds = new Set(approvedRx.map(p => p.medicine.toString()));
+      for (const med of rxRequired) {
+        if (!approvedMedIds.has(med._id.toString())) {
+          return res.status(403).json({
+            success: false,
+            error: `A valid approved prescription is required for "${med.name}". Please upload a prescription and wait for pharmacist approval.`,
+          });
+        }
+      }
     }
 
     // Atomic per-item stock decrement — condition and update in one operation,
@@ -64,6 +88,65 @@ exports.createOrder = async (req, res) => {
     });
 
     await clearCache('/api/orders');
+
+    // Send order confirmation email — fire-and-forget
+    User.findById(req.user.id).select('name email').then((user) => {
+      if (!user?.email) return;
+      const itemRows = orderItems.map(item =>
+        `<tr>
+          <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;">${item.name}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;text-align:center;">${item.quantity}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;text-align:right;">$${(item.price * item.quantity).toFixed(2)}</td>
+        </tr>`
+      ).join('');
+      sendEmail({
+        to: user.email,
+        subject: `CureBasket — Order Confirmed #${order._id.toString().slice(-8).toUpperCase()}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;">
+            <div style="background:#006D6D;padding:32px 24px;text-align:center;border-radius:8px 8px 0 0;">
+              <h1 style="color:#ffffff;margin:0;font-size:28px;letter-spacing:-0.5px;">CureBasket</h1>
+              <p style="color:#b2dfdf;margin:6px 0 0;font-size:13px;">Order Confirmation</p>
+            </div>
+            <div style="padding:32px 24px;">
+              <h2 style="color:#1a1a1a;font-size:20px;margin:0 0 4px;">Thank you, ${user.name}!</h2>
+              <p style="color:#555;font-size:14px;margin:0 0 24px;">Your order has been placed successfully and is being processed.</p>
+              <div style="background:#f9f9f9;border-radius:8px;padding:16px;margin-bottom:24px;">
+                <p style="margin:0 0 6px;font-size:12px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Order ID</p>
+                <p style="margin:0;font-size:15px;font-weight:700;color:#006D6D;font-family:monospace;">#${order._id.toString().slice(-8).toUpperCase()}</p>
+              </div>
+              <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+                <thead>
+                  <tr style="background:#f0fafa;">
+                    <th style="padding:10px 12px;text-align:left;font-size:11px;color:#006D6D;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Medicine</th>
+                    <th style="padding:10px 12px;text-align:center;font-size:11px;color:#006D6D;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Qty</th>
+                    <th style="padding:10px 12px;text-align:right;font-size:11px;color:#006D6D;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>${itemRows}</tbody>
+              </table>
+              <div style="text-align:right;border-top:2px solid #006D6D;padding-top:12px;">
+                <span style="font-size:16px;font-weight:700;color:#1a1a1a;">Total: $${totalAmount.toFixed(2)}</span>
+              </div>
+              ${shippingAddress ? `
+              <div style="margin-top:24px;background:#f9f9f9;border-radius:8px;padding:16px;">
+                <p style="margin:0 0 6px;font-size:12px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Delivering to</p>
+                <p style="margin:0;font-size:13px;color:#333;">${typeof shippingAddress === 'string' ? shippingAddress : Object.values(shippingAddress).filter(Boolean).join(', ')}</p>
+              </div>` : ''}
+              <div style="margin-top:28px;background:#f0fafa;border-left:4px solid #006D6D;padding:16px 20px;border-radius:4px;">
+                <p style="margin:0;color:#006D6D;font-size:13px;">
+                  We'll notify you when your order is out for delivery. Expected delivery: <strong>1–2 business days</strong>.
+                </p>
+              </div>
+            </div>
+            <div style="border-top:1px solid #f0f0f0;padding:16px 24px;text-align:center;">
+              <p style="color:#aaa;font-size:11px;margin:0;">© CureBasket — Your trusted online pharmacy</p>
+            </div>
+          </div>
+        `,
+      }).catch(() => {});
+    }).catch(() => {});
+
     res.status(201).json({ success: true, data: order });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });

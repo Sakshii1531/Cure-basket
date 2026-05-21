@@ -33,8 +33,8 @@ export function CartProvider({ children }) {
         qty,
         pkg,
         itemKey,
-        price: pkg ? pkg.price : product.price,
-        mrp: pkg ? pkg.mrp : product.mrp,
+        price: pkg ? pkg.price : (product.pricePerUnit ?? product.price),
+        mrp:   pkg ? pkg.mrp   : (product.mrp ?? product.pricePerUnit ?? product.price),
       }];
     });
   };
