@@ -3,6 +3,7 @@ const {
   createOrder,
   getMyOrders,
   getOrders,
+  getOrderById,
   updateOrderStatus
 } = require('../controllers/orderController');
 
@@ -19,7 +20,7 @@ router
   .post(protect, createOrderRules, validate, createOrder);
 
 router.get('/my-orders', protect, cache(60), getMyOrders);
-
+router.get('/:id', protect, getOrderById);
 router.put('/:id/status', protect, authorize('admin', 'superadmin'), updateOrderStatusRules, validate, updateOrderStatus);
 
 module.exports = router;

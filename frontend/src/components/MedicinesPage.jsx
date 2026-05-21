@@ -24,10 +24,11 @@ function MedicinesPage({ onProductClick }) {
   const queryParams = new URLSearchParams(location.search)
   const brandFilter = queryParams.get('brand')
   const brandName = queryParams.get('brandName')
+  const urlQuery = queryParams.get('q') || ''
 
   const [medicines, setMedicines] = useState([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(urlQuery)
   const [sort, setSort] = useState('popularity')
   const [total, setTotal] = useState(0)
 
@@ -51,6 +52,11 @@ function MedicinesPage({ onProductClick }) {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  // Sync search box when navigated here from a search bar with ?q=
+  useEffect(() => {
+    setSearch(urlQuery)
+  }, [urlQuery])
 
   useEffect(() => {
     const delay = setTimeout(fetchMedicines, 300)

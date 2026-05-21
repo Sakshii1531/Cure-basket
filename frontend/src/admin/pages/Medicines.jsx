@@ -524,6 +524,10 @@ function Medicines() {
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Storage</label>
                     <input type="text" value={current.storage} onChange={e => setCurrent({...current, storage: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Store below 25°C" />
                   </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Delivery Time</label>
+                    <input type="text" value={current.deliveryTime} onChange={e => setCurrent({...current, deliveryTime: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Usually delivers in 1-2 days" />
+                  </div>
                 </div>
               </div>
 

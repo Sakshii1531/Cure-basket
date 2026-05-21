@@ -43,14 +43,16 @@ function ProductDetail({ onBack }) {
     const packLabel = product?.packSize || product?.packaging || '1 Pack'
 
     // 1. New schema: quantityOptions array + pricePerUnit
-    if (product?.quantityOptions?.length > 0 && ppu > 0) {
-      // Use oldPrice if available (new field), fall back to mrp (backward-compat alias)
+    const validQtyOptions = (product?.quantityOptions || []).filter(q => Number(q) > 0);
+    if (validQtyOptions.length > 0 && ppu > 0) {
+      // Use oldPrice (new field) or mrp (backward-compat) only when it's actually higher than the selling price
       const baseOldPrice = Number(product?.oldPrice) || Number(product?.mrp) || 0;
-      return product.quantityOptions.map((qty, idx) => ({
+      const hasDiscount = baseOldPrice > ppu;
+      return validQtyOptions.map((qty, idx) => ({
         id: `qty_${qty}`,
         label: qty === 1 ? packLabel : `${qty} × ${packLabel}`,
         price: ppu * qty,
-        mrp: baseOldPrice > ppu ? baseOldPrice * qty : ppu * qty,
+        mrp: hasDiscount ? baseOldPrice * qty : ppu * qty,
         perUnit: ppu,
         popular: idx === 0,
       }))
@@ -72,7 +74,7 @@ function ProductDetail({ onBack }) {
     const baseMRP = Number(product?.mrp) || ppu
     return [{ id: 'default', label: packLabel, price: ppu, mrp: baseMRP, perUnit: ppu, popular: true }]
   }, [product?.quantityOptions, product?.pricePerUnit, product?.packSize,
-      product?.packages, product?.price, product?.mrp, product?.packaging])
+      product?.packages, product?.price, product?.oldPrice, product?.mrp, product?.packaging])
 
   const packageOptions = getPackageOptions()
   const [selectedPackage, setSelectedPackage] = useState(packageOptions.find(p => p.popular) || packageOptions[0] || { price: 0, mrp: 0, id: 0, label: 'N/A', perUnit: 0 })
@@ -85,6 +87,11 @@ function ProductDetail({ onBack }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [reviews, setReviews] = useState([])
   const [prescriptionStatus, setPrescriptionStatus] = useState(null) // null | 'none' | 'pending' | 'approved' | 'rejected'
+  const [reviewForm, setReviewForm] = useState({ rating: 0, comment: '' })
+  const [reviewHover, setReviewHover] = useState(0)
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const [reviewSuccess, setReviewSuccess] = useState(false)
 
   // Reset state when product changes
   const [recommended, setRecommended] = useState([])
@@ -136,6 +143,27 @@ function ProductDetail({ onBack }) {
       })
       .catch(() => setPrescriptionStatus('none'))
   }, [product?._id, isLoggedIn])
+
+  const submitReview = async () => {
+    if (reviewForm.rating === 0) { setReviewError('Please select a star rating.'); return }
+    setReviewSubmitting(true)
+    setReviewError('')
+    try {
+      await api.post('/reviews', { medicine: product._id, rating: reviewForm.rating, comment: reviewForm.comment })
+      setReviewSuccess(true)
+      setReviewForm({ rating: 0, comment: '' })
+      // Refresh reviews list
+      const res = await api.get(`/reviews/medicine/${product._id}`)
+      setReviews(res.data.data)
+    } catch (err) {
+      const status = err.response?.status
+      if (status === 403) setReviewError('You can only review medicines you have purchased and received.')
+      else if (status === 401) setReviewError('Please log in to submit a review.')
+      else setReviewError(err.response?.data?.error || 'Failed to submit review. Please try again.')
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
 
   const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews']
 
@@ -293,21 +321,89 @@ function ProductDetail({ onBack }) {
     ),
     ['Reviews']: (
       <div className="space-y-6">
-        {reviews.map((rev, idx) => (
-          <div key={rev._id || idx} className="pb-6 border-b border-gray-50 last:border-0">
-            <div className="flex justify-between items-center mb-2">
-              <div className="font-bold text-[13px] text-gray-900">{rev.user?.name || 'Anonymous'}</div>
-              <div className="text-[11px] text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</div>
+        {/* Write a Review */}
+        <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+          <h3 className="text-[14px] font-bold text-gray-900 mb-4">Write a Review</h3>
+          {reviewSuccess ? (
+            <div className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+              <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <div>
+                <p className="text-[13px] font-bold text-green-700">Review submitted!</p>
+                <p className="text-[11px] text-green-600">Thank you. It will appear after moderation.</p>
+              </div>
+              <button onClick={() => setReviewSuccess(false)} className="ml-auto text-green-400 hover:text-green-600 text-[11px] font-bold">Write another</button>
             </div>
-            <div className="flex text-[#FFD200] text-xs mb-2">
-              {"★".repeat(rev.rating)}
-              <span className="text-gray-200">{"★".repeat(5 - rev.rating)}</span>
+          ) : (
+            <>
+              {/* Star selector */}
+              <div className="flex items-center gap-1 mb-3">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewForm(f => ({ ...f, rating: star }))}
+                    onMouseEnter={() => setReviewHover(star)}
+                    onMouseLeave={() => setReviewHover(0)}
+                    className="text-[28px] leading-none transition-transform hover:scale-110"
+                  >
+                    <span className={(reviewHover || reviewForm.rating) >= star ? 'text-[#FFD200]' : 'text-gray-200'}>★</span>
+                  </button>
+                ))}
+                {reviewForm.rating > 0 && (
+                  <span className="ml-2 text-[12px] text-gray-500 font-medium">
+                    {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][reviewForm.rating]}
+                  </span>
+                )}
+              </div>
+
+              <textarea
+                value={reviewForm.comment}
+                onChange={e => setReviewForm(f => ({ ...f, comment: e.target.value }))}
+                placeholder="Share your experience with this product (optional)..."
+                rows={3}
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 text-[13px] text-gray-800 placeholder-gray-300 outline-none focus:border-[#006D6D] resize-none transition-all"
+              />
+
+              {reviewError && (
+                <p className="text-[12px] text-red-500 mt-2 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                  {reviewError}
+                </p>
+              )}
+
+              <button
+                onClick={isLoggedIn ? submitReview : () => guardedAction(submitReview, 'review')()}
+                disabled={reviewSubmitting}
+                className="mt-3 bg-[#006D6D] text-white font-bold px-6 py-2.5 rounded-xl text-[13px] hover:bg-[#005a5a] transition-all disabled:opacity-60 flex items-center gap-2"
+              >
+                {reviewSubmitting ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Submitting...
+                  </>
+                ) : isLoggedIn ? 'Submit Review' : 'Log in to Review'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Reviews list */}
+        {reviews.length > 0 ? (
+          reviews.map((rev, idx) => (
+            <div key={rev._id || idx} className="pb-6 border-b border-gray-50 last:border-0">
+              <div className="flex justify-between items-center mb-2">
+                <div className="font-bold text-[13px] text-gray-900">{rev.user?.name || 'Anonymous'}</div>
+                <div className="text-[11px] text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</div>
+              </div>
+              <div className="flex text-[#FFD200] text-xs mb-2">
+                {"★".repeat(rev.rating)}
+                <span className="text-gray-200">{"★".repeat(5 - rev.rating)}</span>
+              </div>
+              {rev.comment && <p className="text-[12px] text-gray-600 italic">"{rev.comment}"</p>}
             </div>
-            <p className="text-[12px] text-gray-600 italic">"{rev.comment}"</p>
-          </div>
-        ))}
-        {reviews.length === 0 && (
-          <div className="py-10 text-center text-gray-400 text-sm">No reviews yet for this product.</div>
+          ))
+        ) : (
+          <div className="py-6 text-center text-gray-400 text-sm">No reviews yet. Be the first to review!</div>
         )}
       </div>
     )

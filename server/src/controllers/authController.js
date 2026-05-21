@@ -210,3 +210,64 @@ exports.getMe = async (req, res) => {
     res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
+
+// @desc    Add a new shipping address
+// @route   POST /api/auth/me/addresses
+// @access  Private
+exports.addAddress = async (req, res) => {
+  try {
+    const { name, street, city, phone } = req.body;
+    if (!name || !street || !city || !phone) {
+      return res.status(400).json({ success: false, error: 'All address fields are required' });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $push: { addresses: { name, street, city, phone } } },
+      { new: true, runValidators: true }
+    );
+    res.status(201).json({ success: true, addresses: user.addresses });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+// @desc    Update an existing shipping address
+// @route   PUT /api/auth/me/addresses/:addressId
+// @access  Private
+exports.updateAddress = async (req, res) => {
+  try {
+    const { name, street, city, phone } = req.body;
+    const user = await User.findOneAndUpdate(
+      { _id: req.user.id, 'addresses._id': req.params.addressId },
+      {
+        $set: {
+          'addresses.$.name':   name,
+          'addresses.$.street': street,
+          'addresses.$.city':   city,
+          'addresses.$.phone':  phone,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+    if (!user) return res.status(404).json({ success: false, error: 'Address not found' });
+    res.status(200).json({ success: true, addresses: user.addresses });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+// @desc    Delete a shipping address
+// @route   DELETE /api/auth/me/addresses/:addressId
+// @access  Private
+exports.deleteAddress = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $pull: { addresses: { _id: req.params.addressId } } },
+      { new: true }
+    );
+    res.status(200).json({ success: true, addresses: user.addresses });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
