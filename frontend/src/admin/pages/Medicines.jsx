@@ -111,6 +111,7 @@ function Medicines() {
       mrp: Number(current.mrp || current.price),
       stock: Number(current.stock),
       packages: current.packages || [],
+      brand: current.brand || undefined,
     };
     setSaveError('');
     try {
