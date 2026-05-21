@@ -37,6 +37,10 @@ const path = require('path');
 
 const app = express();
 
+// Trust the first proxy hop (Render's load balancer) so rate limiting
+// uses the real client IP from X-Forwarded-For, not the shared proxy IP.
+app.set('trust proxy', 1);
+
 // Enable CORS
 const allowedOrigins = process.env.FRONTEND_ORIGIN
   ? process.env.FRONTEND_ORIGIN.split(',').map((o) => o.trim())
@@ -73,10 +77,21 @@ app.use(mongoSanitize());
 // Set security headers
 app.use(helmet());
 
-// Rate limiting
+// Health check — must be registered BEFORE the rate limiter so Render's
+// frequent pings never count against the limit or receive a 429.
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date(), uptime: process.uptime() });
+});
+
+// Rate limiting — skip health check path as a belt-and-suspenders guard,
+// and raise the production cap so normal API usage isn't blocked.
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 100, // Increase for dev
+  max: process.env.NODE_ENV === 'development' ? 1000 : 300,
+  skip: (req) => req.path === '/api/health' || req.path === '/',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests, please try again later.' },
 });
 app.use(limiter);
 
@@ -101,14 +116,6 @@ app.use('/api/banners', banners);
 app.use('/api/users', users);
 app.use('/api/analytics', analytics);
 app.use('/api/upload', uploadRoute);
-
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date(),
-    uptime: process.uptime()
-  });
-});
 
 app.get('/', (req, res) => res.send('API is running...'));
 
