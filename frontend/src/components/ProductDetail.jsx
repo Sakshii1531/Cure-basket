@@ -11,7 +11,7 @@ function ProductDetail({ onBack }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { id: urlId } = useParams()
-  const { guardedAction } = useAuthGate()
+  const { guardedAction, isLoggedIn } = useAuthGate()
   const { addToCart } = useCart()
   const [product, setProduct] = useState(location.state?.product || null)
   const [productLoading, setProductLoading] = useState(!location.state?.product)
@@ -38,35 +38,41 @@ function ProductDetail({ onBack }) {
   if (!product) return null
 
   // Dynamic Package Options
-  // Dynamic Package Options
   const getPackageOptions = React.useCallback(() => {
-    // 1. Check if product has explicit packages set in DB
-    if (product?.packages && product.packages.length > 0) {
+    const ppu = Number(product?.pricePerUnit) || Number(product?.price) || 0
+    const packLabel = product?.packSize || product?.packaging || '1 Pack'
+
+    // 1. New schema: quantityOptions array + pricePerUnit
+    if (product?.quantityOptions?.length > 0 && ppu > 0) {
+      // Use oldPrice if available (new field), fall back to mrp (backward-compat alias)
+      const baseOldPrice = Number(product?.oldPrice) || Number(product?.mrp) || 0;
+      return product.quantityOptions.map((qty, idx) => ({
+        id: `qty_${qty}`,
+        label: qty === 1 ? packLabel : `${qty} × ${packLabel}`,
+        price: ppu * qty,
+        mrp: baseOldPrice > ppu ? baseOldPrice * qty : ppu * qty,
+        perUnit: ppu,
+        popular: idx === 0,
+      }))
+    }
+
+    // 2. Legacy: explicit packages array
+    if (product?.packages?.length > 0) {
       return product.packages.map((pkg, idx) => ({
         id: pkg._id || idx,
         label: pkg.label,
         price: Number(pkg.price) || 0,
         mrp: Number(pkg.mrp) || Number(pkg.price) || 0,
-        perUnit: pkg.perUnit || (Number(pkg.price) / (parseInt(pkg.label) || 1) || 0),
-        popular: pkg.popular
+        perUnit: pkg.perUnit || Number(pkg.price) || 0,
+        popular: pkg.popular,
       }))
     }
 
-    // 2. Default: Show a single package based on the main product price
-    const basePrice = Number(product?.price) || 0
-    const baseMRP = Number(product?.mrp) || basePrice
-    
-    return [
-      { 
-        id: 'default', 
-        label: product?.packaging || '1 Pack', 
-        price: basePrice, 
-        mrp: baseMRP, 
-        perUnit: basePrice,
-        popular: true 
-      }
-    ]
-  }, [product?.packages, product?.price, product?.mrp, product?.packaging])
+    // 3. Fallback: single pack from base price
+    const baseMRP = Number(product?.mrp) || ppu
+    return [{ id: 'default', label: packLabel, price: ppu, mrp: baseMRP, perUnit: ppu, popular: true }]
+  }, [product?.quantityOptions, product?.pricePerUnit, product?.packSize,
+      product?.packages, product?.price, product?.mrp, product?.packaging])
 
   const packageOptions = getPackageOptions()
   const [selectedPackage, setSelectedPackage] = useState(packageOptions.find(p => p.popular) || packageOptions[0] || { price: 0, mrp: 0, id: 0, label: 'N/A', perUnit: 0 })
@@ -78,6 +84,7 @@ function ProductDetail({ onBack }) {
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [reviews, setReviews] = useState([])
+  const [prescriptionStatus, setPrescriptionStatus] = useState(null) // null | 'none' | 'pending' | 'approved' | 'rejected'
 
   // Reset state when product changes
   const [recommended, setRecommended] = useState([])
@@ -90,6 +97,7 @@ function ProductDetail({ onBack }) {
     setActiveThumb(0)
     setActiveTab('Product Information')
     setUploadSuccess(false)
+    setPrescriptionStatus(null)
     window.scrollTo(0, 0)
 
     // Fetch Recommended Products
@@ -106,26 +114,50 @@ function ProductDetail({ onBack }) {
       .catch(() => {})
   }, [product?._id, product?.name, getPackageOptions])
 
+  // Fetch user's prescription status for this medicine
+  useEffect(() => {
+    if (!product?._id || !isLoggedIn) {
+      setPrescriptionStatus('none')
+      return
+    }
+    api.get('/prescriptions/my-prescriptions')
+      .then(res => {
+        const rxList = res.data.data || []
+        const matching = rxList.filter(rx => String(rx.medicine) === String(product._id))
+        if (matching.length === 0) {
+          setPrescriptionStatus('none')
+        } else if (matching.some(rx => rx.status === 'Reviewed' || rx.status === 'Dispensed')) {
+          setPrescriptionStatus('approved')
+        } else if (matching.some(rx => rx.status === 'Pending')) {
+          setPrescriptionStatus('pending')
+        } else {
+          setPrescriptionStatus('rejected')
+        }
+      })
+      .catch(() => setPrescriptionStatus('none'))
+  }, [product?._id, isLoggedIn])
+
   const tabs = ['Product Information', 'Uses', 'Side Effects', 'How to Use', 'Safety Advice', 'FAQs', 'Reviews']
 
   // Dynamic content based on product
   const getProductData = () => {
     // Return data directly from product object (DB)
     return {
-      genericName: product.genericName || 'N/A',
+      genericName: product.genericFor || product.genericName || 'N/A',
       manufacturer: product.manufacturer || 'N/A',
-      salt: product.saltComposition || 'N/A',
+      salt: product.activeIngredient || product.saltComposition || 'N/A',
       packaging: product.packaging || 'N/A',
       storage: product.storage || 'N/A',
       prescription: product.prescription || 'Required',
       deliveryTime: product.deliveryTime || 'Usually delivers in 1-2 days',
+      description: product.description || '',
       uses: product.uses ? product.uses.split('\n').filter(l => l.trim()) : [],
       sideEffects: product.sideEffects ? product.sideEffects.split('\n').filter(l => l.trim()) : [],
       howToUse: {
         title: 'Usage Instructions',
         steps: product.howToUse ? product.howToUse.split('\n').filter(l => l.trim()) : []
       },
-      safetyAdvice: product.safetyAdvice || [],
+      safetyAdvice: product.precautions || product.safetyAdvice || [],
       faqs: product.faqs || []
     }
   }
@@ -292,7 +324,7 @@ function ProductDetail({ onBack }) {
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           <span className="cursor-pointer hover:text-[#006D6D]">Anti Infectives</span>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <span className="text-gray-900">{product.name}</span>
+          <span className="text-gray-900">{product.title || product.name}</span>
         </nav>
       </div>
 
@@ -314,7 +346,7 @@ function ProductDetail({ onBack }) {
 
               {/* Main Image */}
               <div className="flex items-center justify-center pt-8 pb-4 h-auto overflow-hidden">
-                <img src={product.image} alt={product.name} className="w-full max-h-[300px] md:max-h-[700px] object-contain transform scale-110 md:scale-[1.45]" />
+                <img src={product.image} alt={product.title || product.name} className="w-full max-h-[300px] md:max-h-[700px] object-contain transform scale-110 md:scale-[1.45]" />
               </div>
 
               {/* Thumbnails */}
@@ -353,7 +385,7 @@ function ProductDetail({ onBack }) {
             {/* Info Section */}
             <div className="space-y-4 pt-0 md:pt-2">
               <div>
-                <h1 className="text-[20px] md:text-[28px] font-bold text-gray-900 leading-tight mb-2">{product.name}</h1>
+                <h1 className="text-[20px] md:text-[28px] font-bold text-gray-900 leading-tight mb-2">{product.title || product.name}</h1>
                 <div className="space-y-1">
                   <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{pData.genericName}</span></div>
                   <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{product.category?.name || product.category || 'Medicine'}</span></div>
@@ -424,11 +456,11 @@ function ProductDetail({ onBack }) {
                     <div className="text-[9px] md:text-[10px] text-gray-500 leading-tight mt-0.5">Quick review by pharmacists.</div>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowUploadModal(true)}
-                  className={`border-2 px-3 py-1 rounded-lg font-bold text-[10px] md:text-[11px] transition-all shadow-sm shrink-0 flex items-center gap-1.5 ${uploadSuccess ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-gray-100 text-gray-900 hover:bg-gray-50'}`}
+                  className={`border-2 px-3 py-1 rounded-lg font-bold text-[10px] md:text-[11px] transition-all shadow-sm shrink-0 flex items-center gap-1.5 ${(uploadSuccess || prescriptionStatus === 'pending' || prescriptionStatus === 'approved') ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-gray-100 text-gray-900 hover:bg-gray-50'}`}
                 >
-                  {uploadSuccess ? 'Added' : 'Upload Now'}
+                  {(uploadSuccess || prescriptionStatus === 'pending' || prescriptionStatus === 'approved') ? 'Added' : 'Upload Now'}
                 </button>
               </div>
             </div>
@@ -438,14 +470,18 @@ function ProductDetail({ onBack }) {
         {/* Right Column: Pricing & Cart Card */}
         <div className="space-y-6">
           <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-5 px-5 pb-5 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] lg:sticky lg:top-24">
-            <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save {savingsPercent}%</div>
+            {savingsPercent > 0 && (
+              <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save {savingsPercent}%</div>
+            )}
             
             <div className="mb-4 md:mb-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-[24px] md:text-[26px] font-bold text-gray-900">₹{selectedPrice}</span>
                 <span className="text-gray-400 line-through text-[12px]">₹{selectedMRP}</span>
               </div>
-              <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ₹{savingsAmount} ({savingsPercent}%)</div>
+              {savingsPercent > 0 && (
+                <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save {product?.priceLabel || '$'}{savingsAmount} ({savingsPercent}%)</div>
+              )}
             </div>
 
             {/* Package Selection */}
@@ -487,15 +523,23 @@ function ProductDetail({ onBack }) {
             <div className="flex items-center justify-between mb-4 md:mb-2">
               <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Quantity</span>
               <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold">−</button>
-                <input type="number" value={quantity} readOnly className="w-8 text-center bg-transparent font-bold text-gray-900 text-[11px]" />
-                <button onClick={() => setQuantity(quantity + 1)} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold">+</button>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
+                >−</button>
+                <span className="w-8 text-center font-bold text-gray-900 text-[13px] select-none">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(q => q + 1)}
+                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
+                >+</button>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-2">
-              <button 
+              <button
                 onClick={guardedAction(() => {
                   addToCart(product, quantity, selectedPackage);
                   navigate('/cart');
@@ -505,13 +549,29 @@ function ProductDetail({ onBack }) {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 Add to Cart
               </button>
-              <button 
+              <button
+                disabled={pData.prescription === 'Required' && prescriptionStatus !== 'approved'}
                 onClick={guardedAction(() => navigate('/checkout', { state: { product, selectedPackage, quantity } }), 'buy-now')}
-                className="w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all text-[13px]"
+                className={`w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[13px] ${pData.prescription === 'Required' && prescriptionStatus !== 'approved' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
               >
                 <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 Buy Now
               </button>
+              {pData.prescription === 'Required' && prescriptionStatus === 'none' && (
+                <p className="text-center text-[10px] text-gray-400">Upload a prescription above to enable Buy Now</p>
+              )}
+              {pData.prescription === 'Required' && prescriptionStatus === 'pending' && (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
+                  <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="text-[11px] text-amber-700 font-medium">Your prescription is under review. Buy Now will be enabled once a pharmacist approves it.</p>
+                </div>
+              )}
+              {pData.prescription === 'Required' && prescriptionStatus === 'rejected' && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
+                  <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="text-[11px] text-red-700 font-medium">Your prescription was rejected. Please upload a new valid prescription.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -721,6 +781,7 @@ function ProductDetail({ onBack }) {
 
                           setIsUploading(false);
                           setUploadSuccess(true);
+                          setPrescriptionStatus('pending');
                           setTimeout(() => setShowUploadModal(false), 2000);
                         } catch (err) {
                           setIsUploading(false);

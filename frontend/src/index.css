@@ -22,9 +22,26 @@
 }
 
 @layer base {
-  
+
   body {
     @apply bg-background text-text-primary font-sans antialiased;
+  }
+
+  input[type="text"],
+  input[type="tel"],
+  input:not([type]),
+  textarea {
+    text-transform: capitalize;
+  }
+
+  /* Remove browser number input spinners globally */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
   }
 }
 

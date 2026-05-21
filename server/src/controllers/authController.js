@@ -34,6 +34,44 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, phone, address } = req.body;
     const user = await User.create({ name, email, password, phone, address });
+
+    // Send welcome email — fire-and-forget, never block registration
+    sendEmail({
+      to: user.email,
+      subject: 'Welcome to CureBasket!',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;">
+          <div style="background:#006D6D;padding:32px 24px;text-align:center;border-radius:8px 8px 0 0;">
+            <h1 style="color:#ffffff;margin:0;font-size:28px;letter-spacing:-0.5px;">CureBasket</h1>
+            <p style="color:#b2dfdf;margin:6px 0 0;font-size:13px;">Your trusted online pharmacy</p>
+          </div>
+          <div style="padding:32px 24px;">
+            <h2 style="color:#1a1a1a;font-size:20px;margin:0 0 12px;">Welcome, ${user.name}! 👋</h2>
+            <p style="color:#555;font-size:14px;line-height:1.6;margin:0 0 20px;">
+              Thank you for joining CureBasket. Your account has been created successfully.
+              We're here to make getting your medicines easy, fast, and reliable.
+            </p>
+            <div style="background:#f0fafa;border-left:4px solid #006D6D;padding:16px 20px;border-radius:4px;margin-bottom:24px;">
+              <p style="margin:0;color:#006D6D;font-size:13px;font-weight:600;">What you can do now:</p>
+              <ul style="margin:8px 0 0;padding-left:16px;color:#555;font-size:13px;line-height:1.8;">
+                <li>Browse our wide range of medicines</li>
+                <li>Upload prescriptions for prescription-only medicines</li>
+                <li>Track your orders in real time</li>
+              </ul>
+            </div>
+            <a href="${process.env.FRONTEND_ORIGIN || 'http://localhost:5173'}" style="display:inline-block;background:#006D6D;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px;">
+              Start Shopping
+            </a>
+          </div>
+          <div style="border-top:1px solid #f0f0f0;padding:16px 24px;text-align:center;">
+            <p style="color:#aaa;font-size:11px;margin:0;">
+              You received this email because you registered at CureBasket.
+            </p>
+          </div>
+        </div>
+      `,
+    }).catch(() => {}); // never reject on email failure
+
     sendTokenResponse(user, 201, res);
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });

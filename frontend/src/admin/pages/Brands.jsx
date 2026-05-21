@@ -158,14 +158,21 @@ function Brands() {
                     try {
                       const url = await uploadImage(file, 'cure-basket/brands');
                       setCurrentBrand(prev => ({ ...prev, image: url }));
-                    } catch {
+                    } catch (err) {
                       setCurrentBrand(prev => ({ ...prev, image: '' }));
+                      toast.error(err?.response?.data?.error || 'Image upload failed. Please try again.');
                     }
                   }}
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 {currentBrand.image === '__uploading__' && (
-                  <p className="text-xs text-gray-400 mt-1">Uploading...</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <svg className="w-3.5 h-3.5 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    <p className="text-xs text-gray-400">Uploading image...</p>
+                  </div>
                 )}
                 {currentBrand.image && currentBrand.image !== 'no-photo.jpg' && currentBrand.image !== '__uploading__' && (
                   <img src={currentBrand.image} alt="Preview" className="mt-2 w-16 h-16 object-contain rounded-lg border border-gray-100" />
@@ -173,8 +180,12 @@ function Brands() {
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">
-                  {saving ? 'Saving...' : 'Save'}
+                <button
+                  type="submit"
+                  disabled={saving || currentBrand.image === '__uploading__'}
+                  className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60"
+                >
+                  {saving ? 'Saving...' : currentBrand.image === '__uploading__' ? 'Uploading...' : 'Save'}
                 </button>
               </div>
             </form>

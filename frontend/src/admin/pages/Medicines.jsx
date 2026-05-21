@@ -1,10 +1,47 @@
+import * as XLSX from 'xlsx';
 import { SkeletonTable } from '../components/Skeleton';
 import { toast } from 'sonner';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../../utils/api';
 import uploadImage from '../../utils/uploadImage';
 
-const DEFAULT_CUSTOM_FIELDS = []; // We now use explicit fields in the model
+// ── Excel template columns ────────────────────────────────────────────────────
+const TEMPLATE_HEADERS = [
+  'Title', 'Category', 'Price Label', 'Pack Size', 'Quantity Options',
+  'Price Per Unit', 'Total Price', 'Old Price', 'Discount', 'Description',
+  'Precautions', 'Side Effects', 'How To Use', 'SKU', 'Generic For',
+  'Active Ingredient', 'Manufacturer', 'Country Origin', 'Uses',
+];
+
+const TEMPLATE_SAMPLE = [
+  'Paracetamol 500mg', 'Pain Relief', 'USD', '10 Tablets/Strip', '1, 2, 5',
+  '0.50', '5.00', '6.00', '17', 'A common pain reliever and fever reducer.',
+  'Avoid if allergic to paracetamol. Do not exceed recommended dose.',
+  'Nausea, rash (rare)', 'Take 1-2 tablets every 4-6 hours as needed.',
+  '10012', 'Acetaminophen', 'Paracetamol', 'Generic Pharma Inc.', 'USA', 'Pain relief, fever reduction',
+];
+
+function downloadTemplate() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, TEMPLATE_SAMPLE]);
+  // Make header row bold by setting column widths for readability
+  ws['!cols'] = TEMPLATE_HEADERS.map(() => ({ wch: 22 }));
+  XLSX.utils.book_append_sheet(wb, ws, 'Medicines');
+  XLSX.writeFile(wb, 'medicine_upload_template.xlsx');
+}
+
+const EMPTY_FORM = {
+  title: '', genericFor: '', category: '', brand: '',
+  priceLabel: 'USD', packSize: '', quantityOptions: '1',
+  pricePerUnit: '', totalPrice: '', oldPrice: '', discount: '',
+  sku: '', description: '', activeIngredient: '', manufacturer: '',
+  countryOrigin: '', stock: '', status: 'Active', image: '', images: [],
+  packages: [], packaging: '', storage: '',
+  prescription: 'Required', deliveryTime: 'Usually delivers in 1-2 days',
+  uses: '', sideEffects: '', howToUse: '',
+  isNewAndBest: false, isBestSeller: false,
+  precautions: [], faqs: [],
+};
 
 function Medicines() {
   const [medicines, setMedicines] = useState([]);
@@ -12,23 +49,23 @@ function Medicines() {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState('')
-  const [deleteId, setDeleteId] = useState(null)
-  const [deleteError, setDeleteError] = useState('')
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [current, setCurrent] = useState(null);
 
-  const [customFields, setCustomFields] = useState(DEFAULT_CUSTOM_FIELDS);
-  const [newFieldLabel, setNewFieldLabel] = useState('');
-  const [newFieldType, setNewFieldType] = useState('text');
-  const [editingFieldId, setEditingFieldId] = useState(null);
-  const [editingFieldLabel, setEditingFieldLabel] = useState('');
+  // Excel upload state
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+  const [excelFile, setExcelFile] = useState(null);
+  const [excelPreview, setExcelPreview] = useState(null); // { headers, rows }
+  const [excelUploading, setExcelUploading] = useState(false);
+  const [excelResult, setExcelResult] = useState(null); // { summary, errors }
+  const excelInputRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -46,9 +83,11 @@ function Medicines() {
   }, []);
 
   const filtered = medicines.filter(m => {
-    const matchSearch = m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (m.genericName || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCat = selectedCategory === 'All' || m.category?._id === selectedCategory || m.category === selectedCategory;
+    const displayName = m.title || m.name || '';
+    const matchSearch =
+      displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (m.genericFor || m.genericName || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCat = selectedCategory === 'All' || m.category?._id?.toString() === selectedCategory;
     return matchSearch && matchCat;
   });
 
@@ -71,33 +110,40 @@ function Medicines() {
   const openModal = (med = null) => {
     if (med) {
       setCurrent({
+        ...EMPTY_FORM,
         ...med,
-        category: med.category?._id || med.category || '',
-        brand: med.brand?._id || med.brand || '',
-        price: med.price || '',
-        mrp: med.mrp || '',
-        images: med.images || [],
-        packages: med.packages || [],
-        manufacturer: med.manufacturer || '',
-        saltComposition: med.saltComposition || '',
-        packaging: med.packaging || '',
-        storage: med.storage || '',
-        prescription: med.prescription || 'Required',
-        deliveryTime: med.deliveryTime || 'Usually delivers in 1-2 days',
-        uses: med.uses || '',
-        sideEffects: med.sideEffects || '',
-        howToUse: med.howToUse || '',
-        customValues: med.customValues ? Object.fromEntries(Object.entries(med.customValues)) : {},
+        title:           med.title || med.name || '',
+        category:        med.category?._id || med.category || '',
+        brand:           med.brand?._id || med.brand || '',
+        priceLabel:      med.priceLabel || 'USD',
+        packSize:        med.packSize || '',
+        quantityOptions: Array.isArray(med.quantityOptions) && med.quantityOptions.length > 0
+          ? med.quantityOptions.join(', ')
+          : '1',
+        pricePerUnit:     med.pricePerUnit ?? med.price ?? '',
+        totalPrice:       med.totalPrice ?? '',
+        oldPrice:         med.oldPrice ?? med.mrp ?? '',
+        discount:         med.discount ?? '',
+        sku:              med.sku ?? '',
+        description:      med.description || '',
+        genericFor:       med.genericFor || med.genericName || '',
+        activeIngredient: med.activeIngredient || med.saltComposition || '',
+        manufacturer:     med.manufacturer || '',
+        countryOrigin:    med.countryOrigin || '',
+        images:           med.images || [],
+        packages:         med.packages || [],
+        packaging:        med.packaging || '',
+        storage:          med.storage || '',
+        prescription:     med.prescription || 'Required',
+        deliveryTime:     med.deliveryTime || 'Usually delivers in 1-2 days',
+        uses:             med.uses || '',
+        sideEffects:      med.sideEffects || '',
+        howToUse:         med.howToUse || '',
+        precautions:      med.precautions || med.safetyAdvice || [],
+        faqs:             med.faqs || [],
       });
     } else {
-      setCurrent({
-        name: '', genericName: '', category: categories[0]?._id || '', brand: '',
-        price: '', mrp: '', stock: '', status: 'Active', image: '', images: [],
-        packages: [], manufacturer: '', saltComposition: '', packaging: '', storage: '',
-        prescription: 'Required', deliveryTime: 'Usually delivers in 1-2 days',
-        uses: '', sideEffects: '', howToUse: '',
-        isNewAndBest: false, isBestSeller: false, customValues: {},
-      });
+      setCurrent({ ...EMPTY_FORM, category: categories[0]?._id || '' });
     }
     setIsModalOpen(true);
   };
@@ -105,15 +151,27 @@ function Medicines() {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setSaveError('');
+    const parsedQtyOptions = String(current.quantityOptions)
+      .split(',')
+      .map(n => Number(n.trim()))
+      .filter(n => !isNaN(n) && n > 0);
+
     const payload = {
       ...current,
-      price: Number(current.price),
-      mrp: Number(current.mrp || current.price),
-      stock: Number(current.stock),
-      packages: current.packages || [],
-      brand: current.brand || undefined,
+      quantityOptions: parsedQtyOptions.length > 0 ? parsedQtyOptions : [1],
+      pricePerUnit:    Number(current.pricePerUnit),
+      totalPrice:      Number(current.totalPrice),
+      priceLabel:      current.priceLabel || 'USD',
+      price:           Number(current.pricePerUnit),
+      stock:           Number(current.stock) || 0,
+      brand:           current.brand || undefined,
+      oldPrice:        current.oldPrice !== '' ? Number(current.oldPrice) : undefined,
+      mrp:             current.oldPrice !== '' ? Number(current.oldPrice) : undefined,
+      discount:        current.discount !== '' ? Number(current.discount) : undefined,
+      sku:             current.sku !== '' ? Number(current.sku) : undefined,
     };
-    setSaveError('');
+
     try {
       if (current._id) {
         const res = await api.put(`/medicines/${current._id}`, payload);
@@ -132,44 +190,98 @@ function Medicines() {
     }
   };
 
-  const handleAddCustomField = () => {
-    if (!newFieldLabel.trim()) return;
-    const id = newFieldLabel.toLowerCase().replace(/\s+/g, '_');
-    setCustomFields(prev => [...prev, { id, label: newFieldLabel, type: newFieldType }]);
-    setNewFieldLabel('');
+  // ── Excel upload handlers ──────────────────────────────────────────────────
+  const handleExcelFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setExcelFile(file);
+    setExcelResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const wb = XLSX.read(evt.target.result, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        if (rows.length < 2) {
+          setExcelPreview(null);
+          return;
+        }
+        setExcelPreview({
+          headers: rows[0],
+          rows: rows.slice(1, 6), // show first 5 data rows as preview
+        });
+      } catch {
+        setExcelPreview(null);
+      }
+    };
+    reader.readAsArrayBuffer(file);
   };
 
-  const handleDeleteField = (id) => {
-    setCustomFields(prev => prev.filter(f => f.id !== id));
+  const handleExcelUpload = async () => {
+    if (!excelFile) return;
+    setExcelUploading(true);
+    setExcelResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', excelFile);
+      const res = await api.post('/medicines/bulk-upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setExcelResult(res.data);
+      if (res.data.summary.inserted > 0) {
+        // Refresh medicines list
+        const medsRes = await api.get('/medicines?limit=100');
+        setMedicines(medsRes.data.data);
+        toast.success(`Imported ${res.data.summary.inserted} medicine(s)`);
+      }
+    } catch (err) {
+      setExcelResult({ success: false, error: err.response?.data?.error || 'Upload failed' });
+    } finally {
+      setExcelUploading(false);
+    }
   };
 
-  const handleSaveFieldLabel = (id) => {
-    if (!editingFieldLabel.trim()) return;
-    setCustomFields(prev => prev.map(f => f.id === id ? { ...f, label: editingFieldLabel } : f));
-    setEditingFieldId(null);
-  };
-
-  const setCustomValue = (fieldId, value) => {
-    setCurrent(prev => ({ ...prev, customValues: { ...prev.customValues, [fieldId]: value } }));
+  const resetExcelModal = () => {
+    setExcelFile(null);
+    setExcelPreview(null);
+    setExcelResult(null);
+    if (excelInputRef.current) excelInputRef.current.value = '';
   };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Medicines Management</h2>
           <p className="text-gray-500 text-sm">Manage your inventory, prices, and stock levels.</p>
         </div>
-        <button onClick={() => openModal()} className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Medicine
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { resetExcelModal(); setIsExcelModalOpen(true); }}
+            className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Upload Excel
+          </button>
+          <button
+            onClick={() => openModal()}
+            className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Medicine
+          </button>
+        </div>
       </div>
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
 
+      {/* Filters */}
       <div className="bg-white p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-64">
           <input
@@ -185,13 +297,18 @@ function Medicines() {
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
           <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Category:</span>
-          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary px-3 py-2 w-full md:w-auto">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary px-3 py-2 w-full md:w-auto"
+          >
             <option value="All">All</option>
             {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
         </div>
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         {loading ? (
           <SkeletonTable />
@@ -202,6 +319,7 @@ function Medicines() {
                 <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
                   <th className="px-6 py-4">Medicine</th>
                   <th className="px-6 py-4">Category</th>
+                  <th className="px-6 py-4">SKU</th>
                   <th className="px-6 py-4">Price</th>
                   <th className="px-6 py-4">Stock</th>
                   <th className="px-6 py-4">Status</th>
@@ -214,7 +332,7 @@ function Medicines() {
                     <td className="px-6 py-4 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                         {med.image && med.image !== 'no-photo.jpg' ? (
-                          <img src={med.image} alt={med.name} className="max-w-full max-h-full object-contain" />
+                          <img src={med.image} alt={med.title || med.name} className="max-w-full max-h-full object-contain" />
                         ) : (
                           <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1H9L8 4zm.5 5h7L15 10H9l-.5-1zm.5 5h7l-1 1H10l-.5-1z" />
@@ -222,15 +340,33 @@ function Medicines() {
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">{med.name}</p>
-                        <p className="text-xs text-gray-500">{med.genericName}</p>
+                        <p className="font-bold text-gray-900">{med.title || med.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {med.packSize || ''}
+                          {med.genericFor || med.genericName ? ` · ${med.genericFor || med.genericName}` : ''}
+                        </p>
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium">{med.category?.name || '—'}</td>
-                    <td className="px-6 py-4 font-bold text-gray-900">₹{med.price}</td>
+                    <td className="px-6 py-4 text-gray-500 font-mono text-xs">{med.sku ?? '—'}</td>
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-gray-900">{med.priceLabel || 'USD'} {med.pricePerUnit ?? med.price}</p>
+                      {med.oldPrice || med.mrp ? (
+                        <p className="text-xs text-gray-400 line-through">
+                          {med.priceLabel || 'USD'} {med.oldPrice ?? med.mrp}
+                        </p>
+                      ) : null}
+                      {med.discount ? (
+                        <span className="text-xs text-emerald-600 font-semibold">{med.discount}% off</span>
+                      ) : null}
+                    </td>
                     <td className="px-6 py-4 font-semibold">{med.stock}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${med.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : med.status === 'Low Stock' ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-600'}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                        med.status === 'Active' ? 'bg-emerald-50 text-emerald-600' :
+                        med.status === 'Low Stock' ? 'bg-red-50 text-red-600' :
+                        'bg-gray-50 text-gray-600'
+                      }`}>
                         {med.status}
                       </span>
                     </td>
@@ -251,7 +387,7 @@ function Medicines() {
                   </tr>
                 ))}
                 {filtered.length === 0 && (
-                  <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-400 text-sm">No medicines found.</td></tr>
+                  <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-400 text-sm">No medicines found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -259,9 +395,10 @@ function Medicines() {
         )}
       </div>
 
+      {/* ── Add/Edit Medicine Modal ─────────────────────────────────────────── */}
       {isModalOpen && current && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-5xl p-6 shadow-xl max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-900">{current._id ? 'Edit Medicine' : 'Add Medicine'}</h3>
               <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
@@ -270,18 +407,27 @@ function Medicines() {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleSave} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left: Basic Info */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Basic Info & Media</h4>
+
+            <form onSubmit={handleSave} className="space-y-8">
+
+              {/* Section 1: Core Info */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">Core Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Name</label>
-                    <input type="text" value={current.name} onChange={e => setCurrent({...current, name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Title <span className="text-red-500">*</span></label>
+                    <input type="text" value={current.title} onChange={e => setCurrent({...current, title: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Generic Name</label>
-                    <input type="text" value={current.genericName} onChange={e => setCurrent({...current, genericName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Category <span className="text-red-500">*</span></label>
+                    <select value={current.category} onChange={e => setCurrent({...current, category: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required>
+                      {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">SKU</label>
+                    <input type="number" min="0" placeholder="e.g. 10012" value={current.sku} onChange={e => setCurrent({...current, sku: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <p className="text-[10px] text-gray-400 mt-0.5">Same SKU can be used for different pack sizes</p>
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Brand (Optional)</label>
@@ -290,44 +436,169 @@ function Medicines() {
                       {brands.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
                     </select>
                   </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Category</label>
-                      <select value={current.category} onChange={e => setCurrent({...current, category: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required>
-                        {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-semibold text-gray-700 block mb-1">Selling Price ($)</label>
-                        <input type="number" step="0.01" min="0" value={current.price} onChange={e => setCurrent({...current, price: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
-                      </div>
-                      <div>
-                        <label className="text-sm font-semibold text-gray-700 block mb-1">MRP (Original Price $)</label>
-                        <input type="number" step="0.01" min="0" value={current.mrp} onChange={e => setCurrent({...current, mrp: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
-                      </div>
-                    </div>
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Description</label>
+                    <textarea value={current.description} onChange={e => setCurrent({...current, description: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="General medicine description..." />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Stock</label>
-                      <input type="number" min="0" value={current.stock} onChange={e => setCurrent({...current, stock: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Status</label>
-                      <select value={current.status} onChange={e => setCurrent({...current, status: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-                        <option value="Active">Active</option>
-                        <option value="Low Stock">Low Stock</option>
-                        <option value="Inactive">Inactive</option>
-                      </select>
-                    </div>
+                </div>
+              </div>
+
+              {/* Section 2: Pricing & Packaging */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">Pricing & Packaging</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Price Label</label>
+                    <select value={current.priceLabel || 'USD'} onChange={e => setCurrent({...current, priceLabel: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                      <option value="USD">USD</option>
+                      <option value="INR">INR</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                    </select>
                   </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Pack Size <span className="text-red-500">*</span></label>
+                    <input type="text" placeholder="e.g. 10 Tablets, 500mg Strip" value={current.packSize} onChange={e => setCurrent({...current, packSize: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Quantity Options <span className="text-red-500">*</span></label>
+                    <input type="text" placeholder="1, 2, 5, 10" value={current.quantityOptions} onChange={e => setCurrent({...current, quantityOptions: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                    <p className="text-[10px] text-gray-400 mt-0.5">Comma-separated</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Price Per Unit ({current.priceLabel || 'USD'}) <span className="text-red-500">*</span></label>
+                    <input type="number" step="0.01" min="0" placeholder="0.00" value={current.pricePerUnit} onChange={e => setCurrent({...current, pricePerUnit: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Total Price ({current.priceLabel || 'USD'}) <span className="text-red-500">*</span></label>
+                    <input type="number" step="0.01" min="0" placeholder="0.00" value={current.totalPrice} onChange={e => setCurrent({...current, totalPrice: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Old Price ({current.priceLabel || 'USD'})</label>
+                    <input type="number" step="0.01" min="0" placeholder="Leave blank if no discount" value={current.oldPrice} onChange={e => setCurrent({...current, oldPrice: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Discount (%)</label>
+                    <input type="number" step="0.01" min="0" max="100" placeholder="0" value={current.discount} onChange={e => setCurrent({...current, discount: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Stock</label>
+                    <input type="number" min="0" value={current.stock} onChange={e => setCurrent({...current, stock: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Status</label>
+                    <select value={current.status} onChange={e => setCurrent({...current, status: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                      <option value="Active">Active</option>
+                      <option value="Low Stock">Low Stock</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Product Details */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">Product Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Generic For</label>
+                    <input type="text" value={current.genericFor} onChange={e => setCurrent({...current, genericFor: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Acetaminophen" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Active Ingredient</label>
+                    <input type="text" value={current.activeIngredient} onChange={e => setCurrent({...current, activeIngredient: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Paracetamol 500mg" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Manufacturer</label>
+                    <input type="text" value={current.manufacturer} onChange={e => setCurrent({...current, manufacturer: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Country of Origin</label>
+                    <input type="text" value={current.countryOrigin} onChange={e => setCurrent({...current, countryOrigin: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. India" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Packaging</label>
+                    <input type="text" value={current.packaging} onChange={e => setCurrent({...current, packaging: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. 10 Tabs/Strip" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Storage</label>
+                    <input type="text" value={current.storage} onChange={e => setCurrent({...current, storage: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Store below 25°C" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Clinical Info */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">Clinical Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Uses (Therapeutic / Dose Use)</label>
+                    <textarea value={current.uses} onChange={e => setCurrent({...current, uses: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="List therapeutic uses, one per line..." />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Side Effects</label>
+                    <textarea value={current.sideEffects} onChange={e => setCurrent({...current, sideEffects: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="List side effects, one per line..." />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">How To Use</label>
+                    <textarea value={current.howToUse} onChange={e => setCurrent({...current, howToUse: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="Dosage and usage instructions..." />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Prescription</label>
+                    <select value={current.prescription} onChange={e => setCurrent({...current, prescription: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                      <option value="Required">Required</option>
+                      <option value="Not Required">Not Required</option>
+                      <option value="Optional">Optional</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Precautions */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">Precautions</h4>
+                <div className="space-y-3">
+                  {current.precautions?.map((item, idx) => (
+                    <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+                      <div className="flex gap-2 items-center">
+                        <input type="text" placeholder="Label (e.g. Alcohol, Pregnancy)" value={item.label} onChange={e => {
+                          const updated = [...current.precautions];
+                          updated[idx] = { ...updated[idx], label: e.target.value };
+                          setCurrent({...current, precautions: updated});
+                        }} className="flex-1 text-xs p-1.5 rounded border border-gray-200 focus:outline-none focus:ring-1 focus:ring-primary" />
+                        <select value={item.status} onChange={e => {
+                          const updated = [...current.precautions];
+                          updated[idx] = { ...updated[idx], status: e.target.value };
+                          setCurrent({...current, precautions: updated});
+                        }} className="text-xs p-1.5 rounded border border-gray-200">
+                          <option value="Safe">Safe</option>
+                          <option value="Caution">Caution</option>
+                          <option value="Unsafe">Unsafe</option>
+                          <option value="Consult Doctor">Consult Doctor</option>
+                        </select>
+                        <button type="button" onClick={() => setCurrent({...current, precautions: current.precautions.filter((_, i) => i !== idx)})} className="text-red-400 hover:text-red-600 text-lg leading-none">×</button>
+                      </div>
+                      <textarea placeholder="Precaution details..." value={item.description} onChange={e => {
+                        const updated = [...current.precautions];
+                        updated[idx] = { ...updated[idx], description: e.target.value };
+                        setCurrent({...current, precautions: updated});
+                      }} className="w-full text-xs p-1.5 rounded border border-gray-200 focus:outline-none focus:ring-1 focus:ring-primary" rows="2" />
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setCurrent({...current, precautions: [...(current.precautions || []), { label: '', status: 'Caution', description: '' }]})} className="text-xs text-primary font-bold hover:underline">+ Add Precaution</button>
+                </div>
+              </div>
+
+              {/* Section 6: Media & Flags */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">Media & Display</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Upload Image</label>
                     <input type="file" accept="image/*" onChange={async (e) => {
                       const file = e.target.files[0];
                       if (!file) return;
-                      setCurrent({...current, image: '__uploading__'});
+                      setCurrent(prev => ({...prev, image: '__uploading__'}));
                       try {
                         const url = await uploadImage(file, 'cure-basket/medicines');
                         setCurrent(prev => ({...prev, image: url}));
@@ -335,14 +606,12 @@ function Medicines() {
                         setCurrent(prev => ({...prev, image: ''}));
                       }
                     }} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    {current.image === '__uploading__' && (
-                      <p className="text-xs text-gray-400 mt-1">Uploading...</p>
-                    )}
+                    {current.image === '__uploading__' && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
                     {current.image && current.image !== 'no-photo.jpg' && current.image !== '__uploading__' && (
                       <img src={current.image} alt="Preview" className="mt-2 w-20 h-20 object-contain rounded-lg border border-gray-100" />
                     )}
                   </div>
-                  <div className="flex gap-4 pt-1">
+                  <div className="flex flex-col gap-3 pt-6">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
                       <input type="checkbox" checked={current.isNewAndBest || false} onChange={e => setCurrent({...current, isNewAndBest: e.target.checked})} className="w-4 h-4 rounded" />
                       New & Best
@@ -353,140 +622,28 @@ function Medicines() {
                     </label>
                   </div>
                 </div>
+              </div>
 
-                {/* Right: Medicinal Details & Packages */}
-                <div className="space-y-6">
-                  <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Medicinal Details</h4>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Manufacturer</label>
-                      <input type="text" value={current.manufacturer} onChange={e => setCurrent({...current, manufacturer: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              {/* Section 7: FAQs */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">FAQs</h4>
+                <div className="space-y-3">
+                  {current.faqs?.map((faq, idx) => (
+                    <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2 relative">
+                      <button type="button" onClick={() => setCurrent({...current, faqs: current.faqs.filter((_, i) => i !== idx)})} className="absolute top-2 right-2 text-red-400 hover:text-red-600 text-lg">×</button>
+                      <input type="text" placeholder="Question" value={faq.question} onChange={e => {
+                        const newFaqs = [...current.faqs];
+                        newFaqs[idx] = { ...newFaqs[idx], question: e.target.value };
+                        setCurrent({...current, faqs: newFaqs});
+                      }} className="w-full text-xs p-1.5 rounded border border-gray-200 pr-8 focus:outline-none focus:ring-1 focus:ring-primary" />
+                      <textarea placeholder="Answer" value={faq.answer} onChange={e => {
+                        const newFaqs = [...current.faqs];
+                        newFaqs[idx] = { ...newFaqs[idx], answer: e.target.value };
+                        setCurrent({...current, faqs: newFaqs});
+                      }} className="w-full text-xs p-1.5 rounded border border-gray-200 focus:outline-none focus:ring-1 focus:ring-primary" rows="2" />
                     </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Salt Composition</label>
-                      <input type="text" value={current.saltComposition} onChange={e => setCurrent({...current, saltComposition: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Packaging (e.g. 10 Tabs/Strip)</label>
-                      <input type="text" value={current.packaging} onChange={e => setCurrent({...current, packaging: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700 block mb-1">Storage</label>
-                      <input type="text" value={current.storage} onChange={e => setCurrent({...current, storage: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Uses (One per line)</label>
-                    <textarea value={current.uses} onChange={e => setCurrent({...current, uses: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="2" />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Side Effects (One per line)</label>
-                    <textarea value={current.sideEffects} onChange={e => setCurrent({...current, sideEffects: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="2" />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">How to Use (Steps per line)</label>
-                    <textarea value={current.howToUse} onChange={e => setCurrent({...current, howToUse: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" rows="2" />
-                  </div>
-
-                  {/* Packages Editor */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Package Options (Quantities)</h4>
-                    <div className="space-y-2">
-                      {current.packages.map((pkg, idx) => (
-                        <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
-                          <input type="text" placeholder="Label (10 Tabs)" value={pkg.label} onChange={e => {
-                            const newPkgs = [...current.packages];
-                            newPkgs[idx].label = e.target.value;
-                            setCurrent({...current, packages: newPkgs});
-                          }} className="w-24 text-xs p-1 rounded" />
-                          <input type="number" placeholder="Price" value={pkg.price} onChange={e => {
-                            const newPkgs = [...current.packages];
-                            newPkgs[idx].price = Number(e.target.value);
-                            setCurrent({...current, packages: newPkgs});
-                          }} className="w-16 text-xs p-1 rounded" />
-                          <input type="number" placeholder="MRP" value={pkg.mrp} onChange={e => {
-                            const newPkgs = [...current.packages];
-                            newPkgs[idx].mrp = Number(e.target.value);
-                            setCurrent({...current, packages: newPkgs});
-                          }} className="w-16 text-xs p-1 rounded" />
-                          <label className="flex items-center gap-1 text-[10px] whitespace-nowrap">
-                            <input type="checkbox" checked={pkg.popular} onChange={e => {
-                              const newPkgs = [...current.packages];
-                              newPkgs[idx].popular = e.target.checked;
-                              setCurrent({...current, packages: newPkgs});
-                            }} /> Popular
-                          </label>
-                          <button type="button" onClick={() => setCurrent({...current, packages: current.packages.filter((_, i) => i !== idx)})} className="text-red-500 text-xs">×</button>
-                        </div>
-                      ))}
-                      <button type="button" onClick={() => setCurrent({...current, packages: [...current.packages, { label: '', price: 0, popular: false }]})} className="text-xs text-primary font-bold">+ Add Package</button>
-                    </div>
-                  </div>
-
-                  {/* Safety Advice Editor */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Safety Advice</h4>
-                    <div className="space-y-3">
-                      {current.safetyAdvice?.map((advice, idx) => (
-                        <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
-                          <div className="flex gap-2">
-                            <input type="text" placeholder="Label (e.g. Alcohol)" value={advice.label} onChange={e => {
-                              const newAdvice = [...current.safetyAdvice];
-                              newAdvice[idx].label = e.target.value;
-                              setCurrent({...current, safetyAdvice: newAdvice});
-                            }} className="flex-1 text-xs p-1.5 rounded border border-gray-200" />
-                            <select value={advice.status} onChange={e => {
-                              const newAdvice = [...current.safetyAdvice];
-                              newAdvice[idx].status = e.target.value;
-                              setCurrent({...current, safetyAdvice: newAdvice});
-                            }} className="text-xs p-1.5 rounded border border-gray-200">
-                              <option value="Safe">Safe</option>
-                              <option value="Unsafe">Unsafe</option>
-                              <option value="Caution">Caution</option>
-                              <option value="Consult Doctor">Consult Doctor</option>
-                            </select>
-                            <button type="button" onClick={() => setCurrent({...current, safetyAdvice: current.safetyAdvice.filter((_, i) => i !== idx)})} className="text-red-500 text-xs">×</button>
-                          </div>
-                          <textarea placeholder="Description" value={advice.description} onChange={e => {
-                            const newAdvice = [...current.safetyAdvice];
-                            newAdvice[idx].description = e.target.value;
-                            setCurrent({...current, safetyAdvice: newAdvice});
-                          }} className="w-full text-xs p-1.5 rounded border border-gray-200" rows="1" />
-                        </div>
-                      ))}
-                      <button type="button" onClick={() => setCurrent({...current, safetyAdvice: [...(current.safetyAdvice || []), { label: '', status: 'Safe', description: '' }]})} className="text-xs text-primary font-bold">+ Add Safety Advice</button>
-                    </div>
-                  </div>
-
-                  {/* FAQs Editor */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">FAQs</h4>
-                    <div className="space-y-3">
-                      {current.faqs?.map((faq, idx) => (
-                        <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2 relative">
-                          <button type="button" onClick={() => setCurrent({...current, faqs: current.faqs.filter((_, i) => i !== idx)})} className="absolute top-2 right-2 text-red-500 text-xs">×</button>
-                          <input type="text" placeholder="Question" value={faq.question} onChange={e => {
-                            const newFaqs = [...current.faqs];
-                            newFaqs[idx].question = e.target.value;
-                            setCurrent({...current, faqs: newFaqs});
-                          }} className="w-full text-xs p-1.5 rounded border border-gray-200 pr-8" />
-                          <textarea placeholder="Answer" value={faq.answer} onChange={e => {
-                            const newFaqs = [...current.faqs];
-                            newFaqs[idx].answer = e.target.value;
-                            setCurrent({...current, faqs: newFaqs});
-                          }} className="w-full text-xs p-1.5 rounded border border-gray-200" rows="2" />
-                        </div>
-                      ))}
-                      <button type="button" onClick={() => setCurrent({...current, faqs: [...(current.faqs || []), { question: '', answer: '' }]})} className="text-xs text-primary font-bold">+ Add FAQ</button>
-                    </div>
-                  </div>
+                  ))}
+                  <button type="button" onClick={() => setCurrent({...current, faqs: [...(current.faqs || []), { question: '', answer: '' }]})} className="text-xs text-primary font-bold hover:underline">+ Add FAQ</button>
                 </div>
               </div>
 
@@ -495,13 +652,179 @@ function Medicines() {
               )}
               <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">
+                  {saving ? 'Saving...' : 'Save Medicine'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* ── Excel Upload Modal ──────────────────────────────────────────────── */}
+      {isExcelModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Bulk Upload via Excel</h3>
+                <p className="text-sm text-gray-500 mt-0.5">Upload an Excel file to import multiple medicines at once. Existing medicines (matched by title + pack size) will be skipped.</p>
+              </div>
+              <button onClick={() => setIsExcelModalOpen(false)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6L18 18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Step 1: Download Template */}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-emerald-800">Step 1: Download the template</p>
+                  <p className="text-xs text-emerald-600 mt-0.5">Fill in the template with your medicine data and upload it below.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={downloadTemplate}
+                  className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors shrink-0"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download Template
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {TEMPLATE_HEADERS.map(h => (
+                  <span key={h} className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-mono">{h}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 2: Upload File */}
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-gray-700 mb-2">Step 2: Upload your filled Excel file</p>
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
+                <input
+                  ref={excelInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleExcelFileChange}
+                  className="hidden"
+                  id="excel-upload-input"
+                />
+                <label htmlFor="excel-upload-input" className="cursor-pointer">
+                  <svg className="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {excelFile ? (
+                    <p className="text-sm font-semibold text-primary">{excelFile.name}</p>
+                  ) : (
+                    <p className="text-sm text-gray-500">Click to select an <span className="font-semibold text-gray-700">.xlsx</span> or <span className="font-semibold text-gray-700">.xls</span> file</p>
+                  )}
+                </label>
+                {excelFile && (
+                  <button type="button" onClick={resetExcelModal} className="mt-2 text-xs text-red-500 hover:underline">Remove file</button>
+                )}
+              </div>
+            </div>
+
+            {/* Preview */}
+            {excelPreview && !excelResult && (
+              <div className="mb-5">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Preview (first 5 rows)</p>
+                <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                  <table className="w-full text-xs">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {excelPreview.headers.map((h, i) => (
+                          <th key={i} className="px-3 py-2 text-left font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {excelPreview.rows.map((row, ri) => (
+                        <tr key={ri}>
+                          {excelPreview.headers.map((_, ci) => (
+                            <td key={ci} className="px-3 py-2 text-gray-700 whitespace-nowrap max-w-[140px] truncate">{String(row[ci] ?? '')}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Upload Result */}
+            {excelResult && (
+              <div className={`mb-5 p-4 rounded-xl border ${excelResult.success ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                {excelResult.success ? (
+                  <>
+                    <p className="font-semibold text-emerald-800 text-sm mb-2">Upload Complete</p>
+                    <div className="flex gap-4 text-sm">
+                      <span className="text-emerald-700 font-bold">{excelResult.summary.inserted} inserted</span>
+                      <span className="text-gray-500">{excelResult.summary.skipped} skipped (duplicates)</span>
+                      {excelResult.summary.errors > 0 && (
+                        <span className="text-red-600 font-semibold">{excelResult.summary.errors} errors</span>
+                      )}
+                    </div>
+                    {excelResult.errors?.length > 0 && (
+                      <div className="mt-3 space-y-1 max-h-32 overflow-y-auto">
+                        {excelResult.errors.map((e, i) => (
+                          <p key={i} className="text-xs text-red-600">Row {e.row}: {e.error}</p>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-red-700 text-sm font-semibold">{excelResult.error}</p>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
+              <button
+                type="button"
+                onClick={() => setIsExcelModalOpen(false)}
+                className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50"
+              >
+                {excelResult?.success ? 'Close' : 'Cancel'}
+              </button>
+              {!excelResult && (
+                <button
+                  type="button"
+                  onClick={handleExcelUpload}
+                  disabled={!excelFile || excelUploading}
+                  className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold text-sm hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {excelUploading ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                      </svg>
+                      Importing...
+                    </>
+                  ) : 'Upload & Import'}
+                </button>
+              )}
+              {excelResult?.success && excelResult.summary.errors > 0 && (
+                <button
+                  type="button"
+                  onClick={resetExcelModal}
+                  className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90"
+                >
+                  Upload Another File
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirm Modal ────────────────────────────────────────────── */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
