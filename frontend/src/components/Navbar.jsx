@@ -12,6 +12,7 @@ function Navbar({ openSupport }) {
   const [isGoldMembershipMenuOpen, setIsGoldMembershipMenuOpen] = useState(false)
   const [isAllCategoriesMenuOpen, setIsAllCategoriesMenuOpen] = useState(false)
   const [isMensHealthOpen, setIsMensHealthOpen] = useState(false)
+  const [navSearch, setNavSearch] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
   const isHomePage = location.pathname === '/'
@@ -244,12 +245,28 @@ function Navbar({ openSupport }) {
 
             {/* Search Bar Integrated */}
             <div className="flex flex-1 max-w-[400px] items-center relative mx-4">
-              <input 
-                type="text" 
-                placeholder="Search for medicines or conditions..." 
+              <input
+                type="text"
+                value={navSearch}
+                onChange={e => setNavSearch(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && navSearch.trim()) {
+                    navigate(`/medicines?q=${encodeURIComponent(navSearch.trim())}`)
+                    setNavSearch('')
+                  }
+                }}
+                placeholder="Search for medicines or conditions..."
                 className="w-full h-11 pl-5 pr-12 rounded-full border border-gray-200 focus:outline-none focus:border-[#006D6D] text-[14px] shadow-sm"
               />
-              <button className="absolute right-4 text-gray-400">
+              <button
+                onClick={() => {
+                  if (navSearch.trim()) {
+                    navigate(`/medicines?q=${encodeURIComponent(navSearch.trim())}`)
+                    setNavSearch('')
+                  }
+                }}
+                className="absolute right-4 text-gray-400 hover:text-[#006D6D] transition-colors"
+              >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>

@@ -1,59 +1,130 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import api from '../utils/api'
 
 const emptyForm = { name: '', street: '', city: '', phone: '' }
 
+const addrId = (addr) => addr._id?.toString() || addr.id?.toString()
+
 const Checkout = () => {
   const navigate = useNavigate()
-  const { items, cartTotal, clearCart } = useCart()
+  const location = useLocation()
+  const { items: cartItems, cartTotal } = useCart()
+  const { isLoggedIn } = useAuth()
   const [shippingMethod, setShippingMethod] = useState('standard')
   const [addresses, setAddresses] = useState([])
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [editingAddress, setEditingAddress] = useState(null)
   const [form, setForm] = useState(emptyForm)
-  const [errors, setErrors] = useState({})
+  const [formErrors, setFormErrors] = useState({})
   const [orderError, setOrderError] = useState('')
+  const [addrLoading, setAddrLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  // Buy Now: location.state has { product, selectedPackage, quantity }
+  const buyNow = location.state?.product ? location.state : null
+  const items = buyNow
+    ? [{
+        itemKey: `buy_${buyNow.product._id}`,
+        _id: buyNow.product._id,
+        name: buyNow.product.title || buyNow.product.name,
+        price: buyNow.selectedPackage?.price ?? (Number(buyNow.product.pricePerUnit) || Number(buyNow.product.price) || 0),
+        qty: buyNow.quantity || 1,
+      }]
+    : cartItems
+
+  const subtotal = buyNow
+    ? items[0].price * items[0].qty
+    : cartTotal
 
   const shippingCost = shippingMethod === 'express' ? 25 : 10
-  const total = cartTotal + shippingCost
+  const total = subtotal + shippingCost
+
+  // Load addresses from DB on mount
+  useEffect(() => {
+    if (!isLoggedIn) return
+    setAddrLoading(true)
+    api.get('/auth/me')
+      .then(res => {
+        const dbAddrs = res.data.user?.addresses || []
+        setAddresses(dbAddrs)
+        if (dbAddrs.length > 0) setSelectedAddress(addrId(dbAddrs[0]))
+      })
+      .catch(() => {})
+      .finally(() => setAddrLoading(false))
+  }, [isLoggedIn])
 
   const openAddNew = () => {
     setEditingAddress(null)
     setForm(emptyForm)
-    setErrors({})
+    setFormErrors({})
     setShowModal(true)
   }
 
   const openEdit = (addr) => {
-    setEditingAddress(addr.id)
+    setEditingAddress(addrId(addr))
     setForm({ name: addr.name, street: addr.street, city: addr.city, phone: addr.phone })
-    setErrors({})
+    setFormErrors({})
     setShowModal(true)
   }
 
-  const validate = () => {
-    const newErrors = {}
-    if (!form.name.trim()) newErrors.name = 'Name is required'
-    if (!form.street.trim()) newErrors.street = 'Street address is required'
-    if (!form.city.trim()) newErrors.city = 'City is required'
-    if (!form.phone.trim()) newErrors.phone = 'Phone number is required'
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+  const validateForm = () => {
+    const errs = {}
+    if (!form.name.trim()) errs.name = 'Name is required'
+    if (!form.street.trim()) errs.street = 'Street address is required'
+    if (!form.city.trim()) errs.city = 'City is required'
+    if (!form.phone.trim()) errs.phone = 'Phone number is required'
+    setFormErrors(errs)
+    return Object.keys(errs).length === 0
   }
 
-  const handleSave = () => {
-    if (!validate()) return
-    if (editingAddress !== null) {
-      setAddresses(prev => prev.map(a => a.id === editingAddress ? { ...a, ...form } : a))
-    } else {
-      const newId = Date.now()
-      const newAddr = { id: newId, ...form }
-      setAddresses(prev => [...prev, newAddr])
-      setSelectedAddress(newId)
+  const handleSave = async () => {
+    if (!validateForm()) return
+    setSaving(true)
+    try {
+      if (isLoggedIn) {
+        if (editingAddress) {
+          const res = await api.put(`/auth/me/addresses/${editingAddress}`, form)
+          setAddresses(res.data.addresses)
+        } else {
+          const res = await api.post('/auth/me/addresses', form)
+          const updated = res.data.addresses
+          setAddresses(updated)
+          setSelectedAddress(addrId(updated[updated.length - 1]))
+        }
+      } else {
+        if (editingAddress !== null) {
+          setAddresses(prev => prev.map(a => addrId(a) === editingAddress ? { ...a, ...form } : a))
+        } else {
+          const tmpId = Date.now().toString()
+          setAddresses(prev => [...prev, { _id: tmpId, ...form }])
+          setSelectedAddress(tmpId)
+        }
+      }
+      setShowModal(false)
+    } catch (err) {
+      setFormErrors({ _api: err.response?.data?.error || 'Failed to save address' })
+    } finally {
+      setSaving(false)
     }
-    setShowModal(false)
+  }
+
+  const handleDelete = async (addr) => {
+    const id = addrId(addr)
+    try {
+      if (isLoggedIn) {
+        const res = await api.delete(`/auth/me/addresses/${id}`)
+        setAddresses(res.data.addresses)
+      } else {
+        setAddresses(prev => prev.filter(a => addrId(a) !== id))
+      }
+      if (selectedAddress === id) setSelectedAddress(null)
+    } catch {
+      // best-effort
+    }
   }
 
   const handleContinueToPayment = () => {
@@ -62,7 +133,11 @@ const Checkout = () => {
       setOrderError('Please add and select a shipping address.')
       return
     }
-    const addr = addresses.find(a => a.id === selectedAddress)
+    const addr = addresses.find(a => addrId(a) === selectedAddress)
+    if (!addr) {
+      setOrderError('Selected address not found.')
+      return
+    }
     navigate('/payment', {
       state: {
         orderItems: items.map(i => ({
@@ -118,51 +193,70 @@ const Checkout = () => {
         )}
 
         <div className="space-y-8">
+          {/* Shipping Address */}
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-[15px] md:text-[16px] font-bold text-gray-900">Shipping Address</h2>
               <button onClick={openAddNew} className="text-[#006D6D] text-[12px] font-bold hover:underline">+ Add New</button>
             </div>
-            {addresses.length === 0 ? (
+
+            {addrLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <svg className="w-6 h-6 animate-spin text-[#006D6D]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+              </div>
+            ) : addresses.length === 0 ? (
               <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center">
                 <p className="text-gray-400 text-sm mb-3">No addresses saved</p>
                 <button onClick={openAddNew} className="text-[#006D6D] text-sm font-bold hover:underline">+ Add Address</button>
               </div>
             ) : (
               <div className="space-y-3">
-                {addresses.map((addr) => (
-                  <div
-                    key={addr.id}
-                    onClick={() => setSelectedAddress(addr.id)}
-                    className={`bg-white rounded-2xl border-2 p-5 relative shadow-sm cursor-pointer transition-all ${selectedAddress === addr.id ? 'border-[#006D6D]' : 'border-gray-100 hover:border-gray-200'}`}
-                  >
-                    <div className="absolute top-5 left-5">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
-                        {selectedAddress === addr.id && <div className="w-2.5 h-2.5 rounded-full bg-[#006D6D]"></div>}
-                      </div>
-                    </div>
-                    <div className="pl-10">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-[14px] font-bold text-gray-900">{addr.name}</h3>
-                          <p className="text-[12px] text-gray-500 mt-2 leading-relaxed">
-                            {addr.street}<br/>
-                            {addr.city}<br/>
-                            {addr.phone}
-                          </p>
+                {addresses.map((addr) => {
+                  const id = addrId(addr)
+                  return (
+                    <div
+                      key={id}
+                      onClick={() => setSelectedAddress(id)}
+                      className={`bg-white rounded-2xl border-2 p-5 relative shadow-sm cursor-pointer transition-all ${selectedAddress === id ? 'border-[#006D6D]' : 'border-gray-100 hover:border-gray-200'}`}
+                    >
+                      <div className="absolute top-5 left-5">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedAddress === id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
+                          {selectedAddress === id && <div className="w-2.5 h-2.5 rounded-full bg-[#006D6D]"></div>}
                         </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openEdit(addr) }}
-                          className="text-[#006D6D] text-[12px] font-bold hover:underline"
-                        >Edit</button>
+                      </div>
+                      <div className="pl-10">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="text-[14px] font-bold text-gray-900">{addr.name}</h3>
+                            <p className="text-[12px] text-gray-500 mt-2 leading-relaxed">
+                              {addr.street}<br/>
+                              {addr.city}<br/>
+                              {addr.phone}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openEdit(addr) }}
+                              className="text-[#006D6D] text-[12px] font-bold hover:underline"
+                            >Edit</button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDelete(addr) }}
+                              className="text-red-400 text-[12px] font-bold hover:underline"
+                            >Delete</button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
 
+          {/* Shipping Method */}
           <div>
             <h2 className="text-[15px] md:text-[16px] font-bold text-gray-900 mb-4">Shipping Method</h2>
             <div className="space-y-3">
@@ -194,6 +288,7 @@ const Checkout = () => {
             </div>
           </div>
 
+          {/* Order Summary */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
             <h2 className="text-[15px] font-bold text-gray-900 mb-4">Order Summary</h2>
             <div className="space-y-2">
@@ -224,6 +319,7 @@ const Checkout = () => {
         </button>
       </div>
 
+      {/* Address Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[500px] p-8" onClick={e => e.stopPropagation()}>
@@ -233,6 +329,12 @@ const Checkout = () => {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2" strokeLinecap="round"/></svg>
               </button>
             </div>
+
+            {formErrors._api && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-[13px] px-4 py-2.5 rounded-xl mb-4">
+                {formErrors._api}
+              </div>
+            )}
 
             <div className="space-y-4">
               {[
@@ -248,9 +350,9 @@ const Checkout = () => {
                     value={form[key]}
                     onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                     placeholder={placeholder}
-                    className={`w-full mt-1.5 px-4 py-3 rounded-xl border-2 text-[14px] text-gray-900 placeholder-gray-300 outline-none transition-all focus:border-[#006D6D] ${errors[key] ? 'border-red-400' : 'border-gray-100'}`}
+                    className={`w-full mt-1.5 px-4 py-3 rounded-xl border-2 text-[14px] text-gray-900 placeholder-gray-300 outline-none transition-all focus:border-[#006D6D] ${formErrors[key] ? 'border-red-400' : 'border-gray-100'}`}
                   />
-                  {errors[key] && <p className="text-[11px] text-red-500 mt-1">{errors[key]}</p>}
+                  {formErrors[key] && <p className="text-[11px] text-red-500 mt-1">{formErrors[key]}</p>}
                 </div>
               ))}
             </div>
@@ -262,8 +364,9 @@ const Checkout = () => {
               >Cancel</button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-3 rounded-xl bg-[#006D6D] text-white font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md"
-              >{editingAddress ? 'Save Changes' : 'Add Address'}</button>
+                disabled={saving}
+                className="flex-1 py-3 rounded-xl bg-[#006D6D] text-white font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md disabled:opacity-60"
+              >{saving ? 'Saving...' : editingAddress ? 'Save Changes' : 'Add Address'}</button>
             </div>
           </div>
         </div>

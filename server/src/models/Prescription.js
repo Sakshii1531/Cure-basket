@@ -9,15 +9,13 @@ const prescriptionSchema = new mongoose.Schema({
   medicine: {
     type: mongoose.Schema.ObjectId,
     ref: 'Medicine',
-    required: true
+    default: null,
   },
   packageLabel: {
     type: String,
-    required: true
   },
   quantity: {
     type: Number,
-    required: true
   },
   image: {
     type: String,

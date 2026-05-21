@@ -202,6 +202,33 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+// @desc    Get single order by ID (owner or admin)
+// @route   GET /api/orders/:id
+// @access  Private
+exports.getOrderById = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ success: false, error: 'Order not found' });
+  }
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('items.medicine', 'name image');
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    const isOwner = order.user.toString() === req.user.id;
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, error: 'Not authorized to view this order' });
+    }
+
+    res.status(200).json({ success: true, data: order });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
 // @desc    Update order status
 // @route   PUT /api/orders/:id/status
 // @access  Private/Admin
