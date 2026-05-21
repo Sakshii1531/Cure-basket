@@ -105,12 +105,11 @@ medicineSchema.pre('save', function (next) {
   next();
 });
 
-medicineSchema.pre('findOneAndUpdate', function (next) {
+medicineSchema.pre('findOneAndUpdate', async function () {
   const upd = this.getUpdate();
   if (upd.title)                upd.name  = upd.title;
   if (upd.pricePerUnit != null) upd.price = upd.pricePerUnit;
   if (upd.oldPrice != null)     upd.mrp   = upd.oldPrice;
-  next();
 });
 
 module.exports = mongoose.model('Medicine', medicineSchema);
