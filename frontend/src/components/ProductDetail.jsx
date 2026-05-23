@@ -654,7 +654,7 @@ function ProductDetail({ onBack }) {
                 Buy Now
               </button>
               {pData.prescription === 'Required' && prescriptionStatus === 'none' && (
-                <p className="text-center text-[10px] text-gray-400">Upload a prescription above to enable Buy Now</p>
+                <p className="text-center text-[11px] font-bold text-[#d97706] bg-[#FFF8E7] border border-[#FFD200]/30 py-1.5 px-3 rounded-lg mt-1">Upload a prescription above to enable Buy Now</p>
               )}
               {pData.prescription === 'Required' && prescriptionStatus === 'pending' && (
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">

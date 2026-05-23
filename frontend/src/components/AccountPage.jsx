@@ -6,7 +6,7 @@ import api from '../utils/api'
 const AccountPage = () => {
   const navigate = useNavigate()
   const { isLoggedIn, user, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState('Your Orders')
+  const [activeTab, setActiveTab] = useState('My Orders')
   const [orders, setOrders] = useState([])
   const [loadingOrders, setLoadingOrders] = useState(true)
   
@@ -90,7 +90,7 @@ const AccountPage = () => {
 
   const menuTabs = [
     {
-      label: 'Your Orders',
+      label: 'My Orders',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -183,7 +183,7 @@ const AccountPage = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'Your Orders':
+      case 'My Orders':
         if (loadingOrders) {
           return (
             <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] flex items-center justify-center text-gray-400 text-[15px] font-sans">
@@ -505,7 +505,7 @@ const AccountPage = () => {
 
         {/* Tab Selection Card (YOUR ACCOUNT) */}
         <div className="bg-white rounded-lg border border-gray-200 py-3.5 px-5 shadow-sm mb-6 max-w-5xl mx-auto font-sans">
-          <h2 className="text-[16px] font-bold text-gray-855 uppercase tracking-wide border-b border-gray-100 pb-1.5 mb-3 font-sans">YOUR ACCOUNT</h2>
+          <h2 className="text-[16px] font-bold text-gray-855 uppercase tracking-wide border-b border-gray-100 pb-1.5 mb-3 font-sans">MY ACCOUNT</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-2.5">
             {menuTabs.map((tab) => {
               const isSelected = activeTab === tab.label
