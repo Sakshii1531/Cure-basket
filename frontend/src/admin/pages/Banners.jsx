@@ -160,12 +160,21 @@ function Banners() {
                   try {
                     const url = await uploadImage(file, 'cure-basket/banners');
                     setCurrent(prev => ({...prev, image: url}));
-                  } catch {
+                    toast.success('Image uploaded successfully');
+                  } catch (err) {
+                    console.error('Banner image upload failed:', err);
+                    toast.error(err?.response?.data?.error || 'Image upload failed. Please try again.');
                     setCurrent(prev => ({...prev, image: ''}));
                   }
                 }} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm" required={!current._id && !current.image} />
                 {current.image === '__uploading__' && (
-                  <p className="text-xs text-gray-400 mt-1">Uploading...</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <svg className="w-3.5 h-3.5 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    <p className="text-xs text-gray-400">Uploading banner image...</p>
+                  </div>
                 )}
                 {current.image && current.image !== '__uploading__' && (
                   <img src={current.image} alt="Preview" className="mt-2 w-full h-24 object-cover rounded-lg border border-gray-100" />
@@ -176,8 +185,10 @@ function Banners() {
                 Active
               </label>
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">{saving ? 'Saving...' : 'Save'}</button>
+                <button type="button" disabled={saving || current.image === '__uploading__'} onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50 disabled:opacity-60">Cancel</button>
+                <button type="submit" disabled={saving || current.image === '__uploading__'} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">
+                  {saving ? 'Saving...' : current.image === '__uploading__' ? 'Uploading...' : 'Save'}
+                </button>
               </div>
             </form>
           </div>

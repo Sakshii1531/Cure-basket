@@ -1,6 +1,8 @@
 const Prescription = require('../models/Prescription');
 const { uploadBuffer } = require('./uploadController');
 const sanitizeError = require('../utils/sanitizeError');
+const fs = require('fs');
+const path = require('path');
 
 // @desc    Upload prescription
 // @route   POST /api/prescriptions
@@ -11,9 +13,39 @@ exports.uploadPrescription = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Please upload a prescription image or PDF' });
     }
 
-    const result = await uploadBuffer(req.file.buffer, 'cure-basket/prescriptions');
-    const image = result.secure_url;
-    const { notes, medicine, packageLabel, quantity } = req.body;
+    let image;
+    try {
+      const result = await uploadBuffer(req.file.buffer, 'cure-basket/prescriptions');
+      image = result.secure_url;
+    } catch (cloudinaryError) {
+      console.warn('Cloudinary prescription upload failed, falling back to local storage:', cloudinaryError.message);
+      
+      const uploadDir = path.join(__dirname, '../../uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      const ext = path.extname(req.file.originalname) || '.png';
+      const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      const filePath = path.join(uploadDir, filename);
+      
+      fs.writeFileSync(filePath, req.file.buffer);
+      
+      image = `/uploads/${filename}`;
+    }
+
+    let { notes, medicine, packageLabel, quantity } = req.body;
+
+    // Sanitize stringified values from FormData
+    if (medicine === 'undefined' || medicine === 'null' || !medicine) {
+      medicine = null;
+    }
+    if (packageLabel === 'undefined' || packageLabel === 'null') {
+      packageLabel = undefined;
+    }
+    if (quantity === 'undefined' || quantity === 'null') {
+      quantity = undefined;
+    }
 
     const prescription = await Prescription.create({
       user: req.user.id,

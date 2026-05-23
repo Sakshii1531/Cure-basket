@@ -65,7 +65,7 @@ function AllBrandsPage({ onBack }) {
                     <img 
                       src={brand.image} 
                       alt={brand.name} 
-                      className="max-w-[85%] max-h-[85%] object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300"
+                      className="max-w-[85%] max-h-[80px] md:max-h-[100px] object-contain mix-blend-multiply"
                       onError={e => { e.target.style.display = 'none' }}
                     />
                   ) : (
