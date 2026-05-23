@@ -98,18 +98,59 @@ const medicineSchema = new mongoose.Schema({
   createdAt:    { type: Date, default: Date.now },
 });
 
-medicineSchema.pre('save', function (next) {
+medicineSchema.pre('validate', function () {
+  if (this.name && !this.title)                this.title  = this.name;
+  if (this.title && !this.name)                this.name   = this.title;
+  
+  if (this.price != null && this.pricePerUnit == null) this.pricePerUnit = this.price;
+  if (this.pricePerUnit != null && this.price == null) this.price       = this.pricePerUnit;
+  
+  if (this.mrp != null && this.oldPrice == null)     this.oldPrice   = this.mrp;
+  if (this.oldPrice != null && this.mrp == null)     this.mrp        = this.oldPrice;
+
+  if (this.pricePerUnit != null && this.totalPrice == null) {
+    this.totalPrice = this.pricePerUnit;
+  }
+  
+  if (!this.packSize) {
+    this.packSize = '1 Pack';
+  }
+  
+  if (!this.quantityOptions || this.quantityOptions.length === 0) {
+    this.quantityOptions = [1];
+  }
+
+  if (this.genericName && !this.genericFor) this.genericFor = this.genericName;
+  if (this.genericFor && !this.genericName) this.genericName = this.genericFor;
+
+  if (this.saltComposition && !this.activeIngredient) this.activeIngredient = this.saltComposition;
+  if (this.activeIngredient && !this.saltComposition) this.saltComposition = this.activeIngredient;
+});
+
+medicineSchema.pre('save', function () {
   if (this.title)                this.name  = this.title;
   if (this.pricePerUnit != null) this.price = this.pricePerUnit;
   if (this.oldPrice != null)     this.mrp   = this.oldPrice;
-  next();
 });
 
 medicineSchema.pre('findOneAndUpdate', async function () {
   const upd = this.getUpdate();
-  if (upd.title)                upd.name  = upd.title;
-  if (upd.pricePerUnit != null) upd.price = upd.pricePerUnit;
-  if (upd.oldPrice != null)     upd.mrp   = upd.oldPrice;
+  if (!upd) return;
+
+  if (upd.name && !upd.title)                upd.title  = upd.name;
+  if (upd.title && !upd.name)                upd.name   = upd.title;
+
+  if (upd.price != null && upd.pricePerUnit == null) upd.pricePerUnit = upd.price;
+  if (upd.pricePerUnit != null && upd.price == null) upd.price       = upd.pricePerUnit;
+
+  if (upd.mrp != null && upd.oldPrice == null)     upd.oldPrice   = upd.mrp;
+  if (upd.oldPrice != null && upd.mrp == null)     upd.mrp        = upd.oldPrice;
+  
+  if (upd.genericName && !upd.genericFor) upd.genericFor = upd.genericName;
+  if (upd.genericFor && !upd.genericName) upd.genericName = upd.genericFor;
+
+  if (upd.saltComposition && !upd.activeIngredient) upd.activeIngredient = upd.saltComposition;
+  if (upd.activeIngredient && !upd.saltComposition) upd.saltComposition = upd.activeIngredient;
 });
 
 module.exports = mongoose.model('Medicine', medicineSchema);

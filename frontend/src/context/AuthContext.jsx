@@ -11,6 +11,7 @@ export function AuthProvider({ children }) {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [loginModalType, setLoginModalType] = useState('login');
   const [redirectTo, setRedirectTo] = useState(null);
+  const [isRxPromptOpen, setIsRxPromptOpen] = useState(false);
 
   // Clear auth state when api.js detects a 401 (expired/revoked token)
   useEffect(() => {
@@ -120,6 +121,8 @@ export function AuthProvider({ children }) {
       openLoginModal,
       redirectTo,
       setRedirectTo,
+      isRxPromptOpen,
+      setIsRxPromptOpen,
     }}>
       {children}
     </AuthContext.Provider>
