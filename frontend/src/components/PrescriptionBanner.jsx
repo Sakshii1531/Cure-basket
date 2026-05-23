@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import uploadImg from '../assets/upload.png'
+import { useAuth } from '../context/AuthContext'
 
 function PrescriptionBanner() {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
+  const { isLoggedIn, setIsRxPromptOpen } = useAuth()
 
   return (
     <section className="bg-white py-2 md:py-3 px-2 md:px-12">
@@ -32,7 +34,13 @@ function PrescriptionBanner() {
         {/* Right Side: Button */}
         <div className="mt-5 md:mt-0 z-10 md:mr-80 w-full md:w-auto">
           <button 
-            onClick={() => setShowUploadModal(true)}
+            onClick={() => {
+              if (isLoggedIn) {
+                setShowUploadModal(true)
+              } else {
+                setIsRxPromptOpen(true)
+              }
+            }}
             className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-[12px] border-2 border-[#006D6D] border-dotted text-[#006D6D] font-bold text-[14px] md:text-[15px] hover:bg-[#006D6D] hover:text-white transition-all bg-transparent"
           >
             <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

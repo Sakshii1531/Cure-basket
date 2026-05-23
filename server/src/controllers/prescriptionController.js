@@ -14,24 +14,40 @@ exports.uploadPrescription = async (req, res, next) => {
     }
 
     let image;
-    try {
-      const result = await uploadBuffer(req.file.buffer, 'cure-basket/prescriptions');
-      image = result.secure_url;
-    } catch (cloudinaryError) {
-      console.warn('Cloudinary prescription upload failed, falling back to local storage:', cloudinaryError.message);
-      
+    const isPdf = req.file.originalname.toLowerCase().endsWith('.pdf') || req.file.mimetype === 'application/pdf';
+
+    if (isPdf) {
+      // Save PDFs locally to avoid Cloudinary PDF delivery block (401 Unauthorized)
       const uploadDir = path.join(__dirname, '../../uploads');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
       
-      const ext = path.extname(req.file.originalname) || '.png';
-      const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.pdf`;
       const filePath = path.join(uploadDir, filename);
       
       fs.writeFileSync(filePath, req.file.buffer);
-      
       image = `/uploads/${filename}`;
+    } else {
+      try {
+        const result = await uploadBuffer(req.file.buffer, 'cure-basket/prescriptions');
+        image = result.secure_url;
+      } catch (cloudinaryError) {
+        console.warn('Cloudinary prescription upload failed, falling back to local storage:', cloudinaryError.message);
+        
+        const uploadDir = path.join(__dirname, '../../uploads');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        
+        const ext = path.extname(req.file.originalname) || '.png';
+        const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+        const filePath = path.join(uploadDir, filename);
+        
+        fs.writeFileSync(filePath, req.file.buffer);
+        
+        image = `/uploads/${filename}`;
+      }
     }
 
     let { notes, medicine, packageLabel, quantity } = req.body;

@@ -59,6 +59,7 @@ import UploadRxPage from './components/UploadRxPage'
 import MedicinesPage from './components/MedicinesPage'
 import BlogsPage from './components/BlogsPage'
 import BlogDetailPage from './components/BlogDetailPage'
+import RxPromptModal from './components/RxPromptModal'
 
 const AdminLayout = lazy(() => import('./admin/layout/AdminLayout'))
 const Dashboard = lazy(() => import('./admin/pages/Dashboard'))
@@ -224,7 +225,7 @@ function AppContent() {
         <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
         <Route path="/category/:categoryName" element={<CategoryProductList />} />
-        <Route path="/upload-rx" element={<UploadRxPage />} />
+        <Route path="/upload-rx" element={<ProtectedRoute><UploadRxPage /></ProtectedRoute>} />
         <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
         <Route path="/blogs" element={<BlogsPage />} />
         <Route path="/blog/:slug?" element={<BlogDetailPage />} />
@@ -277,6 +278,7 @@ function AppContent() {
       />
 
       <LoginModal />
+      <RxPromptModal />
       <Toaster position="top-right" richColors closeButton />
     </div>
   )
