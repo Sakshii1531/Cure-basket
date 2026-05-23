@@ -23,10 +23,12 @@ const login = async () => {
 };
 
 const validMedicine = () => ({
-  name: 'Paracetamol 500mg',
-  genericName: 'Paracetamol',
-  price: 50,
-  mrp: 60,
+  title: 'Paracetamol 500mg',
+  genericFor: 'Paracetamol',
+  pricePerUnit: 50,
+  totalPrice: 50,
+  packSize: '10 Tablets',
+  quantityOptions: [1],
   stock: 100,
   category: categoryId,
 });
@@ -70,17 +72,17 @@ describe('POST /api/medicines', () => {
     expect(res.status).toBe(401);
   });
 
-  it('rejects missing name (422)', async () => {
+  it('rejects missing title (422)', async () => {
     const User = require('../models/User');
     await User.updateOne({ email: VALID_USER.email }, { role: 'superadmin' });
 
-    const { name, ...noName } = validMedicine();
+    const { title, ...noTitle } = validMedicine();
     const res = await request(app)
       .post('/api/medicines')
       .set('Cookie', authCookie)
-      .send(noName);
+      .send(noTitle);
     expect(res.status).toBe(422);
-    expect(res.body.errors[0].field).toBe('name');
+    expect(res.body.errors[0].field).toBe('title');
   });
 
   it('rejects negative price (422)', async () => {
@@ -90,9 +92,9 @@ describe('POST /api/medicines', () => {
     const res = await request(app)
       .post('/api/medicines')
       .set('Cookie', authCookie)
-      .send({ ...validMedicine(), price: -10 });
+      .send({ ...validMedicine(), pricePerUnit: -10 });
     expect(res.status).toBe(422);
-    expect(res.body.errors[0].field).toBe('price');
+    expect(res.body.errors[0].field).toBe('pricePerUnit');
   });
 });
 

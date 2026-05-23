@@ -263,8 +263,14 @@ exports.bulkUploadMedicines = async (req, res) => {
       if (row.category) {
         categoryId = categoryByName[row.category.toLowerCase()];
         if (!categoryId) {
-          errors.push({ row: rowNum, error: `Row "${row.title}": Category "${row.category}" not found` });
-          continue;
+          try {
+            const newCat = await Category.create({ name: row.category });
+            categoryId = newCat._id;
+            categoryByName[row.category.toLowerCase()] = categoryId;
+          } catch (catErr) {
+            errors.push({ row: rowNum, error: `Row "${row.title}": Category "${row.category}" not found and could not be created: ${sanitizeError(catErr)}` });
+            continue;
+          }
         }
       } else {
         errors.push({ row: rowNum, error: `Row "${row.title}": Missing required field: Category` });
