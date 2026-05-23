@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import curebasketLogo from '../assets/logo1.png'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
 
 function Navbar({ openSupport }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -17,7 +18,8 @@ function Navbar({ openSupport }) {
   const navigate = useNavigate()
   const location = useLocation()
   const isHomePage = location.pathname === '/'
-  const { isLoggedIn, setIsRxPromptOpen } = useAuth()
+  const { isLoggedIn, user, logout, openLoginModal, setIsRxPromptOpen } = useAuth()
+  const { cartCount } = useCart()
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false)
@@ -72,12 +74,37 @@ function Navbar({ openSupport }) {
             </div>
             {/* Bottom row: Icons */}
             <div className="flex items-center gap-4">
-              <button className="text-gray-800">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+              {/* Profile Button */}
+              <button 
+                onClick={() => isLoggedIn ? navigate('/account') : openLoginModal('login')}
+                className="text-gray-800 relative active:scale-95 transition-transform flex items-center justify-center animate-none"
+                aria-label="User Account"
+              >
+                {isLoggedIn && user ? (
+                  <div className="w-7 h-7 bg-[#006D6D]/10 text-[#006D6D] rounded-full flex items-center justify-center font-bold text-xs uppercase border border-[#006D6D]/20">
+                    {user.name ? user.name[0] : 'U'}
+                  </div>
+                ) : (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
               </button>
               <div className="w-[1px] h-6 bg-gray-200"></div>
-              <button className="text-gray-800">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              {/* Cart Button */}
+              <button 
+                onClick={() => navigate('/cart')}
+                className="text-gray-800 relative active:scale-95 transition-transform flex items-center justify-center"
+                aria-label="Shopping Cart"
+              >
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
+                    {cartCount}
+                  </span>
+                )}
               </button>
               <button onClick={() => setIsMobileMenuOpen(true)} className="text-gray-800 ml-1">
                 <svg className="w-9 h-9" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -163,13 +190,41 @@ function Navbar({ openSupport }) {
                   Track Order
                 </button>
 
-                <div className="pt-4 border-t border-gray-100">
-                  <button 
-                    onClick={() => { navigate('/signup'); closeMobileMenu(); }}
-                    className="w-full bg-[#006D6D] text-white py-3 rounded-xl font-bold text-[14px]"
-                  >
-                    Start Saving
-                  </button>
+                <div className="pt-4 border-t border-gray-100 space-y-2">
+                  {isLoggedIn ? (
+                    <>
+                      <div className="px-1 py-1 text-xs text-gray-500 font-medium text-center">
+                        Logged in as: <span className="font-bold text-[#006D6D]">{user?.name}</span>
+                      </div>
+                      <button 
+                        onClick={() => { navigate('/account'); closeMobileMenu(); }}
+                        className="w-full bg-gray-50 text-gray-800 hover:bg-gray-100 py-3 rounded-xl font-bold text-[14px] transition-colors border border-gray-100"
+                      >
+                        My Account
+                      </button>
+                      <button 
+                        onClick={() => { logout(); closeMobileMenu(); }}
+                        className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-bold text-[14px] transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => { openLoginModal('login'); closeMobileMenu(); }}
+                        className="w-full border border-gray-200 text-gray-700 py-3 rounded-xl font-bold text-[14px] transition-colors"
+                      >
+                        Login
+                      </button>
+                      <button 
+                        onClick={() => { openLoginModal('signup'); closeMobileMenu(); }}
+                        className="w-full bg-[#006D6D] text-white py-3 rounded-xl font-bold text-[14px] hover:bg-[#005a5a] transition-colors"
+                      >
+                        Start Saving
+                      </button>
+                    </>
+                  )}
                 </div>
 
               </div>
@@ -292,13 +347,89 @@ function Navbar({ openSupport }) {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-4 shrink-0">
+            <div className="flex items-center gap-6 shrink-0">
+              {/* Cart Button */}
               <button 
-                onClick={() => navigate('/signup')}
-                className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md"
+                onClick={() => navigate('/cart')}
+                className="relative p-2 text-gray-700 hover:text-[#006D6D] transition-all duration-200 focus:outline-none flex items-center justify-center"
+                aria-label="Shopping Cart"
               >
-                Start Saving
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                    {cartCount}
+                  </span>
+                )}
               </button>
+
+              {isLoggedIn ? (
+                /* Profile Dropdown */
+                <div className="relative group">
+                  <button 
+                    onClick={() => navigate('/account')}
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-full hover:border-[#006D6D] transition-all duration-200 shadow-sm"
+                  >
+                    <div className="w-7 h-7 bg-[#006D6D]/10 text-[#006D6D] rounded-full flex items-center justify-center font-bold text-sm uppercase">
+                      {user?.name ? user.name[0] : 'U'}
+                    </div>
+                    <span className="text-[13px] font-semibold text-gray-700 max-w-[100px] truncate">
+                      {user?.name ? user.name.split(' ')[0] : 'Account'}
+                    </span>
+                    <svg className="w-3.5 h-3.5 text-gray-500 group-hover:rotate-180 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-[70] hidden group-hover:block transition-all duration-200">
+                    <button 
+                      onClick={() => navigate('/account')}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 hover:text-[#006D6D] transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      My Profile
+                    </button>
+                    <button 
+                      onClick={() => navigate('/orders')}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 hover:text-[#006D6D] transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+                      </svg>
+                      My Orders
+                    </button>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button 
+                      onClick={logout}
+                      className="w-full text-left px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => openLoginModal('login')}
+                    className="text-gray-700 hover:text-[#006D6D] px-4 py-2 text-[14px] font-bold transition-all"
+                  >
+                    Login
+                  </button>
+                  <button 
+                    onClick={() => openLoginModal('signup')}
+                    className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md"
+                  >
+                    Start Saving
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </nav>
@@ -308,7 +439,7 @@ function Navbar({ openSupport }) {
         {/* All Categories Mega Menu (Desktop Only) */}
         {isAllCategoriesMenuOpen && (
           <div
-            className="hidden xl:block absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-2xl pt-8 pb-10 z-[60] animate-in fade-in slide-in-from-top-1 duration-200"
+            className="hidden xl:block absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-2xl pt-8 pb-10 z-[40] animate-in fade-in slide-in-from-top-1 duration-200"
             onMouseEnter={() => setIsAllCategoriesMenuOpen(true)}
           >
             <div className="max-w-[1450px] mx-auto px-4 md:px-12 grid grid-cols-4 gap-12">

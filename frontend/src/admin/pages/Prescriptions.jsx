@@ -129,18 +129,32 @@ function Prescriptions() {
         </div>
       )}
 
-      {selectedImage && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setSelectedImage(null)}>
-          <div className="relative max-w-3xl max-h-[90vh] bg-white rounded-xl overflow-hidden p-2" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6L18 18" />
-              </svg>
-            </button>
-            <img src={selectedImage} alt="Prescription" className="max-w-full max-h-[80vh] object-contain" />
+      {selectedImage && (() => {
+        const isPdf = selectedImage.toLowerCase().split('?')[0].endsWith('.pdf');
+        return (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setSelectedImage(null)}>
+            <div 
+              className={`relative bg-white rounded-xl overflow-hidden p-2 ${isPdf ? 'w-[90vw] max-w-4xl h-[85vh] flex flex-col' : 'max-w-3xl max-h-[90vh]'}`} 
+              onClick={e => e.stopPropagation()}
+            >
+              <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors z-50">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6L18 18" />
+                </svg>
+              </button>
+              {isPdf ? (
+                <iframe
+                  src={selectedImage}
+                  title="Prescription PDF"
+                  className="w-full h-full border-0 rounded-lg grow"
+                />
+              ) : (
+                <img src={selectedImage} alt="Prescription" className="max-w-full max-h-[80vh] object-contain" />
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
