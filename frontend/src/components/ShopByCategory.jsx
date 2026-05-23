@@ -64,7 +64,7 @@ function ShopByCategory() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[160%] h-[200%] bg-[#fef6f6] rounded-t-[100%] translate-y-24 md:translate-y-32" />
 
       <div className="relative z-10 w-full text-center overflow-hidden">
-        <h2 className="text-[28px] md:text-[44px] font-semibold text-black leading-tight mb-2 px-4">
+        <h2 className="text-[28px] md:text-[44px] font-semibold text-[#004d4d] leading-tight mb-2 px-4">
           Category
         </h2>
         <p className="text-gray-600 text-[14px] md:text-[18px] max-w-2xl mx-auto mb-8 md:mb-12 px-4 leading-relaxed">
