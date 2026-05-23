@@ -50,7 +50,7 @@ function WhyChoose() {
                   {['Hassle-Free Service', 'Our Community', 'Medications', 'Best Buy at Best Prices', 'Referral Programme'].map(item => (
                     <div key={item} className="flex items-center gap-2.5 group cursor-pointer w-fit">
                       <span className="text-[12px] md:text-[13px] font-bold text-gray-700 group-hover:text-primary transition-colors">{item}</span>
-                      <svg className="w-2.5 h-2.5 text-[#8CB33E]" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                      <svg className="w-2.5 h-2.5 text-[#f5b443]" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                     </div>
                   ))}
                 </div>
@@ -58,7 +58,7 @@ function WhyChoose() {
                   {['Savings and Safety', 'Information', 'Health Supplements', 'Reliability'].map(item => (
                     <div key={item} className="flex items-center gap-2.5 group cursor-pointer w-fit">
                       <span className="text-[12px] md:text-[13px] font-bold text-gray-700 group-hover:text-primary transition-colors">{item}</span>
-                      <svg className="w-2.5 h-2.5 text-[#8CB33E]" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                      <svg className="w-2.5 h-2.5 text-[#f5b443]" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                     </div>
                   ))}
                 </div>
