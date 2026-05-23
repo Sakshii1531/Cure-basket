@@ -94,7 +94,8 @@ function ShopByCategory() {
         <div className="animate-scroll gap-4 md:gap-6 px-4">
           {scrollItems.map((cat, index) => {
             const [line1, line2] = splitTitle(cat.name)
-            const img = getCategoryImage(cat.name)
+            const isUploaded = cat.image && cat.image !== 'no-photo.jpg' && cat.image !== '__uploading__'
+            const img = isUploaded ? cat.image : getCategoryImage(cat.name)
             return (
               <div
                 key={`${cat._id}-${index}`}
@@ -124,11 +125,18 @@ function ShopByCategory() {
                   </svg>
                 </div>
 
-                <div className="absolute bottom-0 right-0 w-[65%] h-[55%] bg-primary rounded-tl-[100%] z-0" />
-
-                <div className="absolute bottom-0 right-2 md:right-4 z-10 w-[130px] md:w-[180px] h-auto pointer-events-none">
-                  <img src={img} alt={cat.name} className="w-full h-full object-contain drop-shadow-xl" loading="lazy" />
-                </div>
+                {isUploaded ? (
+                  <div className="absolute bottom-0 right-0 w-[65%] h-[55%] bg-primary rounded-tl-[100%] z-0 overflow-hidden flex items-end justify-end">
+                    <img src={img} alt={cat.name} className="w-full h-full object-cover pointer-events-none" loading="lazy" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="absolute bottom-0 right-0 w-[65%] h-[55%] bg-primary rounded-tl-[100%] z-0" />
+                    <div className="absolute bottom-0 right-2 md:right-4 z-10 w-[130px] md:w-[180px] h-auto pointer-events-none">
+                      <img src={img} alt={cat.name} className="w-full h-full object-contain drop-shadow-xl" loading="lazy" />
+                    </div>
+                  </>
+                )}
               </div>
             )
           })}

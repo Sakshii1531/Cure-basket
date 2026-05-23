@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { getCoupons, createCoupon, updateCoupon, deleteCoupon, validateCoupon } = require('../controllers/couponController');
+const { getCoupons, createCoupon, updateCoupon, deleteCoupon, validateCoupon, getActiveCoupons } = require('../controllers/couponController');
 const { protect, authorize, can } = require('../middlewares/authMiddleware');
 const validate = require('../middlewares/validate');
 const { createCouponRules, updateCouponRules } = require('../validators/couponValidators');
 
 // Public: validate a coupon code
 router.post('/validate', validateCoupon);
+
+// Public: get all active coupons for user display
+router.get('/active', getActiveCoupons);
 
 // Admin-only routes
 router.use(protect, authorize('admin', 'superadmin'));
