@@ -6,7 +6,7 @@ function Manufacturers() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <section className="bg-white pt-8 pb-8 px-4 md:px-12">
+    <section className="bg-white pt-16 pb-8 px-4 md:px-12">
       <div className="max-w-[1250px] mx-auto bg-[#f8f8f8] rounded-[24px] md:rounded-[32px] border border-gray-100 p-5 md:p-12 text-center">
         <h2 className="text-[18px] md:text-[24px] font-bold text-[#004D4D] uppercase tracking-wider mb-4 md:mb-6">
           MANUFACTURES

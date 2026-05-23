@@ -59,7 +59,7 @@ const PopularBrands = () => {
                   <img
                     src={brand.image}
                     alt={brand.name}
-                    className="max-w-[85%] max-h-[85%] object-contain mix-blend-multiply group-hover:scale-105 transition-transform"
+                    className="max-w-[85%] max-h-[65px] md:max-h-[85px] object-contain mix-blend-multiply"
                     onError={e => { e.target.style.display = 'none' }}
                   />
                 ) : (

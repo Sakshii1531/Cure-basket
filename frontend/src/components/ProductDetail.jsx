@@ -78,7 +78,13 @@ function ProductDetail({ onBack }) {
 
   const packageOptions = getPackageOptions()
   const [selectedPackage, setSelectedPackage] = useState(packageOptions.find(p => p.popular) || packageOptions[0] || { price: 0, mrp: 0, id: 0, label: 'N/A', perUnit: 0 })
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(() => {
+    if (product?._id) {
+      const saved = sessionStorage.getItem(`qty_${product._id}`)
+      if (saved) return Number(saved)
+    }
+    return 1
+  })
   const [activeThumb, setActiveThumb] = useState(0)
   const [activeTab, setActiveTab] = useState('Product Information')
   const [showUploadModal, setShowUploadModal] = useState(false)
@@ -86,6 +92,13 @@ function ProductDetail({ onBack }) {
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [reviews, setReviews] = useState([])
+
+  // Persist quantity in sessionStorage whenever it changes for the current product
+  useEffect(() => {
+    if (product?._id && quantity > 0) {
+      sessionStorage.setItem(`qty_${product._id}`, quantity)
+    }
+  }, [quantity, product?._id])
   const [prescriptionStatus, setPrescriptionStatus] = useState(null) // null | 'none' | 'pending' | 'approved' | 'rejected'
   const [reviewForm, setReviewForm] = useState({ rating: 0, comment: '' })
   const [reviewHover, setReviewHover] = useState(0)
@@ -96,11 +109,14 @@ function ProductDetail({ onBack }) {
   // Reset state when product changes
   const [recommended, setRecommended] = useState([])
 
-  // Reset state when product changes
   useEffect(() => {
     const newOptions = getPackageOptions()
     setSelectedPackage(newOptions.find(p => p.popular) || newOptions[0])
-    setQuantity(1)
+    
+    // Restore quantity from sessionStorage if exists, else default to 1
+    const savedQty = product?._id ? sessionStorage.getItem(`qty_${product._id}`) : null
+    setQuantity(savedQty ? Number(savedQty) : 1)
+
     setActiveThumb(0)
     setActiveTab('Product Information')
     setUploadSuccess(false)
