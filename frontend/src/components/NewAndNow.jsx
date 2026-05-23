@@ -1,18 +1,54 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import api from '../utils/api'
+import { useCart } from '../context/CartContext'
+import { useAuthGate } from '../hooks/useAuthGate'
+import productImg from '../assets/product.png'
+import pharm1 from '../assets/pharm-1.png'
+import pharm2 from '../assets/pharm-2.png'
+import pharm3 from '../assets/pharm-3.png'
+import pharm4 from '../assets/pharm-4.png'
+import pharm5 from '../assets/pharm-5.png'
+
 import med3 from '../assets/med3.png'
 import med4 from '../assets/med4.png'
-
 import weightLossImg from '../assets/med1.png'
-
 import diabetes1 from '../assets/diabetes-1.png'
 import diabetes2 from '../assets/diabetes-2.png'
-
 import card3_1 from '../assets/3-card1.png'
 import card3_2 from '../assets/3-card2.png'
-
 import hairLossImg from '../assets/med2.png'
 
+const fallbackImages = [pharm1, pharm2, pharm3, pharm4, pharm5]
+
+function discountBadge(price, mrp) {
+  if (!mrp || mrp <= price) return null
+  const pct = Math.round(((mrp - price) / mrp) * 100)
+  return pct > 0 ? `${pct}% OFF` : null
+}
+
 function NewAndNow({ title = "New and now", onProductClick }) {
+  const navigate = useNavigate()
+  const { addToCart } = useCart()
+  const { guardedAction } = useAuthGate()
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/medicines?isNewAndBest=true&status=Active&limit=8')
+      .then(res => setProducts(res.data.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleClick = (product) => {
+    if (onProductClick) {
+      onProductClick(product)
+    } else {
+      navigate(`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product } })
+    }
+  }
   return (
     <div className="bg-white pt-2 pb-1 px-4 md:px-12">
       <div className="max-w-[1250px] mx-auto">
@@ -217,6 +253,72 @@ function NewAndNow({ title = "New and now", onProductClick }) {
               </div>
             </div>
           </div>
+
+          {/* Dynamic Products */}
+          {products.map((product, i) => {
+            const badge = discountBadge(product.price, product.mrp)
+            const imgSrc = product.image && product.image !== 'no-photo.jpg'
+              ? product.image
+              : fallbackImages[i % fallbackImages.length]
+            return (
+              <div
+                key={product._id}
+                onClick={() => handleClick(product)}
+                className="min-w-42.5 md:min-w-100 bg-white rounded-[20px] md:rounded-3xl border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-md transition-shadow shrink-0"
+              >
+                <div className="absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 bg-primary text-white">
+                  {badge || 'New & Best'}
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 mt-1 grow">
+                  <div className="w-full md:w-40 h-20 md:h-32 shrink-0 flex items-center justify-center">
+                    <img
+                      src={imgSrc}
+                      alt={product.name}
+                      className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                      onError={e => { e.target.src = productImg }}
+                    />
+                  </div>
+                  <div className="flex flex-col w-full text-left md:pt-2">
+                    <h3 className="text-[13px] md:text-[18px] font-bold text-gray-900 leading-tight mb-0.5 line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-primary font-semibold text-[11px] md:text-[13px] mb-0.5 md:mb-1">
+                      ({product.genericName})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-1 flex justify-between items-end">
+                  <div className="flex flex-col justify-end">
+                    {product.mrp && product.mrp > product.price ? (
+                      <span className="text-[10px] md:text-[12px] text-gray-400 line-through font-medium leading-none mb-0.5">
+                        ₹{product.mrp}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] md:text-[12px] text-transparent leading-none mb-0.5 select-none">₹0</span>
+                    )}
+                    <span className="text-[16px] md:text-[22px] font-black text-gray-900 leading-none">
+                      ₹{product.price}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                    }}
+                    className="w-7 h-7 md:w-10 md:h-10 bg-accent rounded-full flex items-center justify-center shadow-md active:scale-95 hover:bg-accent/90 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

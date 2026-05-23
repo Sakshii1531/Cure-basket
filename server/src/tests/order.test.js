@@ -31,6 +31,7 @@ beforeEach(async () => {
     mrp: 150,
     stock: 50,
     category: cat._id,
+    prescription: 'Not Required',
   });
   medicineId = med._id.toString();
 });

@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const LoginPage = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
@@ -26,7 +27,10 @@ const LoginPage = () => {
     setApiError('')
     try {
       await login(form.email, form.password)
-      navigate('/account')
+      const from = typeof location.state?.from === 'string'
+        ? location.state.from
+        : (location.state?.from?.pathname || '/account')
+      navigate(from)
     } catch (err) {
       setApiError(err.response?.data?.error || 'Something went wrong. Please try again.')
     } finally {

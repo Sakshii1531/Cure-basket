@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import curebasketLogo from '../assets/logo1.png'
+import { useAuth } from '../context/AuthContext'
 
 function Navbar({ openSupport }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -16,6 +17,7 @@ function Navbar({ openSupport }) {
   const navigate = useNavigate()
   const location = useLocation()
   const isHomePage = location.pathname === '/'
+  const { isLoggedIn, setIsRxPromptOpen } = useAuth()
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false)
@@ -107,7 +109,17 @@ function Navbar({ openSupport }) {
                 <button onClick={() => { navigate('/blogs'); closeMobileMenu(); }} className="w-full text-left text-[15px] font-bold text-gray-800 py-1">Blogs</button>
 
                 {/* Upload Rx */}
-                <button onClick={() => { navigate('/upload-rx'); closeMobileMenu(); }} className="w-full text-left text-[15px] font-bold text-gray-800 py-1 flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    closeMobileMenu();
+                    if (isLoggedIn) {
+                      navigate('/upload-rx');
+                    } else {
+                      setIsRxPromptOpen(true);
+                    }
+                  }}
+                  className="w-full text-left text-[15px] font-bold text-gray-800 py-1 flex items-center gap-2"
+                >
                   Upload Rx
                   <span className="bg-[#f39c12] text-white text-[9px] px-2 py-0.5 rounded-full">Fast order</span>
                 </button>
@@ -192,7 +204,13 @@ function Navbar({ openSupport }) {
               
               <div 
                 className="flex flex-col items-center translate-y-2 cursor-pointer"
-                onClick={() => navigate('/upload-rx')}
+                onClick={() => {
+                  if (isLoggedIn) {
+                    navigate('/upload-rx');
+                  } else {
+                    setIsRxPromptOpen(true);
+                  }
+                }}
               >
                 <span className="nav-link text-[13px]">Upload Rx</span>
                 <span className="bg-[#f39c12] text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm whitespace-nowrap -mt-0.5">Fast order</span>
