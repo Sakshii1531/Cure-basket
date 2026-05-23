@@ -103,6 +103,8 @@ app.use(limiter);
 // Serve uploaded prescription files with cross-origin headers to prevent browser blocks
 app.use('/uploads', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  res.removeHeader('X-Frame-Options');
   next();
 }, express.static(path.join(__dirname, '../uploads')));
 
