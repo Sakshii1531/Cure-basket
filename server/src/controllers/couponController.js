@@ -104,3 +104,18 @@ exports.validateCoupon = async (req, res) => {
     res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
+
+exports.getActiveCoupons = async (req, res) => {
+  try {
+    const coupons = await Coupon.find({ 
+      isActive: true, 
+      $or: [
+        { expiresAt: null },
+        { expiresAt: { $gt: new Date() } }
+      ]
+    }).sort('-createdAt');
+    res.status(200).json({ success: true, data: coupons });
+  } catch (err) {
+    res.status(500).json({ success: false, error: sanitizeError(err) });
+  }
+};

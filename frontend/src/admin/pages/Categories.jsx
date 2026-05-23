@@ -104,7 +104,7 @@ function Categories() {
                 <tr key={cat._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
-                      {cat.image && cat.image !== 'no-photo.jpg' ? (
+                      {cat.image && cat.image !== 'no-photo.jpg' && cat.image !== '__uploading__' ? (
                         <img src={cat.image} alt={cat.name} className="max-w-full max-h-full object-contain" />
                       ) : (
                         <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,8 +197,12 @@ function Categories() {
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">
-                  {saving ? 'Saving...' : 'Save'}
+                <button
+                  type="submit"
+                  disabled={saving || currentCategory?.image === '__uploading__'}
+                  className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60"
+                >
+                  {saving ? 'Saving...' : currentCategory?.image === '__uploading__' ? 'Uploading...' : 'Save'}
                 </button>
               </div>
             </form>

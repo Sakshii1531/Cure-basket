@@ -16,6 +16,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        '/uploads': {
+          target: apiBaseUrl,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
     test: {

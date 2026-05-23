@@ -75,7 +75,10 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 
 // Set security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 
 // Health check — must be registered BEFORE the rate limiter so Render's
 // frequent pings never count against the limit or receive a 429.
@@ -97,8 +100,11 @@ app.use(limiter);
 
 
 
-// Serve uploaded prescription files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Serve uploaded prescription files with cross-origin headers to prevent browser blocks
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, '../uploads')));
 
 // Mount routers
 app.use('/api/auth', auth);
