@@ -34,7 +34,7 @@ function Navbar({ openSupport }) {
   }
 
   return (
-    <div className="sticky top-0 z-50 bg-white">
+    <div className="sticky top-0 z-[100] bg-white">
       {/* Mobile Header (Hidden on Desktop) */}
       <div className="xl:hidden pl-4 pr-4 py-0 flex flex-col gap-0 border-b border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-end justify-between py-0">
@@ -234,7 +234,7 @@ function Navbar({ openSupport }) {
       )}
 
       <div
-        className="relative hidden xl:block"
+        className="relative hidden xl:block z-[99]"
         onMouseLeave={() => {
           setIsPrescriptionMenuOpen(false)
           setIsOnlineCareMenuOpen(false)
@@ -294,7 +294,7 @@ function Navbar({ openSupport }) {
                   </svg>
                 </a>
                 {isMensHealthOpen && (
-                  <div className="absolute top-full left-0 min-w-[240px] bg-white border border-gray-200 shadow-xl z-[70] mt-0">
+                  <div className="absolute top-full left-0 min-w-[240px] bg-white border border-gray-200 shadow-xl z-[110] mt-0">
                     <div className="flex flex-col">
                       <button onClick={() => goToCategory('Sildenafil')} className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-100 transition-colors text-left">The Blue Pill (Sildenafil)</button>
                       <button onClick={() => goToCategory('Tadalafil')} className="px-5 py-3 text-[13px] text-gray-700 hover:text-primary hover:bg-gray-50 border-b border-gray-100 transition-colors text-left">The WeekEndPill (Tadalafil)</button>
@@ -383,7 +383,7 @@ function Navbar({ openSupport }) {
                   </button>
                   
                   {/* Dropdown Menu */}
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-[70] hidden group-hover:block transition-all duration-200">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-[110] hidden group-hover:block transition-all duration-200">
                     <button 
                       onClick={() => navigate('/account')}
                       className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 hover:text-[#006D6D] transition-colors flex items-center gap-2"
@@ -439,7 +439,7 @@ function Navbar({ openSupport }) {
         {/* All Categories Mega Menu (Desktop Only) */}
         {isAllCategoriesMenuOpen && (
           <div
-            className="hidden xl:block absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-2xl pt-8 pb-10 z-[40] animate-in fade-in slide-in-from-top-1 duration-200"
+            className="hidden xl:block absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-2xl pt-8 pb-10 z-[90] animate-in fade-in slide-in-from-top-1 duration-200"
             onMouseEnter={() => setIsAllCategoriesMenuOpen(true)}
           >
             <div className="max-w-[1450px] mx-auto px-4 md:px-12 grid grid-cols-4 gap-12">
