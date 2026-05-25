@@ -1,8 +1,45 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import api from '../utils/api'
+
+const DEFAULTS = {
+  heroTitle: "Refer a Friend & Earn $20",
+  heroSub: "Help your friends get authentic, highly affordable medicines. They save 20% on their first order, and you get $20 credits!",
+  tag: "Share the Health, Share the Rewards",
+  code: "CUREBASKET20",
+  steps: [
+    {
+      title: "Share Referral Code",
+      desc: "Send your unique referral code or link to your friends, family, or colleagues who buy medications online."
+    },
+    {
+      title: "They Place First Order",
+      desc: "Your friends sign up and apply the code to receive a flat 20% discount on their very first purchase."
+    },
+    {
+      title: "You Earn $20 Reward",
+      desc: "Once their package is successfully dispatched, you instantly receive a $20 gift voucher directly in your account."
+    }
+  ]
+};
 
 function ReferralPage() {
   const [copied, setCopied] = useState(false)
-  const refCode = "CUREBASKET20"
+  const [content, setContent] = useState(DEFAULTS)
+
+  useEffect(() => {
+    api.get('/settings/public/cms')
+      .then(res => {
+        if (res.data?.data?.referral) {
+          setContent(prev => ({
+            ...prev,
+            ...res.data.data.referral
+          }))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const refCode = content.code || "CUREBASKET20"
 
   const handleCopy = () => {
     navigator.clipboard.writeText(refCode)
@@ -10,35 +47,25 @@ function ReferralPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const steps = [
-    {
-      step: "01",
-      title: "Share Referral Code",
-      desc: "Send your unique referral code or link to your friends, family, or colleagues who buy medications online."
-    },
-    {
-      step: "02",
-      title: "They Place First Order",
-      desc: "Your friends sign up and apply the code to receive a flat 20% discount on their very first purchase."
-    },
-    {
-      step: "03",
-      title: "You Earn $20 Reward",
-      desc: "Once their package is successfully dispatched, you instantly receive a $20 gift voucher directly in your account."
-    }
-  ]
+  const activeSteps = (content.steps || []).map((st, idx) => ({
+    step: `0${idx + 1}`,
+    title: st.title,
+    desc: st.desc
+  }))
 
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Banner with Golden Accents */}
       <div className="bg-gradient-to-r from-[#006D6D] to-[#004D4D] text-white pt-16 pb-20 px-4 md:px-8 text-center relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto space-y-4 relative z-10">
-          <span className="bg-[#f5b23e]/20 text-[#f5b23e] border border-[#f5b23e]/30 text-[12px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-            Share the Health, Share the Rewards
-          </span>
-          <h1 className="text-[34px] md:text-[50px] font-extrabold tracking-tight">Refer a Friend & Earn $20</h1>
+          {content.tag && (
+            <span className="bg-[#f5b23e]/20 text-[#f5b23e] border border-[#f5b23e]/30 text-[12px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+              {content.tag}
+            </span>
+          )}
+          <h1 className="text-[34px] md:text-[50px] font-extrabold tracking-tight">{content.heroTitle}</h1>
           <p className="text-[15px] md:text-[19px] text-[#CFF4F4] max-w-2xl mx-auto font-medium leading-relaxed">
-            Help your friends get authentic, highly affordable medicines. They save 20% on their first order, and you get $20 credits!
+            {content.heroSub}
           </p>
         </div>
         {/* Curved decorative wave */}
@@ -78,7 +105,7 @@ function ReferralPage() {
           How It Works
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {steps.map((st, idx) => (
+          {activeSteps.map((st, idx) => (
             <div key={idx} className="bg-white border border-gray-100 rounded-[24px] p-8 shadow-sm space-y-4 hover:shadow-md transition-shadow relative">
               <span className="text-[48px] font-black text-[#f5b23e]/20 absolute right-6 top-4 leading-none">{st.step}</span>
               <h3 className="text-[18px] font-extrabold text-gray-900">{st.title}</h3>

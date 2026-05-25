@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import api from '../utils/api'
 
-const allFaqs = [
+const DEFAULTS = [
   {
     q: "How to check the expiry date of medicine online?",
     a: "CureBasket has a team of pharmacists who ensure their customers do not get expired medicines and that the product is in good condition. Most medicines and health care products are available with a minimum expiry date of six months. If you wish to buy medicines for a longer expiry date, for example, more than a year or two, please email us so that we can check with our suppliers. We are a reliable drugstore and do not provides expired medication. You can easily find the expiry date on your medicine packaging after receiving the medicine.",
@@ -41,11 +42,22 @@ const allFaqs = [
     a: "We process payments via secure, highly-encrypted bank transfer options, major credit/debit cards, and popular global electronic gateways. Your billing details are completely secure.",
     cat: "payments"
   }
-]
+];
 
 function FAQsPage() {
   const [activeCat, setActiveCat] = useState("all")
   const [activeFaqIndex, setActiveFaqIndex] = useState(null)
+  const [faqs, setFaqs] = useState(DEFAULTS)
+
+  useEffect(() => {
+    api.get('/settings/public/cms')
+      .then(res => {
+        if (res.data?.data?.faqs) {
+          setFaqs(res.data.data.faqs)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const categories = [
     { id: "all", name: "All Questions" },
@@ -56,8 +68,8 @@ function FAQsPage() {
   ]
 
   const filteredFaqs = activeCat === "all" 
-    ? allFaqs 
-    : allFaqs.filter(faq => faq.cat === activeCat)
+    ? faqs 
+    : faqs.filter(faq => faq.cat === activeCat)
 
   return (
     <div className="bg-white min-h-screen">
@@ -97,7 +109,7 @@ function FAQsPage() {
 
         {/* FAQs list */}
         <div className="max-w-[800px] mx-auto flex flex-col gap-4">
-          {filteredFaqs.map((faq, index) => {
+          {(filteredFaqs || []).map((faq, index) => {
             const isOpen = activeFaqIndex === index
             return (
               <div

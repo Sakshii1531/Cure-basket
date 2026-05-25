@@ -88,6 +88,7 @@ const Brands = lazy(() => import('./admin/pages/Brands'))
 const Reviews = lazy(() => import('./admin/pages/Reviews'))
 const Analytics = lazy(() => import('./admin/pages/Analytics'))
 const CMS = lazy(() => import('./admin/pages/CMS'))
+const ContentManagement = lazy(() => import('./admin/pages/ContentManagement'))
 const AdminLogin = lazy(() => import('./admin/pages/AdminLogin'))
 const Blogs = lazy(() => import('./admin/pages/Blogs'))
 const MedicineDetails = lazy(() => import('./admin/pages/MedicineDetails'))
@@ -281,6 +282,7 @@ function AppContent() {
           <Route path="reviews" element={<Suspense fallback={<AdminSpinner />}><Reviews /></Suspense>} />
           <Route path="analytics" element={<Suspense fallback={<AdminSpinner />}><Analytics /></Suspense>} />
           <Route path="cms" element={<Suspense fallback={<AdminSpinner />}><CMS /></Suspense>} />
+          <Route path="content" element={<Suspense fallback={<AdminSpinner />}><ContentManagement /></Suspense>} />
           <Route path="blogs" element={<Suspense fallback={<AdminSpinner />}><Blogs /></Suspense>} />
           <Route path="bank-contact" element={<Suspense fallback={<AdminSpinner />}><BankContact /></Suspense>} />
           <Route path="order-shipping" element={<Suspense fallback={<AdminSpinner />}><OrderShipping /></Suspense>} />

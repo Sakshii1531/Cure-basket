@@ -1,10 +1,37 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import api from '../utils/api'
+
+const DEFAULTS = {
+  heroTitle: "CureBasket Site Map",
+  heroSub: "Quickly navigate to any page on our platform. Find medicines, guidelines, policies, and account settings easily.",
+  categories: [
+    { title: "Shop & Categories" },
+    { title: "CureBasket Info" },
+    { title: "FAQs & Support" },
+    { title: "Account & Transactions" }
+  ]
+};
 
 function SitemapPage() {
+  const [content, setContent] = useState(DEFAULTS)
+
+  useEffect(() => {
+    api.get('/settings/public/cms')
+      .then(res => {
+        if (res.data?.data?.sitemap) {
+          setContent(prev => ({
+            ...prev,
+            ...res.data.data.sitemap
+          }))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   const sections = [
     {
-      title: "Shop & Categories",
+      title: content.categories?.[0]?.title || "Shop & Categories",
       color: "bg-[#E6F7F7] border-[#006D6D]/20 text-[#006D6D]",
       links: [
         { name: "Home Page", path: "/" },
@@ -16,7 +43,7 @@ function SitemapPage() {
       ]
     },
     {
-      title: "CureBasket Info",
+      title: content.categories?.[1]?.title || "CureBasket Info",
       color: "bg-[#f5b23e]/10 border-[#f5b23e]/25 text-[#d48806]",
       links: [
         { name: "About Us", path: "/about-us" },
@@ -29,7 +56,7 @@ function SitemapPage() {
       ]
     },
     {
-      title: "FAQs & Support",
+      title: content.categories?.[2]?.title || "FAQs & Support",
       color: "bg-[#E6F7F7] border-[#006D6D]/20 text-[#006D6D]",
       links: [
         { name: "How to Place an Order", path: "/how-to-order" },
@@ -41,7 +68,7 @@ function SitemapPage() {
       ]
     },
     {
-      title: "Account & Transactions",
+      title: content.categories?.[3]?.title || "Account & Transactions",
       color: "bg-[#f5b23e]/10 border-[#f5b23e]/25 text-[#d48806]",
       links: [
         { name: "My Account Profile", path: "/account" },
@@ -59,9 +86,9 @@ function SitemapPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-[#006D6D] to-[#004D4D] text-white pt-12 pb-16 px-4 md:px-8 text-center relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto space-y-3 relative z-10">
-          <h1 className="text-[32px] md:text-[44px] font-bold tracking-tight">CureBasket Site Map</h1>
+          <h1 className="text-[32px] md:text-[44px] font-bold tracking-tight">{content.heroTitle}</h1>
           <p className="text-[14px] md:text-[16px] text-[#CFF4F4] max-w-xl mx-auto font-medium">
-            Quickly navigate to any page on our platform. Find medicines, guidelines, policies, and account settings easily.
+            {content.heroSub}
           </p>
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent pointer-events-none"></div>

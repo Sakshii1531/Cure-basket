@@ -1,40 +1,53 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import api from '../utils/api'
+
+const DEFAULTS = [
+  {
+    title: "Understanding Generic vs. Brand Name Medicines",
+    desc: "Learn why generic drugs are equally safe, effective, and up to 80% cheaper than their brand-name counterparts.",
+    category: "EDUCATION",
+    readTime: "5 min read",
+    author: "CureBasket Medical Team",
+    date: "May 15, 2026"
+  },
+  {
+    title: "Essential Tips for Safe Online Prescription Ordering",
+    desc: "A complete safety guide on checking certifications, verifying medical dosages, and keeping health records secure.",
+    category: "SAFETY",
+    readTime: "4 min read",
+    author: "Dr. Elena Rostova",
+    date: "May 18, 2026"
+  },
+  {
+    title: "Managing Seasonal Allergies: Natural vs. OTC Remedies",
+    desc: "Our resident pharmacists break down standard antihistamines, correct usage patterns, and simple home care tips.",
+    category: "WELLNESS",
+    readTime: "7 min read",
+    author: "CureBasket Pharmacists",
+    date: "May 20, 2026"
+  },
+  {
+    title: "Top 5 Healthcare Innovations in Indian Generic Pharma",
+    desc: "An inside look at how India became the world's pharmacy, offering premium manufacturing and affordable treatments.",
+    category: "PHARMACY",
+    readTime: "6 min read",
+    author: "Prof. Rajesh Kumar",
+    date: "May 22, 2026"
+  }
+];
 
 function ArticlesPage() {
-  const articles = [
-    {
-      title: "Understanding Generic vs. Brand Name Medicines",
-      desc: "Learn why generic drugs are equally safe, effective, and up to 80% cheaper than their brand-name counterparts.",
-      category: "EDUCATION",
-      readTime: "5 min read",
-      author: "CureBasket Medical Team",
-      date: "May 15, 2026"
-    },
-    {
-      title: "Essential Tips for Safe Online Prescription Ordering",
-      desc: "A complete safety guide on checking certifications, verifying medical dosages, and keeping health records secure.",
-      category: "SAFETY",
-      readTime: "4 min read",
-      author: "Dr. Elena Rostova",
-      date: "May 18, 2026"
-    },
-    {
-      title: "Managing Seasonal Allergies: Natural vs. OTC Remedies",
-      desc: "Our resident pharmacists break down standard antihistamines, correct usage patterns, and simple home care tips.",
-      category: "WELLNESS",
-      readTime: "7 min read",
-      author: "CureBasket Pharmacists",
-      date: "May 20, 2026"
-    },
-    {
-      title: "Top 5 Healthcare Innovations in Indian Generic Pharma",
-      desc: "An inside look at how India became the world's pharmacy, offering premium manufacturing and affordable treatments.",
-      category: "PHARMACY",
-      readTime: "6 min read",
-      author: "Prof. Rajesh Kumar",
-      date: "May 22, 2026"
-    }
-  ]
+  const [articles, setArticles] = useState(DEFAULTS)
+
+  useEffect(() => {
+    api.get('/settings/public/cms')
+      .then(res => {
+        if (res.data?.data?.articles) {
+          setArticles(res.data.data.articles)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <div className="bg-white min-h-screen">
@@ -51,7 +64,7 @@ function ArticlesPage() {
       {/* Articles Grid */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {articles.map((art, idx) => (
+          {(articles || []).map((art, idx) => (
             <div key={idx} className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-6 border-l-4 border-l-[#f5b23e]">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
