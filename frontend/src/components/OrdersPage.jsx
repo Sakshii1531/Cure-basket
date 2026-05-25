@@ -32,33 +32,37 @@ const OrdersPage = () => {
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen pb-20">
-      <div className="bg-white px-4 py-4 sticky top-0 z-50 flex items-center gap-4 border-b border-gray-100">
-        <button onClick={() => navigate(-1)} className="p-1">
-          <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <h1 className="text-[20px] font-bold text-gray-900">My Orders</h1>
-      </div>
-
-      <div className="bg-white border-b border-gray-100 sticky top-[61px] z-40 overflow-x-auto no-scrollbar">
-        <div className="flex px-4 min-w-max">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-3.5 text-[14px] font-bold transition-all relative ${activeTab === tab ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              {tab}
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#006D6D] rounded-t-full"></div>
-              )}
-            </button>
-          ))}
+      <div className="bg-white px-4 py-4 sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-4xl mx-auto w-full flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-1 hover:bg-gray-50 rounded-full transition-colors">
+            <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <h1 className="text-[20px] font-bold text-gray-900">My Orders</h1>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="bg-white border-b border-gray-100 sticky top-[61px] z-40 overflow-x-auto no-scrollbar">
+        <div className="max-w-4xl mx-auto w-full">
+          <div className="flex px-4 min-w-max">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-3.5 text-[14px] font-bold transition-all relative ${activeTab === tab ? 'text-[#006D6D]' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#006D6D] rounded-t-full"></div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-4 md:py-8 space-y-4">
         {loading ? (
           <div className="text-center py-20 text-gray-400">Loading orders...</div>
         ) : error ? (
