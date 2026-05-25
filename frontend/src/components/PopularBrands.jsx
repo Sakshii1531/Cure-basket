@@ -1,29 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
-import brand1 from '../assets/brands/brand1.png'
-import brand2 from '../assets/brands/brand2.png'
-import brand3 from '../assets/brands/brand3.png'
-import brand4 from '../assets/brands/brand4.png'
-import brand5 from '../assets/brands/brand5.png'
-
-const staticBrands = [
-  { id: 1, name: 'Brand 1', image: brand1 },
-  { id: 2, name: 'Brand 2', image: brand2 },
-  { id: 3, name: 'Brand 3', image: brand3 },
-  { id: 4, name: 'Brand 4', image: brand4 },
-  { id: 5, name: 'Brand 5', image: brand5 },
-]
 
 const PopularBrands = () => {
   const navigate = useNavigate()
-  const [brands, setBrands] = useState(staticBrands)
+  const [brands, setBrands] = useState([])
 
   useEffect(() => {
     api.get('/brands?limit=10')
       .then(res => {
         const data = res.data.data
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setBrands(data.map(b => ({ id: b._id, name: b.name, image: b.image || null })))
         }
       })
