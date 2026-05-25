@@ -383,7 +383,7 @@ function Navbar({ openSupport }) {
                   </button>
                   
                   {/* Dropdown Menu */}
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-[110] hidden group-hover:block transition-all duration-200">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-[110] hidden group-hover:block transition-all duration-200 before:absolute before:-top-2 before:left-0 before:w-full before:h-2 before:content-['']">
                     <button 
                       onClick={() => navigate('/account')}
                       className="w-full text-left px-4 py-2.5 text-[13px] text-gray-700 hover:bg-gray-50 hover:text-[#006D6D] transition-colors flex items-center gap-2"
