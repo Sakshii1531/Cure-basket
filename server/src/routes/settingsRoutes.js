@@ -4,6 +4,8 @@ const { protect, authorize } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
+router.get('/public/:type', getSettings);
+
 router
   .route('/:type')
   .get(protect, authorize('admin', 'superadmin'), getSettings)
