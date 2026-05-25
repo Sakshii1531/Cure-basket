@@ -281,7 +281,6 @@ function AppContent() {
           <Route path="brands" element={<Suspense fallback={<AdminSpinner />}><Brands /></Suspense>} />
           <Route path="reviews" element={<Suspense fallback={<AdminSpinner />}><Reviews /></Suspense>} />
           <Route path="analytics" element={<Suspense fallback={<AdminSpinner />}><Analytics /></Suspense>} />
-          <Route path="cms" element={<Suspense fallback={<AdminSpinner />}><CMS /></Suspense>} />
           <Route path="content" element={<Suspense fallback={<AdminSpinner />}><ContentManagement /></Suspense>} />
           <Route path="blogs" element={<Suspense fallback={<AdminSpinner />}><Blogs /></Suspense>} />
           <Route path="bank-contact" element={<Suspense fallback={<AdminSpinner />}><BankContact /></Suspense>} />
