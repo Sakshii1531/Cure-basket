@@ -133,6 +133,51 @@ const DEFAULTS = {
   }
 }
 
+const DEFAULT_LEGACY_PAGES = {
+  about: 'Welcome to CureBasket. We provide the best medicines...',
+  privacy: 'Your privacy is important to us...',
+  terms: 'By using our site, you agree to these terms...',
+  whyChoose: 'We offer genuine medicines, fast delivery, and best prices.'
+}
+
+const DEFAULT_BANNERS = {
+  curePlus: {
+    title1: 'Join',
+    title2: 'CureBasket Plus',
+    description: 'Save up to 25% on every order. Free delivery. Priority support. Premium health perks.',
+    buttonText: 'Start Free Trial',
+    badge: 'Only ₹199/month after!',
+  },
+  expressDelivery: {
+    title1: 'Express',
+    title2: 'Delivery in 15 Mins',
+    description: 'Running out of essentials? Get them delivered to your doorstep in the blink of an eye.',
+    buttonText: 'Order Now',
+    badge: 'No minimum order value!',
+  },
+  healthCheckup: {
+    title1: 'Full Body',
+    title2: 'Health Checkups',
+    description: 'Home sample collection. NABL certified labs. Accurate results in 24 hours.',
+    buttonText: 'Book a Test',
+    badge: 'Starting from just ₹499!',
+  },
+  qualityCare: {
+    title1: 'Quality care,',
+    title2: 'better savings',
+    description: 'Trusted medicines. Expert care. Savings you can count on.',
+    buttonText: 'Upload Prescription',
+    badge: 'It only takes 30 seconds!',
+  },
+}
+
+const BANNER_LABELS = {
+  curePlus: 'CurePlus Membership Banner',
+  expressDelivery: 'Express Delivery Banner',
+  healthCheckup: 'Health Checkup Banner',
+  qualityCare: 'Quality Care Banner',
+}
+
 const TABS = [
   { id: 'aboutUs', label: 'About Us' },
   { id: 'sitemap', label: 'Site Map' },
@@ -145,12 +190,16 @@ const TABS = [
   { id: 'cancellationPolicy', label: 'Cancellation Policy' },
   { id: 'faqs', label: 'FAQs' },
   { id: 'reviewGuidelines', label: 'Review Guidelines' },
-  { id: 'indianPharmacies', label: 'Indian Pharmacies' }
+  { id: 'indianPharmacies', label: 'Indian Pharmacies' },
+  { id: 'staticPages', label: 'Static Pages (General)' },
+  { id: 'promoBanners', label: 'Promo Banners' }
 ]
 
 function ContentManagement() {
   const [activeTab, setActiveTab] = useState('aboutUs')
   const [data, setData] = useState(DEFAULTS)
+  const [banners, setBanners] = useState(DEFAULT_BANNERS)
+  const [legacyPages, setLegacyPages] = useState(DEFAULT_LEGACY_PAGES)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
 
@@ -163,6 +212,22 @@ function ContentManagement() {
             ...prev,
             ...res.data.data
           }))
+          // Extract legacy fields if they exist in cms payload
+          setLegacyPages(prev => ({
+            ...prev,
+            about: res.data.data.about || prev.about,
+            whyChoose: res.data.data.whyChoose || prev.whyChoose,
+            privacy: res.data.data.privacy || prev.privacy,
+            terms: res.data.data.terms || prev.terms,
+          }))
+        }
+      })
+      .catch(() => {})
+
+    api.get('/settings/promo_banners')
+      .then(res => {
+        if (res.data.data) {
+          setBanners(res.data.data)
         }
       })
       .catch(() => {})
@@ -173,12 +238,27 @@ function ContentManagement() {
     setTimeout(() => setToast(''), 3000)
   }
 
+  const updateBanner = (key, field, value) => {
+    setBanners(prev => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        [field]: value
+      }
+    }))
+  }
+
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.put('/settings/cms', data)
-      showToast('Content updated successfully!')
+      if (activeTab === 'promoBanners') {
+        await api.put('/settings/promo_banners', banners)
+        showToast('Banners updated successfully!')
+      } else {
+        await api.put('/settings/cms', { ...data, ...legacyPages })
+        showToast('Content updated successfully!')
+      }
     } catch {
       showToast('Failed to save content. Please try again.')
     } finally {
@@ -807,6 +887,73 @@ function ContentManagement() {
                       rows="4"
                     />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* SUB-SECTION 13: STATIC PAGES (GENERAL) */}
+            {activeTab === 'staticPages' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Static Pages (General)</h3>
+                {[
+                  { key: 'about', label: 'About Us (General Text)' },
+                  { key: 'whyChoose', label: 'Why Choose Curebasket (General Text)' },
+                  { key: 'privacy', label: 'Privacy Policy (General Text)' },
+                  { key: 'terms', label: 'Terms & Conditions (General Text)' },
+                ].map(({ key, label }) => (
+                  <div key={key}>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">{label}</label>
+                    <textarea
+                      value={legacyPages[key] || ''}
+                      onChange={(e) => setLegacyPages(prev => ({ ...prev, [key]: e.target.value }))}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      rows="5"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* SUB-SECTION 14: PROMO BANNERS */}
+            {activeTab === 'promoBanners' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Homepage Promotional Banners</h3>
+                  <p className="text-xs text-gray-400 mt-1">Edit the text shown on homepage promotional banners. Layout and images are fixed by design.</p>
+                </div>
+                <div className="space-y-8">
+                  {Object.keys(DEFAULT_BANNERS).map(bannerKey => (
+                    <div key={bannerKey} className="border border-gray-150 rounded-2xl p-5 bg-gray-50/20">
+                      <h4 className="text-sm font-bold text-gray-800 mb-4">{BANNER_LABELS[bannerKey]}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                          { field: 'title1', label: 'Title Line 1' },
+                          { field: 'title2', label: 'Title Line 2' },
+                          { field: 'buttonText', label: 'Button Text' },
+                          { field: 'badge', label: 'Badge / Offer Text' },
+                        ].map(({ field, label }) => (
+                          <div key={field}>
+                            <label className="text-xs font-semibold text-gray-600 block mb-1">{label}</label>
+                            <input
+                              type="text"
+                              value={banners[bannerKey]?.[field] || ''}
+                              onChange={(e) => updateBanner(bannerKey, field, e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                            />
+                          </div>
+                        ))}
+                        <div className="md:col-span-2">
+                          <label className="text-xs font-semibold text-gray-600 block mb-1">Description</label>
+                          <textarea
+                            value={banners[bannerKey]?.description || ''}
+                            onChange={(e) => updateBanner(bannerKey, 'description', e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                            rows="2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
