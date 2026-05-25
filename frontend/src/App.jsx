@@ -61,6 +61,19 @@ import BlogsPage from './components/BlogsPage'
 import BlogDetailPage from './components/BlogDetailPage'
 import RxPromptModal from './components/RxPromptModal'
 
+import AboutUsPage from './components/AboutUsPage'
+import SitemapPage from './components/SitemapPage'
+import TermsConditionsPage from './components/TermsConditionsPage'
+import DisclaimerPage from './components/DisclaimerPage'
+import ArticlesPage from './components/ArticlesPage'
+import ReferralPage from './components/ReferralPage'
+import HowToOrderPage from './components/HowToOrderPage'
+import RefundPolicyPage from './components/RefundPolicyPage'
+import CancellationPolicyPage from './components/CancellationPolicyPage'
+import FAQsPage from './components/FAQsPage'
+import ReviewGuidelinesPage from './components/ReviewGuidelinesPage'
+import IndianPharmaciesPage from './components/IndianPharmaciesPage'
+
 const AdminLayout = lazy(() => import('./admin/layout/AdminLayout'))
 const Dashboard = lazy(() => import('./admin/pages/Dashboard'))
 const Medicines = lazy(() => import('./admin/pages/Medicines'))
@@ -165,6 +178,9 @@ function AppContent() {
     '/categories', '/orders', '/account', '/edit-profile', '/upload-rx', '/medicines',
     '/cart', '/checkout', '/payment', '/order-success', '/track-order',
     '/all-reviews', '/best-sellers', '/all-brands', '/all-products', '/blogs',
+    '/about-us', '/site-map', '/terms-conditions', '/disclaimer', '/articles',
+    '/referral', '/how-to-order', '/refund-policy', '/cancellation-policy', '/faqs',
+    '/review-guidelines', '/about-indian-pharmacies'
   ].includes(location.pathname)
     || location.pathname.startsWith('/category/')
     || location.pathname.startsWith('/product/')
@@ -233,6 +249,20 @@ function AppContent() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+
+        {/* Static Footer Pages */}
+        <Route path="/about-us" element={<AboutUsPage />} />
+        <Route path="/site-map" element={<SitemapPage />} />
+        <Route path="/terms-conditions" element={<TermsConditionsPage />} />
+        <Route path="/disclaimer" element={<DisclaimerPage />} />
+        <Route path="/articles" element={<ArticlesPage />} />
+        <Route path="/referral" element={<ReferralPage />} />
+        <Route path="/how-to-order" element={<HowToOrderPage />} />
+        <Route path="/refund-policy" element={<RefundPolicyPage />} />
+        <Route path="/cancellation-policy" element={<CancellationPolicyPage />} />
+        <Route path="/faqs" element={<FAQsPage />} />
+        <Route path="/review-guidelines" element={<ReviewGuidelinesPage />} />
+        <Route path="/about-indian-pharmacies" element={<IndianPharmaciesPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<Suspense fallback={<AdminSpinner />}><AdminLogin /></Suspense>} />
