@@ -1,6 +1,33 @@
+import { Link } from 'react-router-dom'
 import medico from '../assets/medico.png'
 
 function FooterNewsletter() {
+  const cureBasketLinks = [
+    { name: 'About Us', path: '/about-us' },
+    { name: 'Site Map', path: '/site-map' },
+    { name: 'Terms And Conditions', path: '/terms-conditions' },
+    { name: 'Disclaimer', path: '/disclaimer' },
+    { name: 'Blog', path: '/blogs' },
+    { name: 'Articles', path: '/articles' },
+    { name: 'Referral Program', path: '/referral' }
+  ];
+
+  const categoriesLinks = [
+    { name: 'New Products', path: '/all-products' },
+    { name: 'Featured Products', path: '/best-sellers' },
+    { name: "Women's Health", path: "/category/women's-health" },
+    { name: 'Pain Relief', path: '/category/pain-relief' }
+  ];
+
+  const faqsLinks = [
+    { name: 'How to Place the Order', path: '/how-to-order' },
+    { name: 'Refunds and Returns', path: '/refund-policy' },
+    { name: 'Cancellation Policy', path: '/cancellation-policy' },
+    { name: 'Frequently Asked Questions', path: '/faqs' },
+    { name: 'Review Guidelines', path: '/review-guidelines' },
+    { name: 'About Indian Pharmacies', path: '/about-indian-pharmacies' }
+  ];
+
   return (
     <section className="relative bg-[#f5f5f5] pt-12 md:pt-16 pb-12 md:pb-16 px-4 md:px-8 overflow-hidden border-t border-gray-200">
       <div className="max-w-[1250px] mx-auto relative">
@@ -12,8 +39,8 @@ function FooterNewsletter() {
             <div className="flex flex-col gap-2 md:gap-6">
               <h4 className="text-[16px] md:text-[22px] font-bold text-gray-900 leading-tight">CureBasket</h4>
               <div className="flex flex-col gap-1.5 md:gap-4">
-                {['About Us', 'Site Map', 'Terms And Conditions', 'Disclaimer', 'Blog', 'Articles', 'Referral Program'].map(link => (
-                  <a key={link} href="#" className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">{link}</a>
+                {cureBasketLinks.map(link => (
+                  <Link key={link.name} to={link.path} className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">{link.name}</Link>
                 ))}
               </div>
             </div>
@@ -22,8 +49,8 @@ function FooterNewsletter() {
             <div className="flex flex-col gap-2 md:gap-6">
               <h4 className="text-[16px] md:text-[22px] font-bold text-gray-900 leading-tight">Categories</h4>
               <div className="flex flex-col gap-1.5 md:gap-4">
-                {['New Products', 'Featured Products', "Women's Health", 'Pain Relief'].map(link => (
-                  <a key={link} href="#" className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">{link}</a>
+                {categoriesLinks.map(link => (
+                  <Link key={link.name} to={link.path} className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">{link.name}</Link>
                 ))}
               </div>
             </div>
@@ -32,8 +59,8 @@ function FooterNewsletter() {
             <div className="flex flex-col gap-2 md:gap-6">
               <h4 className="text-[16px] md:text-[22px] font-bold text-gray-900 leading-tight">FAQs</h4>
               <div className="flex flex-col gap-1.5 md:gap-4">
-                {['How to Place the Order', 'Refunds and Returns', 'Cancellation Policy', 'Frequently Asked Questions', 'Review Guidelines', 'About Indian Pharmacies'].map(link => (
-                  <a key={link} href="#" className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">{link}</a>
+                {faqsLinks.map(link => (
+                  <Link key={link.name} to={link.path} className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">{link.name}</Link>
                 ))}
               </div>
             </div>
@@ -42,7 +69,7 @@ function FooterNewsletter() {
             <div className="flex flex-col gap-2 md:gap-6">
               <h4 className="text-[16px] md:text-[22px] font-bold text-gray-900 leading-tight">Contact Us</h4>
               <div className="flex flex-col gap-1.5 md:gap-4">
-                <a href="#" className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">Click to Call</a>
+                <a href="tel:+18005550199" className="text-[12.5px] md:text-[15px] font-medium text-gray-700 hover:text-[#006D6D] transition-colors">Click to Call</a>
               </div>
             </div>
           </div>
