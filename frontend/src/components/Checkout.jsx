@@ -159,6 +159,14 @@ const Checkout = () => {
     }
   }
 
+  // Redirect to cart if navigated here with no items and no buyNow state
+  useEffect(() => {
+    const isBuyNow = !!location.state?.product
+    if (!isBuyNow && cartItems.length === 0) {
+      navigate('/cart', { replace: true })
+    }
+  }, [])
+
   // Buy Now: location.state has { product, selectedPackage, quantity }
   const buyNow = location.state?.product ? location.state : null
   const items = buyNow

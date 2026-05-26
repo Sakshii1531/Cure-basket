@@ -70,7 +70,7 @@ exports.register = async (req, res) => {
           </div>
         </div>
       `,
-    }).catch(() => {}); // never reject on email failure
+    }).catch((emailErr) => console.error('[welcome-email] failed:', emailErr.message));
 
     sendTokenResponse(user, 201, res);
   } catch (err) {
