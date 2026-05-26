@@ -10,6 +10,16 @@ const AccountPage = () => {
   const [orders, setOrders] = useState([])
   const [loadingOrders, setLoadingOrders] = useState(true)
   
+  const [addresses, setAddresses] = useState([])
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      api.get('/auth/me')
+        .then(res => setAddresses(res.data.user?.addresses || []))
+        .catch(() => {})
+    }
+  }, [isLoggedIn])
+
   const [profileForm, setProfileForm] = useState({
     firstName: 'Sakshi',
     lastName: 'Dwivedi',
@@ -282,17 +292,26 @@ const AccountPage = () => {
         return (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] space-y-6 font-sans">
             <h3 className="text-[17px] font-bold text-gray-800 border-b border-gray-100 pb-2">Your Saved Addresses</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
-                <h4 className="text-[14px] font-semibold text-[#006D6D]">Shipping Address</h4>
-                <p className="text-[13px] text-gray-600 mt-2 leading-relaxed">{user?.shippingAddress || "No shipping address set yet."}</p>
+            {addresses.length === 0 ? (
+              <div className="bg-[#fffdf8] border border-[#fbf2e3] rounded p-4 text-[#7d5b24] text-[14.5px] flex items-center gap-2.5">
+                <span className="text-[18px] shrink-0">⚠️</span>
+                <span className="font-semibold">You have no saved addresses yet.</span>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
-                <h4 className="text-[14px] font-semibold text-[#006D6D]">Billing Address</h4>
-                <p className="text-[13px] text-gray-600 mt-2 leading-relaxed">{user?.billingAddress || "No billing address set yet."}</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {addresses.map((addr, i) => (
+                  <div key={addr._id || i} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                    <h4 className="text-[14px] font-semibold text-primary flex items-center gap-2">
+                      {addr.name}
+                      {i === 0 && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">Default</span>}
+                    </h4>
+                    <p className="text-[13px] text-gray-600 mt-2 leading-relaxed">{addr.street}, {addr.city}</p>
+                    <p className="text-[12px] text-gray-400 mt-1">{addr.phone}</p>
+                  </div>
+                ))}
               </div>
-            </div>
-            <button onClick={() => navigate('/checkout')} className="mt-2 bg-[#006D6D] hover:bg-[#005a5a] text-white px-5 py-2.5 rounded-md text-[14px] font-semibold transition-all font-sans">Edit Addresses</button>
+            )}
+            <button onClick={() => navigate('/checkout')} className="mt-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-md text-[14px] font-semibold transition-all font-sans">Manage Addresses</button>
           </div>
         )
       case 'Edit Profile':
@@ -560,19 +579,19 @@ const AccountPage = () => {
                 </div>
 
                 <div className="space-y-4 font-sans">
-                  <div>
-                    <h4 className="text-[12.5px] font-bold text-[#006D6D] uppercase tracking-wider font-sans">Shipping <span className="text-[10px] text-gray-400 font-normal lowercase">(Default)</span></h4>
-                    <p className="text-[13.5px] text-gray-500 font-semibold mt-1.5 leading-relaxed font-sans">
-                      {user?.shippingAddress || "You have not set a default Shipping address."}
-                    </p>
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-4">
-                    <h4 className="text-[12.5px] font-bold text-[#006D6D] uppercase tracking-wider font-sans">Billing <span className="text-[10px] text-gray-400 font-normal lowercase">(Default)</span></h4>
-                    <p className="text-[13.5px] text-gray-500 font-semibold mt-1.5 leading-relaxed font-sans">
-                      {user?.billingAddress || "You have not set a default billing address."}
-                    </p>
-                  </div>
+                  {addresses.length === 0 ? (
+                    <p className="text-[13px] text-gray-400 font-sans">No saved addresses yet.</p>
+                  ) : addresses.map((addr, i) => (
+                    <div key={addr._id || i} className={i > 0 ? "border-t border-gray-100 pt-4" : ""}>
+                      <h4 className="text-[12.5px] font-bold text-primary uppercase tracking-wider font-sans">
+                        {addr.name} {i === 0 && <span className="text-[10px] text-gray-400 font-normal lowercase">(Default)</span>}
+                      </h4>
+                      <p className="text-[13.5px] text-gray-500 font-semibold mt-1.5 leading-relaxed font-sans">
+                        {addr.street}, {addr.city}
+                      </p>
+                      <p className="text-[12px] text-gray-400 font-sans">{addr.phone}</p>
+                    </div>
+                  ))}
 
                   <div className="border-t border-gray-100 pt-4">
                     <button 

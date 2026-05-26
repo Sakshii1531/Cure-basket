@@ -130,6 +130,13 @@ function AdminRoute({ children }) {
   return children
 }
 
+function GuestRoute({ children }) {
+  const { isLoggedIn, authLoading } = useAuth()
+  if (authLoading) return null
+  if (isLoggedIn) return <Navigate to="/account" replace />
+  return children
+}
+
 function HomePage({ onProductClick }) {
   return (
     <>
@@ -246,8 +253,8 @@ function AppContent() {
         <Route path="/medicines" element={<MedicinesPage onProductClick={handleProductClick} />} />
         <Route path="/blogs" element={<BlogsPage />} />
         <Route path="/blog/:slug?" element={<BlogDetailPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+        <Route path="/signup" element={<GuestRoute><SignupPage /></GuestRoute>} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
