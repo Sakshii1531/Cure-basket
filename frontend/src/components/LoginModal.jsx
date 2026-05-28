@@ -4,22 +4,30 @@ import { useAuth } from '../context/AuthContext'
 const LoginModal = () => {
   const { isLoginModalOpen, setIsLoginModalOpen, login, register, pendingIntent, clearIntent } = useAuth()
   const [tab, setTab] = useState('login')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     if (!isLoginModalOpen) {
-      setForm({ name: '', email: '', phone: '', password: '' })
+      setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
       setErrors({})
       setApiError('')
       setLoading(false)
       setSuccess(false)
+      setShowPassword(false)
       setTab('login')
     }
   }, [isLoginModalOpen])
+
+  useEffect(() => {
+    setErrors({})
+    setApiError('')
+    setShowPassword(false)
+  }, [tab])
 
   if (!isLoginModalOpen) return null
 
@@ -29,6 +37,13 @@ const LoginModal = () => {
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
     if (!form.password || form.password.length < 6) errs.password = 'Min 6 characters'
+    if (tab === 'signup') {
+      if (!form.confirmPassword) {
+        errs.confirmPassword = 'Confirm password is required'
+      } else if (form.password !== form.confirmPassword) {
+        errs.confirmPassword = 'Passwords do not match'
+      }
+    }
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -176,13 +191,41 @@ const LoginModal = () => {
               <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Password</label>
               <input
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={handleChange}
-                placeholder="Min. 6 characters"
+                placeholder="••••••••"
                 className={`w-full border-2 rounded-xl px-4 py-3 text-[14px] font-medium outline-none transition-colors ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-[#006D6D] bg-gray-50 focus:bg-white'}`}
               />
               {errors.password && <p className="text-red-500 text-[11px] mt-1">{errors.password}</p>}
+            </div>
+
+            {tab === 'signup' && (
+              <div>
+                <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Confirm Password</label>
+                <input
+                  name="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className={`w-full border-2 rounded-xl px-4 py-3 text-[14px] font-medium outline-none transition-colors ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-[#006D6D] bg-gray-50 focus:bg-white'}`}
+                />
+                {errors.confirmPassword && <p className="text-red-500 text-[11px] mt-1">{errors.confirmPassword}</p>}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                id="show-modal-passwords"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D] cursor-pointer"
+              />
+              <label htmlFor="show-modal-passwords" className="text-[12px] font-bold text-gray-600 cursor-pointer select-none">
+                Show Password
+              </label>
             </div>
 
             <button

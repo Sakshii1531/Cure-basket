@@ -80,6 +80,8 @@ const Medicines = lazy(() => import('./admin/pages/Medicines'))
 const Categories = lazy(() => import('./admin/pages/Categories'))
 const Orders = lazy(() => import('./admin/pages/Orders'))
 const Users = lazy(() => import('./admin/pages/Users'))
+const UserDetails = lazy(() => import('./admin/pages/UserDetails'))
+const UserForm = lazy(() => import('./admin/pages/UserForm'))
 const Banners = lazy(() => import('./admin/pages/Banners'))
 const Coupons = lazy(() => import('./admin/pages/Coupons'))
 const Settings = lazy(() => import('./admin/pages/Settings'))
@@ -280,6 +282,9 @@ function AppContent() {
           <Route path="categories" element={<Suspense fallback={<AdminSpinner />}><Categories /></Suspense>} />
           <Route path="orders" element={<Suspense fallback={<AdminSpinner />}><Orders /></Suspense>} />
           <Route path="users" element={<Suspense fallback={<AdminSpinner />}><Users /></Suspense>} />
+          <Route path="users/new" element={<Suspense fallback={<AdminSpinner />}><UserForm /></Suspense>} />
+          <Route path="users/:id" element={<Suspense fallback={<AdminSpinner />}><UserDetails /></Suspense>} />
+          <Route path="users/:id/edit" element={<Suspense fallback={<AdminSpinner />}><UserForm /></Suspense>} />
           <Route path="banners" element={<Suspense fallback={<AdminSpinner />}><Banners /></Suspense>} />
           <Route path="coupons" element={<Suspense fallback={<AdminSpinner />}><Coupons /></Suspense>} />
           <Route path="settings" element={<Suspense fallback={<AdminSpinner />}><Settings /></Suspense>} />

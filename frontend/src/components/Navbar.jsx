@@ -417,12 +417,6 @@ function Navbar({ openSupport }) {
               ) : (
                 <div className="flex items-center gap-3">
                   <button 
-                    onClick={() => openLoginModal('login')}
-                    className="text-gray-700 hover:text-[#006D6D] px-4 py-2 text-[14px] font-bold transition-all"
-                  >
-                    Login
-                  </button>
-                  <button 
                     onClick={() => openLoginModal('signup')}
                     className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md"
                   >

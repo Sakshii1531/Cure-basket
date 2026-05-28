@@ -29,6 +29,7 @@ function renderAuth(onRender) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.setItem('cb_token', 'mock-token-for-testing');
   // Default: /auth/me returns 401 (not logged in)
   api.get.mockRejectedValue(new Error('Unauthorized'));
 });

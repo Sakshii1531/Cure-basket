@@ -6,10 +6,11 @@ const SignupPage = () => {
   const { register } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const validate = () => {
     const errs = {}
@@ -17,7 +18,14 @@ const SignupPage = () => {
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
     if (form.phone && !/^[+]?[\d\s\-().]{7,20}$/.test(form.phone)) errs.phone = 'Enter a valid phone number'
-    if (!form.password || form.password.length < 8) errs.password = 'Min 8 characters'
+    if (!form.password || form.password.length < 8) {
+      errs.password = 'Min 8 characters'
+    }
+    if (!form.confirmPassword) {
+      errs.confirmPassword = 'Confirm password is required'
+    } else if (form.password !== form.confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match'
+    }
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -114,13 +122,39 @@ const SignupPage = () => {
             <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-0.5 block">Password</label>
             <input
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleChange}
-              placeholder="Min. 8 characters"
+              placeholder="••••••••"
               className={`w-full border-2 rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
             />
             {errors.password && <p className="text-red-500 text-[10px] mt-0.5 font-medium">{errors.password}</p>}
+          </div>
+
+          <div>
+            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-0.5 block">Confirm Password</label>
+            <input
+              name="confirmPassword"
+              type={showPassword ? 'text' : 'password'}
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+              className={`w-full border-2 rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
+            />
+            {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-0.5 font-medium">{errors.confirmPassword}</p>}
+          </div>
+
+          <div className="flex items-center gap-2 mt-1">
+            <input
+              type="checkbox"
+              id="show-passwords"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+            />
+            <label htmlFor="show-passwords" className="text-[12px] font-bold text-gray-600 cursor-pointer select-none">
+              Show Password
+            </label>
           </div>
 
           <button
