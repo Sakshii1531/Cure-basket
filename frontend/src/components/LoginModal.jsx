@@ -1,25 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import api from '../utils/api'
 
 const LoginModal = () => {
   const { isLoginModalOpen, setIsLoginModalOpen, login, register, pendingIntent, clearIntent } = useAuth()
   const [tab, setTab] = useState('login')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', otp: '' })
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [forgotPhase, setForgotPhase] = useState(1)
 
   useEffect(() => {
     if (!isLoginModalOpen) {
-      setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
+      setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '', otp: '' })
       setErrors({})
       setApiError('')
       setLoading(false)
       setSuccess(false)
       setShowPassword(false)
       setTab('login')
+      setForgotPhase(1)
     }
   }, [isLoginModalOpen])
 
@@ -27,6 +30,7 @@ const LoginModal = () => {
     setErrors({})
     setApiError('')
     setShowPassword(false)
+    setForgotPhase(1)
   }, [tab])
 
   if (!isLoginModalOpen) return null
@@ -72,6 +76,82 @@ const LoginModal = () => {
     }
   }
 
+  const handleSendOTP = async (e) => {
+    e.preventDefault()
+    const errs = {}
+    if (!form.email.trim()) errs.email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
+    
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
+    }
+
+    setLoading(true)
+    setApiError('')
+    try {
+      await api.post('/auth/forgot-password-otp', { email: form.email })
+      setForgotPhase(2)
+    } catch (err) {
+      setApiError(err.response?.data?.error || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault()
+    const errs = {}
+    if (!form.otp || form.otp.length !== 6) errs.otp = 'Enter a 6-digit OTP'
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
+    }
+
+    setLoading(true)
+    setApiError('')
+    try {
+      await api.post('/auth/verify-otp', { email: form.email, otp: form.otp })
+      setForgotPhase(3)
+    } catch (err) {
+      setApiError(err.response?.data?.error || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault()
+    const errs = {}
+    if (!form.password || form.password.length < 6) errs.password = 'Min 6 characters'
+    if (!form.confirmPassword) {
+      errs.confirmPassword = 'Confirm password is required'
+    } else if (form.password !== form.confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match'
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
+    }
+
+    setLoading(true)
+    setApiError('')
+    try {
+      await api.post('/auth/reset-password-otp', {
+        email: form.email,
+        otp: form.otp,
+        password: form.password
+      })
+      setForgotPhase(4)
+    } catch (err) {
+      setApiError(err.response?.data?.error || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
     setErrors(er => ({ ...er, [e.target.name]: '' }))
@@ -107,27 +187,33 @@ const LoginModal = () => {
             <span className="text-[11px] font-bold text-[#006D6D] uppercase tracking-wider">CureBasket</span>
           </div>
           <h2 className="text-[22px] md:text-[24px] font-black text-gray-900 leading-tight">
-            {tab === 'login' ? 'Welcome back' : 'Create account'}
+            {tab === 'login' ? 'Welcome back' : tab === 'signup' ? 'Create account' : 'Reset Password'}
           </h2>
           <p className="text-gray-500 text-[13px] font-medium mt-1">
-            {tab === 'login' ? 'Login to continue your order' : 'Sign up to start shopping'}
+            {tab === 'login'
+              ? 'Login to continue your order'
+              : tab === 'signup'
+              ? 'Sign up to start shopping'
+              : 'Follow the steps to recover your account'}
           </p>
         </div>
 
-        <div className="flex bg-gray-100 rounded-xl p-1 mb-5 gap-1">
-          <button
-            onClick={() => setTab('login')}
-            className={`flex-1 py-2 rounded-lg text-[13px] font-bold transition-all ${tab === 'login' ? 'bg-white text-[#006D6D] shadow-sm' : 'text-gray-500'}`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setTab('signup')}
-            className={`flex-1 py-2 rounded-lg text-[13px] font-bold transition-all ${tab === 'signup' ? 'bg-white text-[#006D6D] shadow-sm' : 'text-gray-500'}`}
-          >
-            Sign Up
-          </button>
-        </div>
+        {tab !== 'forgot' && (
+          <div className="flex bg-gray-100 rounded-xl p-1 mb-5 gap-1">
+            <button
+              onClick={() => setTab('login')}
+              className={`flex-1 py-2 rounded-lg text-[13px] font-bold transition-all ${tab === 'login' ? 'bg-white text-[#006D6D] shadow-sm' : 'text-gray-500'}`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setTab('signup')}
+              className={`flex-1 py-2 rounded-lg text-[13px] font-bold transition-all ${tab === 'signup' ? 'bg-white text-[#006D6D] shadow-sm' : 'text-gray-500'}`}
+            >
+              Sign Up
+            </button>
+          </div>
+        )}
 
         {success ? (
           <div className="py-8 text-center animate-in zoom-in-95 duration-300">
@@ -138,6 +224,154 @@ const LoginModal = () => {
             </div>
             <h3 className="text-[18px] font-black text-gray-900">You're in!</h3>
             <p className="text-gray-500 text-[13px] mt-1">Welcome to CureBasket</p>
+          </div>
+        ) : tab === 'forgot' ? (
+          <div className="space-y-4">
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-[12px] font-medium px-3 py-2 rounded-xl">
+                {apiError}
+              </div>
+            )}
+
+            {forgotPhase === 1 && (
+              <form onSubmit={handleSendOTP} className="space-y-4">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Email Address</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    className={`w-full border-2 rounded-xl px-4 py-3 text-[14px] font-medium outline-none transition-colors ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-[#006D6D] bg-gray-50 focus:bg-white'}`}
+                  />
+                  {errors.email && <p className="text-red-500 text-[11px] mt-1">{errors.email}</p>}
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#006D6D] text-white font-bold py-3.5 rounded-xl text-[14px] mt-2 flex items-center justify-center gap-2 shadow-lg shadow-[#006D6D]/20 hover:bg-[#005a5a] transition-all active:scale-[0.98] disabled:opacity-70"
+                >
+                  {loading ? 'Sending OTP...' : 'Send OTP'}
+                </button>
+                
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  <button type="button" onClick={() => setTab('login')} className="font-semibold text-[#006D6D] hover:underline">
+                    Back to Login
+                  </button>
+                </p>
+              </form>
+            )}
+
+            {forgotPhase === 2 && (
+              <form onSubmit={handleVerifyOTP} className="space-y-4">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Enter OTP</label>
+                  <input
+                    name="otp"
+                    type="text"
+                    maxLength="6"
+                    value={form.otp}
+                    onChange={handleChange}
+                    placeholder="Enter 6-digit OTP"
+                    className={`w-full border-2 rounded-xl px-4 py-3 text-[14px] font-medium outline-none transition-colors ${errors.otp ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-[#006D6D] bg-gray-50 focus:bg-white'}`}
+                  />
+                  {errors.otp && <p className="text-red-500 text-[11px] mt-1">{errors.otp}</p>}
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#006D6D] text-white font-bold py-3.5 rounded-xl text-[14px] mt-2 flex items-center justify-center gap-2 shadow-lg shadow-[#006D6D]/20 hover:bg-[#005a5a] transition-all active:scale-[0.98] disabled:opacity-70"
+                >
+                  {loading ? 'Verifying...' : 'Verify OTP'}
+                </button>
+                
+                <p className="text-center text-sm text-gray-500 mt-4 flex justify-between px-2">
+                  <button type="button" onClick={() => setForgotPhase(1)} className="font-semibold text-[#006D6D] hover:underline">
+                    Back
+                  </button>
+                  <button type="button" onClick={() => setTab('login')} className="font-semibold text-gray-500 hover:underline">
+                    Cancel
+                  </button>
+                </p>
+              </form>
+            )}
+
+            {forgotPhase === 3 && (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">New Password</label>
+                  <input
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className={`w-full border-2 rounded-xl px-4 py-3 text-[14px] font-medium outline-none transition-colors ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-[#006D6D] bg-gray-50 focus:bg-white'}`}
+                  />
+                  {errors.password && <p className="text-red-500 text-[11px] mt-1">{errors.password}</p>}
+                </div>
+                
+                <div>
+                  <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Confirm Password</label>
+                  <input
+                    name="confirmPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className={`w-full border-2 rounded-xl px-4 py-3 text-[14px] font-medium outline-none transition-colors ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-[#006D6D] bg-gray-50 focus:bg-white'}`}
+                  />
+                  {errors.confirmPassword && <p className="text-red-500 text-[11px] mt-1">{errors.confirmPassword}</p>}
+                </div>
+
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="checkbox"
+                    id="show-forgot-passwords"
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D] cursor-pointer"
+                  />
+                  <label htmlFor="show-forgot-passwords" className="text-[12px] font-bold text-gray-600 cursor-pointer select-none">
+                    Show Password
+                  </label>
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#006D6D] text-white font-bold py-3.5 rounded-xl text-[14px] mt-2 flex items-center justify-center gap-2 shadow-lg shadow-[#006D6D]/20 hover:bg-[#005a5a] transition-all active:scale-[0.98] disabled:opacity-70"
+                >
+                  {loading ? 'Resetting...' : 'Reset Password'}
+                </button>
+              </form>
+            )}
+
+            {forgotPhase === 4 && (
+              <div className="py-6 text-center animate-in zoom-in-95 duration-300">
+                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M5 13l4 4L19 7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <h3 className="text-[18px] font-black text-gray-900">Success!</h3>
+                <p className="text-gray-500 text-[13px] mt-1">Your password is successfully changed.</p>
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTab('login');
+                    setForgotPhase(1);
+                  }}
+                  className="w-full bg-[#006D6D] text-white font-bold py-3.5 rounded-xl text-[14px] mt-6 flex items-center justify-center gap-2 shadow-lg shadow-[#006D6D]/20 hover:bg-[#005a5a] transition-all active:scale-[0.98]"
+                >
+                  Go to Login
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -215,17 +449,28 @@ const LoginModal = () => {
               </div>
             )}
 
-            <div className="flex items-center gap-2 mt-1">
-              <input
-                type="checkbox"
-                id="show-modal-passwords"
-                checked={showPassword}
-                onChange={(e) => setShowPassword(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D] cursor-pointer"
-              />
-              <label htmlFor="show-modal-passwords" className="text-[12px] font-bold text-gray-600 cursor-pointer select-none">
-                Show Password
-              </label>
+            <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="show-modal-passwords"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-[#006D6D] focus:ring-[#006D6D] cursor-pointer"
+                />
+                <label htmlFor="show-modal-passwords" className="text-[12px] font-bold text-gray-600 cursor-pointer select-none">
+                  Show Password
+                </label>
+              </div>
+              {tab === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => setTab('forgot')}
+                  className="text-[12px] font-bold text-[#006D6D] hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              )}
             </div>
 
             <button

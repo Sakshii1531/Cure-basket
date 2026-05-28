@@ -193,3 +193,68 @@ describe('PUT /api/auth/reset-password/:token', () => {
     expect(res.body.success).toBe(false);
   });
 });
+
+describe('OTP Forgot Password Flow', () => {
+  beforeEach(async () => {
+    await request(app).post('/api/auth/register').send(VALID_USER);
+  });
+
+  it('fails OTP request if email is missing', async () => {
+    const res = await request(app).post('/api/auth/forgot-password-otp').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('handles forgot-password-otp request and verification/reset flow successfully', async () => {
+    // 1. Request OTP
+    const reqRes = await request(app)
+      .post('/api/auth/forgot-password-otp')
+      .send({ email: VALID_USER.email });
+    expect(reqRes.status).toBe(200);
+    expect(reqRes.body.success).toBe(true);
+
+    // Retrieve user directly from DB helper to get the generated OTP
+    const User = require('../models/User');
+    const userObj = await User.findOne({ email: VALID_USER.email });
+    expect(userObj.resetPasswordOTP).toBeDefined();
+
+    // Since we hash the OTP before saving, let's mock/test it by verifying a dummy/invalid OTP first
+    const failVerifyRes = await request(app)
+      .post('/api/auth/verify-otp')
+      .send({ email: VALID_USER.email, otp: '000000' });
+    expect(failVerifyRes.status).toBe(400);
+    expect(failVerifyRes.body.success).toBe(false);
+
+    // Since our random OTP isn't exposed except in mock sendEmail call (which is mocked at line 6),
+    // let's grab the mock sendEmail calls to read the plain-text OTP!
+    const sendEmail = require('../utils/sendEmail');
+    expect(sendEmail).toHaveBeenCalled();
+    const lastEmailCall = sendEmail.mock.calls[sendEmail.mock.calls.length - 1][0];
+    const htmlBody = lastEmailCall.html;
+    // Extract 6-digit OTP from html body
+    const otpMatch = htmlBody.match(/\b\d{6}\b/);
+    expect(otpMatch).not.toBeNull();
+    const plainOtp = otpMatch[0];
+
+    // 2. Verify valid OTP
+    const verifyRes = await request(app)
+      .post('/api/auth/verify-otp')
+      .send({ email: VALID_USER.email, otp: plainOtp });
+    expect(verifyRes.status).toBe(200);
+    expect(verifyRes.body.success).toBe(true);
+
+    // 3. Reset password using OTP
+    const resetRes = await request(app)
+      .post('/api/auth/reset-password-otp')
+      .send({ email: VALID_USER.email, otp: plainOtp, password: 'mynewsecurepassword123' });
+    expect(resetRes.status).toBe(200);
+    expect(resetRes.body.success).toBe(true);
+
+    // 4. Try logging in with new password
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: VALID_USER.email, password: 'mynewsecurepassword123' });
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body.success).toBe(true);
+  });
+});
