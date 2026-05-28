@@ -196,6 +196,113 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+// @desc    Request password reset OTP
+// @route   POST /api/auth/forgot-password-otp
+// @access  Public
+exports.forgotPasswordOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Please provide an email' });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Don't reveal user existence
+      return res.status(200).json({ success: true, message: 'If that email exists, an OTP has been sent.' });
+    }
+
+    const otp = user.getResetPasswordOTP();
+    await user.save({ validateBeforeSave: false });
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:20px;border:1px solid #eee;border-radius:12px;">
+        <h2 style="color:#006D6D;text-align:center;">Password Reset OTP</h2>
+        <p>You requested to reset your password for your CureBasket account.</p>
+        <p>Please use the following 6-digit One-Time Password (OTP) to reset your password. This OTP is valid for <strong>10 minutes</strong>:</p>
+        <div style="background:#f0fafa;text-align:center;padding:15px;font-size:32px;font-weight:bold;letter-spacing:6px;color:#006D6D;border-radius:8px;margin:20px 0;">
+          ${otp}
+        </div>
+        <p style="color:#777;font-size:12px;">If you did not request this password reset, please ignore this email or contact support if you have concerns.</p>
+      </div>
+    `;
+
+    await sendEmail({ to: user.email, subject: 'CureBasket — Password Reset OTP', html });
+
+    res.status(200).json({ success: true, message: 'If that email exists, an OTP has been sent.' });
+  } catch (err) {
+    // Clear OTP fields on error
+    await User.findOneAndUpdate(
+      { email: req.body.email },
+      { resetPasswordOTP: undefined, resetPasswordOTPExpire: undefined }
+    );
+    res.status(500).json({ success: false, error: 'Email could not be sent. Please try again.' });
+  }
+};
+
+// @desc    Verify password reset OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+exports.verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, error: 'Please provide email and OTP' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Invalid email or OTP.' });
+    }
+
+    const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
+
+    if (user.resetPasswordOTP !== hashedOtp || user.resetPasswordOTPExpire < Date.now()) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired OTP.' });
+    }
+
+    res.status(200).json({ success: true, message: 'OTP verified successfully.' });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+// @desc    Reset password using OTP
+// @route   POST /api/auth/reset-password-otp
+// @access  Public
+exports.resetPasswordOTP = async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+    if (!email || !otp || !password) {
+      return res.status(400).json({ success: false, error: 'Please provide email, OTP, and password' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Invalid email or OTP.' });
+    }
+
+    const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
+
+    if (user.resetPasswordOTP !== hashedOtp || user.resetPasswordOTPExpire < Date.now()) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired OTP.' });
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpire = undefined;
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password reset successful.' });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
 exports.logout = (req, res) => {
   res.cookie('cb_token', '', { ...COOKIE_OPTIONS, maxAge: 0 })
     .status(200)

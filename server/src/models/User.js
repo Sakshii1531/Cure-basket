@@ -57,6 +57,8 @@ const userSchema = new mongoose.Schema({
   // Password reset
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  resetPasswordOTP: String,
+  resetPasswordOTPExpire: Date,
   createdAt: {
     type: Date,
     default: Date.now,
@@ -78,6 +80,13 @@ userSchema.methods.getResetPasswordToken = function () {
   this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
   return resetToken;
+};
+
+userSchema.methods.getResetPasswordOTP = function () {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  this.resetPasswordOTP = crypto.createHash('sha256').update(otp).digest('hex');
+  this.resetPasswordOTPExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return otp;
 };
 
 // Returns true if the user can perform `action` on `module`
