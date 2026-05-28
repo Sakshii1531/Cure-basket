@@ -40,21 +40,26 @@ exports.getUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+
     // Prevent escalation: only superadmin may promote to superadmin
     if (req.body.role === 'superadmin' && req.user.role !== 'superadmin') {
       return res.status(403).json({ success: false, error: 'Only superadmin can assign superadmin role' });
     }
 
-    const ALLOWED = ['name', 'phone', 'address', 'role', 'customRole', 'isActive'];
-    const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => ALLOWED.includes(k)));
+    const ALLOWED = ['name', 'email', 'phone', 'address', 'role', 'customRole', 'password'];
+    
+    ALLOWED.forEach(field => {
+      if (req.body[field] !== undefined) {
+        user[field] = req.body[field];
+      }
+    });
 
-    const user = await User.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-      runValidators: true,
-    }).select('-password').populate('customRole', 'name');
-
-    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
-    res.status(200).json({ success: true, data: user });
+    await user.save();
+    
+    const updatedUser = await User.findById(user._id).select('-password').populate('customRole', 'name');
+    res.status(200).json({ success: true, data: updatedUser });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });
   }
@@ -71,5 +76,39 @@ exports.deleteUser = async (req, res) => {
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
     res.status(500).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+exports.createUser = async (req, res) => {
+  try {
+    // Only superadmin can create a superadmin
+    if (req.body.role === 'superadmin' && req.user.role !== 'superadmin') {
+      return res.status(403).json({ success: false, error: 'Only superadmin can create superadmin accounts' });
+    }
+
+    const { name, email, password, phone, role, customRole, address } = req.body;
+
+    // Check if user email already exists
+    const emailExists = await User.findOne({ email });
+    if (emailExists) {
+      return res.status(400).json({ success: false, error: 'Email already exists' });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phone,
+      role,
+      customRole: customRole || null,
+      address
+    });
+
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    res.status(201).json({ success: true, data: userObj });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
