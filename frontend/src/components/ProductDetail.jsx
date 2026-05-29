@@ -108,6 +108,36 @@ function ProductDetail({ onBack }) {
 
   // Reset state when product changes
   const [recommended, setRecommended] = useState([])
+  const [isWishlisted, setIsWishlisted] = useState(false)
+
+  useEffect(() => {
+    if (!product?._id) return
+    const wishlist = JSON.parse(localStorage.getItem('cb_wishlist') || '[]')
+    setIsWishlisted(wishlist.some(item => String(item._id) === String(product._id)))
+  }, [product?._id])
+
+  const toggleWishlist = (e) => {
+    e.stopPropagation()
+    if (!product?._id) return
+    const wishlist = JSON.parse(localStorage.getItem('cb_wishlist') || '[]')
+    let updated = []
+    if (isWishlisted) {
+      updated = wishlist.filter(item => String(item._id) !== String(product._id))
+      setIsWishlisted(false)
+      toast.success('Removed from wishlist')
+    } else {
+      updated = [...wishlist, { 
+        _id: product._id, 
+        name: product.name || product.title, 
+        image: product.image, 
+        price: product.price, 
+        genericName: product.genericName || product.genericFor || ''
+      }]
+      setIsWishlisted(true)
+      toast.success('Added to wishlist')
+    }
+    localStorage.setItem('cb_wishlist', JSON.stringify(updated))
+  }
 
   useEffect(() => {
     const newOptions = getPackageOptions()
@@ -451,8 +481,17 @@ function ProductDetail({ onBack }) {
                 <span className="bg-[#006D6D] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 md:px-3 py-1 rounded-full shadow-lg">BEST SELLER</span>
               </div>
               <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20">
-                <button className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                <button 
+                  onClick={toggleWishlist}
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full border flex items-center justify-center transition-all ${
+                    isWishlisted 
+                      ? 'bg-red-50 text-red-500 border-red-200 shadow-sm' 
+                      : 'bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 border-gray-100'
+                  }`}
+                >
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
                 </button>
               </div>
 

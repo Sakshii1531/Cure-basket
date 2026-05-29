@@ -11,6 +11,40 @@ const AccountPage = () => {
   const [loadingOrders, setLoadingOrders] = useState(true)
   
   const [addresses, setAddresses] = useState([])
+  const [wishlistItems, setWishlistItems] = useState([])
+
+  useEffect(() => {
+    if (activeTab === 'Wishlist') {
+      const list = JSON.parse(localStorage.getItem('cb_wishlist') || '[]')
+      setWishlistItems(list)
+    }
+  }, [activeTab])
+
+  const [showAddressModal, setShowAddressModal] = useState(false)
+  const [addressForm, setAddressForm] = useState({
+    name: '',
+    street: '',
+    city: '',
+    phone: ''
+  })
+  const [addressSaving, setAddressSaving] = useState(false)
+  const [addressError, setAddressError] = useState('')
+
+  const handleAddAddressSubmit = async (e) => {
+    e.preventDefault()
+    setAddressSaving(true)
+    setAddressError('')
+    try {
+      const res = await api.post('/auth/me/addresses', addressForm)
+      setAddresses(res.data.addresses)
+      setShowAddressModal(false)
+      setAddressForm({ name: '', street: '', city: '', phone: '' })
+    } catch (err) {
+      setAddressError(err.response?.data?.error || 'Failed to save address. Please try again.')
+    } finally {
+      setAddressSaving(false)
+    }
+  }
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -108,30 +142,6 @@ const AccountPage = () => {
       )
     },
     {
-      label: 'Refill Reminder',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-      )
-    },
-    {
-      label: 'Rewards Points',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-        </svg>
-      )
-    },
-    {
-      label: 'Referral Program',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-      )
-    },
-    {
       label: 'Wishlist',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -144,14 +154,6 @@ const AccountPage = () => {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.258.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.551-.387-1.81.588-1.81h4.906a1 1 0 00.95-.69l1.519-4.674z"/>
-        </svg>
-      )
-    },
-    {
-      label: 'Service Reviews',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
         </svg>
       )
     },
@@ -234,39 +236,55 @@ const AccountPage = () => {
             </div>
           </div>
         )
-      case 'Refill Reminder':
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] font-sans">
-            <div className="bg-[#fffdf8] border border-[#fbf2e3] rounded p-4 text-[#7d5b24] text-[14.5px] flex items-center gap-2.5">
-              <span className="text-[18px] shrink-0">⚠️</span>
-              <span className="font-semibold">You have no active refill reminders.</span>
-            </div>
-          </div>
-        )
-      case 'Rewards Points':
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] flex flex-col justify-center items-center text-center p-8 font-sans">
-            <div className="w-16 h-16 bg-[#e6f2f2] rounded-full flex items-center justify-center text-[#006D6D] mb-4 text-[24px]">🎯</div>
-            <h3 className="text-[18px] font-semibold text-gray-800">Your Rewards Balance</h3>
-            <p className="text-[32px] font-bold text-[#006D6D] mt-1">0 Points</p>
-            <p className="text-[13px] text-gray-400 mt-2 max-w-sm">Earn points on every order and redeem them for exclusive discounts.</p>
-          </div>
-        )
-      case 'Referral Program':
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] flex flex-col justify-center items-center text-center p-8 font-sans">
-            <div className="w-16 h-16 bg-[#e6f2f2] rounded-full flex items-center justify-center text-[#006D6D] mb-4 text-[24px]">👥</div>
-            <h3 className="text-[18px] font-semibold text-gray-800">Refer & Earn</h3>
-            <p className="text-[13.5px] text-gray-500 mt-2 max-w-sm">Invite your friends to CureBasket. When they place their first order, you both get 500 bonus points!</p>
-            <button className="mt-4 bg-[#006D6D] hover:bg-[#005a5a] text-white px-6 py-2.5 rounded-md text-[14px] font-semibold transition-all font-sans">Get Referral Link</button>
-          </div>
-        )
+
       case 'Wishlist':
+        if (wishlistItems.length === 0) {
+          return (
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] font-sans">
+              <div className="bg-[#fffdf8] border border-[#fbf2e3] rounded p-4 text-[#7d5b24] text-[14.5px] flex items-center gap-2.5">
+                <span className="text-[18px] shrink-0">⚠️</span>
+                <span className="font-semibold">Your wishlist is currently empty.</span>
+              </div>
+            </div>
+          )
+        }
         return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] font-sans">
-            <div className="bg-[#fffdf8] border border-[#fbf2e3] rounded p-4 text-[#7d5b24] text-[14.5px] flex items-center gap-2.5">
-              <span className="text-[18px] shrink-0">⚠️</span>
-              <span className="font-semibold">Your wishlist is currently empty.</span>
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] space-y-4 font-sans">
+            <h3 className="text-[17px] font-bold text-gray-800 border-b border-gray-100 pb-2 mb-4">Your Wishlist</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {wishlistItems.map((item) => (
+                <div key={item._id} className="border border-gray-150 rounded-xl p-4 bg-white hover:border-gray-300 transition-all flex items-center gap-4 relative">
+                  <div className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden">
+                    <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" />
+                  </div>
+                  <div className="flex-1 min-w-0 pr-6">
+                    <h4 className="text-[14px] font-bold text-gray-900 truncate">{item.name}</h4>
+                    {item.genericName && (
+                      <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.genericName}</p>
+                    )}
+                    <p className="text-[14px] font-bold text-[#006D6D] mt-2">₹{item.price}</p>
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    <button 
+                      onClick={() => navigate(`/product/${item.name.replace(/\s+/g, '-').toLowerCase()}`, { state: { product: item } })}
+                      className="bg-[#E6F7F7] text-[#006D6D] hover:bg-[#CFF4F4] px-3 py-1.5 rounded-md text-[11px] font-bold transition-all"
+                    >
+                      View
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const updated = wishlistItems.filter(i => String(i._id) !== String(item._id))
+                        setWishlistItems(updated)
+                        localStorage.setItem('cb_wishlist', JSON.stringify(updated))
+                      }}
+                      className="text-red-500 hover:text-red-700 text-[11px] font-bold hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )
@@ -279,15 +297,7 @@ const AccountPage = () => {
             </div>
           </div>
         )
-      case 'Service Reviews':
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] font-sans">
-            <div className="bg-[#fffdf8] border border-[#fbf2e3] rounded p-4 text-[#7d5b24] text-[14.5px] flex items-center gap-2.5">
-              <span className="text-[18px] shrink-0">⚠️</span>
-              <span className="font-semibold">You have not submitted any service reviews.</span>
-            </div>
-          </div>
-        )
+
       case 'Your Addresses':
         return (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] space-y-6 font-sans">
@@ -311,7 +321,7 @@ const AccountPage = () => {
                 ))}
               </div>
             )}
-            <button onClick={() => navigate('/checkout')} className="mt-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-md text-[14px] font-semibold transition-all font-sans">Manage Addresses</button>
+            <button onClick={() => setShowAddressModal(true)} className="mt-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-md text-[14px] font-semibold transition-all font-sans">+ Add New Address</button>
           </div>
         )
       case 'Edit Profile':
@@ -595,10 +605,10 @@ const AccountPage = () => {
 
                   <div className="border-t border-gray-100 pt-4">
                     <button 
-                      onClick={() => navigate('/checkout')} 
+                      onClick={() => setShowAddressModal(true)} 
                       className="text-[13.5px] font-bold text-[#006D6D] hover:underline flex items-center gap-1 uppercase tracking-wider font-sans"
                     >
-                      <span className="text-[15px] font-bold font-sans">+</span> Manage Addresses
+                      <span className="text-[15px] font-bold font-sans">+</span> Add New Address
                     </button>
                   </div>
                 </div>
@@ -616,6 +626,109 @@ const AccountPage = () => {
         </div>
 
       </div>
+
+      {/* ══════════════ ADD ADDRESS MODAL ══════════════ */}
+      {showAddressModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setShowAddressModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px] transition-opacity" 
+          />
+          
+          {/* Modal Content Card */}
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all border border-gray-100 font-sans">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#006D6D] to-[#005a5a] px-6 py-4 flex items-center justify-between text-white">
+              <h3 className="text-[16px] font-bold tracking-tight">Add New Shipping Address</h3>
+              <button 
+                onClick={() => setShowAddressModal(false)}
+                className="text-white/80 hover:text-white text-[18px] leading-none transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {addressError && (
+              <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 text-[13px] px-4 py-2.5 rounded-lg font-medium">
+                {addressError}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleAddAddressSubmit} className="p-6 space-y-4 font-sans text-[13.5px]">
+              <div>
+                <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">Address Label / Name (e.g. Home, Office)<span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Home, Work"
+                  value={addressForm.name} 
+                  onChange={(e) => setAddressForm({...addressForm, name: e.target.value})}
+                  className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
+                />
+              </div>
+
+              <div>
+                <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">Street Address / Area<span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Street No, Building Name, Area"
+                  value={addressForm.street} 
+                  onChange={(e) => setAddressForm({...addressForm, street: e.target.value})}
+                  className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">City / Town<span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. Delhi, Mumbai"
+                    value={addressForm.city} 
+                    onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
+                    className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
+                  />
+                </div>
+                <div>
+                  <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">Phone Number<span className="text-red-500">*</span></label>
+                  <input 
+                    type="tel" 
+                    required
+                    pattern="[0-9]{10}"
+                    placeholder="10-digit number"
+                    value={addressForm.phone} 
+                    onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
+                    className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 font-sans">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddressModal(false)}
+                  className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={addressSaving}
+                  className="px-5 py-2 bg-[#006D6D] text-white rounded-lg font-semibold hover:bg-[#005a5a] active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5"
+                >
+                  {addressSaving ? 'Saving...' : 'Save Address'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -17,7 +17,11 @@ const SignupPage = () => {
     if (!form.name.trim()) errs.name = 'Full name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
-    if (form.phone && !/^[+]?[\d\s\-().]{7,20}$/.test(form.phone)) errs.phone = 'Enter a valid phone number'
+    if (!form.phone.trim()) {
+      errs.phone = 'Phone number is required'
+    } else if (!/^[+]?[\d\s\-().]{7,20}$/.test(form.phone)) {
+      errs.phone = 'Enter a valid phone number'
+    }
     if (!form.password || form.password.length < 8) {
       errs.password = 'Min 8 characters'
     }
@@ -39,7 +43,7 @@ const SignupPage = () => {
       await register(form.name, form.email, form.password, form.phone)
       const from = typeof location.state?.from === 'string'
         ? location.state.from
-        : (location.state?.from?.pathname || '/account')
+        : (location.state?.from?.pathname || '/')
       navigate(from)
     } catch (err) {
       setApiError(err.response?.data?.error || 'Something went wrong. Please try again.')
@@ -107,7 +111,7 @@ const SignupPage = () => {
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-0.5 block">Phone (Optional)</label>
+            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-0.5 block">Phone Number</label>
             <input
               name="phone"
               value={form.phone}
