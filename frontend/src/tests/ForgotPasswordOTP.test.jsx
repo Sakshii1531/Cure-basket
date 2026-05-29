@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { AuthProvider } from '../context/AuthContext';
+import { MemoryRouter } from 'react-router-dom';
 import LoginModal from '../components/LoginModal';
 import api from '../utils/api';
 
@@ -36,9 +37,11 @@ describe('LoginModal Forgot Password OTP Flow', () => {
 
   const renderComponent = () => {
     return render(
-      <AuthProvider>
-        <LoginModal />
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <LoginModal />
+        </AuthProvider>
+      </MemoryRouter>
     );
   };
 

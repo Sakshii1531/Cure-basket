@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import med1 from '../assets/med1.png'
 
 const Review = () => {
@@ -211,7 +211,7 @@ const Review = () => {
                 {agreed && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </div>
               <span className="text-[12px] text-gray-500 leading-relaxed">
-                I have read and agree to the <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">Terms & Conditions</span> and <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">Privacy Policy</span>
+                I have read and agree to the <Link to="/terms-conditions" target="_blank" className="text-[#006D6D] font-bold hover:underline">Terms & Conditions</Link> and <Link to="/privacy-policy" target="_blank" className="text-[#006D6D] font-bold hover:underline">Privacy Policy</Link>
               </span>
             </label>
             {agreeError && <p className="text-[11px] text-red-500 mt-1 ml-8">Please accept the terms to continue</p>}

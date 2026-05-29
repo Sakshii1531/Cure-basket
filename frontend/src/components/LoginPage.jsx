@@ -151,8 +151,8 @@ const LoginPage = () => {
       
       <p className="mt-6 text-center text-[11px] text-gray-400 font-medium">
         By continuing, you agree to our{' '}
-        <span className="text-primary font-bold cursor-pointer">Terms</span> &{' '}
-        <span className="text-primary font-bold cursor-pointer">Privacy</span>
+        <Link to="/terms-conditions" className="text-primary font-bold hover:underline">Terms</Link> &{' '}
+        <Link to="/privacy-policy" className="text-primary font-bold hover:underline">Privacy Policy</Link>
       </p>
     </div>
   )
