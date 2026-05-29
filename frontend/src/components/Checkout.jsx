@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
@@ -44,6 +44,42 @@ const Checkout = () => {
   const [cityField, setCityField] = useState('')
   const [stateField, setStateField] = useState('Alabama')
   const [saveInAddressBook, setSaveInAddressBook] = useState(true)
+
+  const fileInputRef = React.useRef(null)
+  const [selectedRxFile, setSelectedRxFile] = useState(null)
+  const [uploadingRx, setUploadingRx] = useState(false)
+  const [rxError, setRxError] = useState('')
+  const [uploadedRxId, setUploadedRxId] = useState(null)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      setRxError('File size exceeds 5MB limit.')
+      return
+    }
+    setSelectedRxFile(file)
+    setRxError('')
+    setUploadingRx(true)
+    const formData = new FormData()
+    formData.append('prescription', file)
+    try {
+      const res = await api.post('/prescriptions', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      if (res.data?.success) {
+        setUploadedRxId(res.data.data?._id || res.data.data?.id)
+        setUploadSuccess(true)
+      }
+    } catch (err) {
+      setRxError(err.response?.data?.error || 'Upload failed. Please try again.')
+      setSelectedRxFile(null)
+      setUploadSuccess(false)
+    } finally {
+      setUploadingRx(false)
+    }
+  }
 
   const handleInlineAddNew = () => {
     setEditingAddress(null)
@@ -211,7 +247,7 @@ const Checkout = () => {
       })
       if (res.data.success) {
         setAppliedCoupon(res.data.data)
-        setCouponSuccess(`Coupon "${res.data.data.code}" applied! Discount: ₹${res.data.data.discount}`)
+        setCouponSuccess(`Coupon "${res.data.data.code}" applied! Discount: $${res.data.data.discount}`)
       }
     } catch (err) {
       setCouponError(err.response?.data?.error || 'Invalid coupon code')
@@ -527,7 +563,7 @@ const Checkout = () => {
 
                       {/* Country */}
                       <div className="relative mt-2">
-                        <label className="absolute top-[-7px] left-3 bg-white px-1.5 text-[11px] font-bold text-gray-500">
+                        <label className="absolute top-[-7px] left-3 bg-white px-1.5 text-[11px] font-bold text-gray-500 z-10">
                           Country <span className="text-red-500">*</span>
                         </label>
                         <div className="relative flex items-center">
@@ -568,7 +604,7 @@ const Checkout = () => {
 
                       {/* State */}
                       <div className="relative mt-2">
-                        <label className="absolute top-[-7px] left-3 bg-white px-1.5 text-[11px] font-bold text-gray-500">
+                        <label className="absolute top-[-7px] left-3 bg-white px-1.5 text-[11px] font-bold text-gray-500 z-10">
                           State <span className="text-red-500">*</span>
                         </label>
                         <div className="relative flex items-center">
@@ -815,13 +851,60 @@ const Checkout = () => {
                   </div>
                   <div>
                     <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Doctor's Prescription (Optional / Required for Prescription Medicines)</label>
-                    <div className="border-2 border-dashed border-gray-200 rounded-[12px] p-6 text-center bg-gray-50 hover:bg-gray-100/50 transition-colors cursor-pointer">
-                      <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                      </svg>
-                      <span className="text-[13px] font-bold text-gray-600">Choose file or drag here to upload</span>
-                      <p className="text-[10px] text-gray-400 mt-1">PDF, JPG, PNG up to 5MB</p>
+                    <div
+                      onClick={() => !uploadingRx && !uploadSuccess && fileInputRef.current.click()}
+                      className={`border-2 border-dashed rounded-[12px] p-6 text-center bg-gray-50 transition-colors ${uploadSuccess ? 'border-green-400 bg-green-50/10' : 'border-gray-200 hover:bg-gray-100/50 cursor-pointer'}`}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf"
+                        className="hidden"
+                      />
+                      {uploadingRx ? (
+                        <div className="flex flex-col items-center justify-center py-2">
+                          <svg className="animate-spin h-8 w-8 text-[#006D6D] mb-2" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          <span className="text-[13px] font-bold text-gray-600 animate-pulse">Uploading prescription...</span>
+                        </div>
+                      ) : uploadSuccess ? (
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 shadow-md shadow-green-500/20">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <span className="text-[13.5px] font-bold text-gray-900 truncate max-w-[280px]">{selectedRxFile?.name}</span>
+                          <p className="text-[11px] text-green-600 font-bold mt-1">Uploaded successfully!</p>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedRxFile(null)
+                              setUploadedRxId(null)
+                              setUploadSuccess(false)
+                              setRxError('')
+                              if (fileInputRef.current) fileInputRef.current.value = ''
+                            }}
+                            className="mt-3 text-red-500 hover:text-red-700 text-[11px] font-black uppercase tracking-wider hover:underline"
+                          >
+                            Remove file
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                          </svg>
+                          <span className="text-[13px] font-bold text-gray-600">Choose file or drag here to upload</span>
+                          <p className="text-[10px] text-gray-400 mt-1">PDF, JPG, PNG up to 5MB</p>
+                        </>
+                      )}
                     </div>
+                    {rxError && <p className="text-[11px] text-red-500 font-bold mt-1.5">{rxError}</p>}
                   </div>
                 </div>
                 
@@ -984,7 +1067,7 @@ const Checkout = () => {
                             .then(res => {
                               if (res.data.success) {
                                 setAppliedCoupon(res.data.data)
-                                setCouponSuccess(`Coupon "${res.data.data.code}" applied! Discount: ₹${res.data.data.discount}`)
+                                setCouponSuccess(`Coupon "${res.data.data.code}" applied! Discount: $${res.data.data.discount}`)
                               }
                             })
                             .catch(err => {
@@ -1005,7 +1088,7 @@ const Checkout = () => {
                       >
                         <div className="flex-1 min-w-0 text-left">
                           <div className="text-[13px] font-black text-gray-800">
-                            {coupon.discountType === 'percent' ? `${coupon.value}% OFF on all Products` : `Flat ₹${coupon.value} OFF`}
+                            {coupon.discountType === 'percent' ? `${coupon.value}% OFF on all Products` : `Flat $${coupon.value} OFF`}
                           </div>
                           <div className="mt-2.5">
                             <span className="border border-gray-300 rounded-[4px] px-2.5 py-1 text-[11px] font-black text-gray-600 bg-gray-50 select-all uppercase">
@@ -1045,9 +1128,9 @@ const Checkout = () => {
             {/* Free comprehensive insurance coverage */}
             <div className="border-t border-gray-150 pt-4 pb-1 text-[12px] font-semibold text-gray-500 leading-normal">
               Free comprehensive insurance coverage
-              <a href="#insurance" className="text-blue-500 hover:text-blue-700 underline font-bold ml-1.5">
+              <Link to="/insurance-coverage" className="text-blue-500 hover:text-blue-700 underline font-bold ml-1.5">
                 Know More
-              </a>
+              </Link>
             </div>
 
             {/* Order Total final row */}

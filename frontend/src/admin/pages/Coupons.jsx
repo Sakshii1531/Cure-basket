@@ -75,7 +75,7 @@ function Coupons() {
     }
   };
 
-  const fmt = (c) => c.discountType === 'percent' ? `${c.value}%` : `₹${c.value}`;
+  const fmt = (c) => c.discountType === 'percent' ? `${c.value}%` : `$${c.value}`;
 
   return (
     <div className="space-y-6">
@@ -121,8 +121,8 @@ function Coupons() {
               {coupons.map((c) => (
                 <tr key={c._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-bold text-gray-900 font-mono">{c.code}</td>
-                  <td className="px-6 py-4 font-semibold">{fmt(c)}{c.maxDiscount ? ` (max ₹${c.maxDiscount})` : ''}</td>
-                  <td className="px-6 py-4">₹{c.minOrder}</td>
+                  <td className="px-6 py-4 font-semibold">{fmt(c)}{c.maxDiscount ? ` (max $${c.maxDiscount})` : ''}</td>
+                  <td className="px-6 py-4">${c.minOrder}</td>
                   <td className="px-6 py-4">{c.usedCount}/{c.usageLimit ?? '∞'}</td>
                   <td className="px-6 py-4">{c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : '—'}</td>
                   <td className="px-6 py-4">
@@ -170,7 +170,7 @@ function Coupons() {
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Discount Type</label>
                   <select value={current.discountType} onChange={e => setCurrent({...current, discountType: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="percent">Percentage (%)</option>
-                    <option value="flat">Flat Amount (₹)</option>
+                    <option value="flat">Flat Amount ($)</option>
                   </select>
                 </div>
                 <div>
@@ -180,11 +180,11 @@ function Coupons() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-1">Min Order (₹)</label>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1">Min Order ($)</label>
                   <input type="number" min="0" value={current.minOrder} onChange={e => setCurrent({...current, minOrder: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 block mb-1">Max Discount (₹) <span className="text-gray-400 font-normal">optional</span></label>
+                  <label className="text-sm font-semibold text-gray-700 block mb-1">Max Discount ($) <span className="text-gray-400 font-normal">optional</span></label>
                   <input type="number" min="0" value={current.maxDiscount} onChange={e => setCurrent({...current, maxDiscount: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="No cap" />
                 </div>
               </div>

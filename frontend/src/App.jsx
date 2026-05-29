@@ -74,6 +74,7 @@ import CancellationPolicyPage from './components/CancellationPolicyPage'
 import FAQsPage from './components/FAQsPage'
 import ReviewGuidelinesPage from './components/ReviewGuidelinesPage'
 import IndianPharmaciesPage from './components/IndianPharmaciesPage'
+import InsuranceCoveragePage from './components/InsuranceCoveragePage'
 
 const AdminLayout = lazy(() => import('./admin/layout/AdminLayout'))
 const Dashboard = lazy(() => import('./admin/pages/Dashboard'))
@@ -191,7 +192,7 @@ function AppContent() {
     '/all-reviews', '/best-sellers', '/all-brands', '/all-products', '/blogs',
     '/about-us', '/site-map', '/terms-conditions', '/privacy-policy', '/disclaimer', '/articles',
     '/referral', '/how-to-order', '/refund-policy', '/cancellation-policy', '/faqs',
-    '/review-guidelines', '/about-indian-pharmacies'
+    '/review-guidelines', '/about-indian-pharmacies', '/insurance-coverage'
   ].includes(location.pathname)
     || location.pathname.startsWith('/category/')
     || location.pathname.startsWith('/product/')
@@ -275,6 +276,7 @@ function AppContent() {
         <Route path="/faqs" element={<FAQsPage />} />
         <Route path="/review-guidelines" element={<ReviewGuidelinesPage />} />
         <Route path="/about-indian-pharmacies" element={<IndianPharmaciesPage />} />
+        <Route path="/insurance-coverage" element={<InsuranceCoveragePage />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<Suspense fallback={<AdminSpinner />}><AdminLogin /></Suspense>} />
