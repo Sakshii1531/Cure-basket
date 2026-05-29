@@ -6,6 +6,7 @@ function FooterNewsletter() {
     { name: 'About Us', path: '/about-us' },
     { name: 'Site Map', path: '/site-map' },
     { name: 'Terms And Conditions', path: '/terms-conditions' },
+    { name: 'Privacy Policy', path: '/privacy-policy' },
     { name: 'Disclaimer', path: '/disclaimer' },
     { name: 'Blog', path: '/blogs' },
     { name: 'Articles', path: '/articles' },
@@ -97,7 +98,7 @@ function FooterNewsletter() {
                   />
                   
                   <p className="text-[12px] leading-relaxed text-gray-500 font-medium">
-                    By providing your email, you consent to receive marketing communications from <span className="font-bold text-gray-700">CureBasket</span>. You can unsubscribe at any time. Read our <a href="#" className="underline">Terms</a> and <a href="#" className="underline">Privacy Policy</a>.
+                    By providing your email, you consent to receive marketing communications from <span className="font-bold text-gray-700">CureBasket</span>. You can unsubscribe at any time. Read our <Link to="/terms-conditions" className="underline hover:text-[#006D6D]">Terms</Link> and <Link to="/privacy-policy" className="underline hover:text-[#006D6D]">Privacy Policy</Link>.
                   </p>
 
                   <button className="w-full h-[50px] md:h-[54px] bg-[#006D6D] text-white rounded-xl font-bold text-[15px] md:text-[16px] hover:bg-[#005a5a] transition-all shadow-lg shadow-[#006D6D]/10">

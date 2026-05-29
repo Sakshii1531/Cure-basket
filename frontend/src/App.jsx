@@ -64,6 +64,7 @@ import RxPromptModal from './components/RxPromptModal'
 import AboutUsPage from './components/AboutUsPage'
 import SitemapPage from './components/SitemapPage'
 import TermsConditionsPage from './components/TermsConditionsPage'
+import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import DisclaimerPage from './components/DisclaimerPage'
 import ArticlesPage from './components/ArticlesPage'
 import ReferralPage from './components/ReferralPage'
@@ -188,7 +189,7 @@ function AppContent() {
     '/categories', '/orders', '/account', '/edit-profile', '/upload-rx', '/medicines',
     '/cart', '/checkout', '/payment', '/order-success', '/track-order',
     '/all-reviews', '/best-sellers', '/all-brands', '/all-products', '/blogs',
-    '/about-us', '/site-map', '/terms-conditions', '/disclaimer', '/articles',
+    '/about-us', '/site-map', '/terms-conditions', '/privacy-policy', '/disclaimer', '/articles',
     '/referral', '/how-to-order', '/refund-policy', '/cancellation-policy', '/faqs',
     '/review-guidelines', '/about-indian-pharmacies'
   ].includes(location.pathname)
@@ -264,6 +265,7 @@ function AppContent() {
         <Route path="/about-us" element={<AboutUsPage />} />
         <Route path="/site-map" element={<SitemapPage />} />
         <Route path="/terms-conditions" element={<TermsConditionsPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/articles" element={<ArticlesPage />} />
         <Route path="/referral" element={<ReferralPage />} />

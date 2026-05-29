@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
 
@@ -491,8 +492,8 @@ const LoginModal = () => {
 
             <p className="text-center text-[11px] text-gray-400 font-medium mt-3 pb-1">
               By continuing, you agree to our{' '}
-              <span className="text-[#006D6D] font-bold cursor-pointer">Terms</span> &{' '}
-              <span className="text-[#006D6D] font-bold cursor-pointer">Privacy Policy</span>
+              <Link to="/terms-conditions" onClick={() => setIsLoginModalOpen(false)} className="text-[#006D6D] font-bold hover:underline">Terms</Link> &{' '}
+              <Link to="/privacy-policy" onClick={() => setIsLoginModalOpen(false)} className="text-[#006D6D] font-bold hover:underline">Privacy Policy</Link>
             </p>
           </form>
         )}

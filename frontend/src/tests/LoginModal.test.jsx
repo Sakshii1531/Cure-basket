@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { AuthProvider } from '../context/AuthContext';
+import { MemoryRouter } from 'react-router-dom';
 import LoginModal from '../components/LoginModal';
 import api from '../utils/api';
 
@@ -40,9 +41,11 @@ vi.mock('../context/AuthContext', async (importOriginal) => {
 describe('LoginModal Confirm Password and Toggles', () => {
   const renderComponent = () => {
     return render(
-      <AuthProvider>
-        <LoginModal />
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <LoginModal />
+        </AuthProvider>
+      </MemoryRouter>
     );
   };
 
