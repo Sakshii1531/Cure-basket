@@ -1,34 +1,29 @@
-const dns = require('dns');
-const nodemailer = require('nodemailer');
-
-// Render (and some PaaS hosts) have no IPv6 outbound route. Without this,
-// Node may resolve Gmail to an IPv6 address and fail with ENETUNREACH.
-// Forcing IPv4-first resolution makes SMTP connect over a reachable route.
-dns.setDefaultResultOrder('ipv4first');
+const { Resend } = require('resend');
 
 const sendEmail = async ({ to, subject, html }) => {
-  const port = Number(process.env.SMTP_PORT) || 465;
+  // If the API key is not configured, throw a descriptive error to aid in debugging
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not defined in the environment variables.');
+  }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port,
-    secure: port === 465, // implicit TLS on 465; STARTTLS otherwise
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    // Fail fast instead of hanging if the SMTP port is blocked/filtered
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-  });
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-  await transporter.sendMail({
-    from: `"${process.env.FROM_NAME || 'CureBasket'}" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
-    to,
+  const fromName = process.env.FROM_NAME || 'CureBasket';
+  // Resend free tier/unverified domains require sending from 'onboarding@resend.dev'
+  const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+
+  const { data, error } = await resend.emails.send({
+    from: `${fromName} <${fromEmail}>`,
+    to: [to],
     subject,
     html,
   });
+
+  if (error) {
+    throw new Error(error.message || 'Unknown error occurred while sending email via Resend');
+  }
+
+  return data;
 };
 
 module.exports = sendEmail;
