@@ -145,7 +145,7 @@ function MainBannerCarousel() {
             slides.map((banner) => (
               <div
                 key={banner._id}
-                className="min-w-full rounded-3xl overflow-hidden relative min-h-65 md:min-h-90 cursor-pointer"
+                className="min-w-full rounded-3xl overflow-hidden relative h-56 sm:h-72 md:h-auto md:min-h-120 cursor-pointer"
                 onClick={() => banner.link && navigate(banner.link)}
               >
                 <img
@@ -153,13 +153,13 @@ function MainBannerCarousel() {
                   alt={banner.title}
                   className="w-full h-full object-cover absolute inset-0"
                 />
-                <div className="absolute inset-0 bg-linear-to-r from-black/40 to-transparent" />
-                <div className="absolute bottom-8 left-8 z-10">
-                  <h2 className="text-white text-[24px] md:text-[36px] font-bold drop-shadow-lg">{banner.title}</h2>
+                <div className="absolute inset-0 bg-linear-to-r from-black/50 to-transparent" />
+                <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-10 max-w-[70%]">
+                  <h2 className="text-white text-[16px] sm:text-[20px] md:text-[36px] font-bold drop-shadow-lg leading-tight">{banner.title}</h2>
                   {banner.link && (
-                    <span className="inline-flex items-center gap-2 mt-3 px-5 py-2.5 bg-white/90 text-gray-900 rounded-xl font-bold text-sm">
+                    <span className="inline-flex items-center gap-1.5 mt-2 md:mt-3 px-3 py-1.5 md:px-5 md:py-2.5 bg-white/90 text-gray-900 rounded-lg md:rounded-xl font-bold text-xs md:text-sm">
                       Shop Now
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                      <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
                     </span>
                   )}
                 </div>
@@ -170,34 +170,36 @@ function MainBannerCarousel() {
             slides.map((slide) => (
               <div
                 key={slide.id}
-                className="min-w-full rounded-3xl p-5 md:p-10 flex flex-col md:flex-row items-center relative overflow-hidden min-h-65 md:min-h-0"
+                className="min-w-full rounded-3xl p-4 md:p-10 flex flex-row md:flex-row items-center relative overflow-hidden min-h-0"
                 style={{ backgroundColor: slide.bg }}
               >
-                <div className="flex-1 z-10 text-center md:text-left">
-                  <h1 className="text-[24px] md:text-[40px] font-bold leading-tight">
+                {/* Left: Text content */}
+                <div className="flex-1 z-10 text-left">
+                  <h1 className="text-[18px] sm:text-[22px] md:text-[40px] font-bold leading-tight">
                     <span className="text-primary">{slide.heading1}</span><br />
                     <span style={{ color: slide.heading2Color }}>{slide.heading2}</span>
                   </h1>
-                  <p className="text-[13px] md:text-[16px] text-gray-700 mt-3 md:mt-4 max-w-100 mx-auto md:mx-0">
+                  <p className="hidden sm:block text-[12px] md:text-[16px] text-gray-700 mt-2 md:mt-4 max-w-100">
                     {slide.sub}
                   </p>
-                  <div className="mt-6 md:mt-8 flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                  <div className="mt-3 md:mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-6">
                     <button
                       onClick={() => navigate(slide.ctaPath)}
-                      className="w-full md:w-auto px-8 md:px-10 py-3 md:py-3.5 rounded-xl font-bold text-[14px] md:text-[16px] flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
+                      className="px-4 sm:px-8 md:px-10 py-2 md:py-3.5 rounded-lg md:rounded-xl font-bold text-[12px] md:text-[16px] flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 whitespace-nowrap"
                       style={{ backgroundColor: slide.btnBg, color: slide.btnColor }}
                     >
                       {slide.cta}
-                      <svg className="w-4 h-4 md:w-5 md:h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </button>
-                    <span className="text-primary font-semibold text-[12px] md:text-[14px] leading-tight">
+                    <span className="hidden sm:inline text-primary font-semibold text-[11px] md:text-[14px] leading-tight">
                       {slide.helper}
                     </span>
                   </div>
                 </div>
 
+                {/* Middle: Pillars — desktop only */}
                 <div className="hidden lg:flex flex-1 justify-center gap-8 z-10 px-4">
                   {slide.pillars.map((pillar, index) => (
                     <React.Fragment key={pillar.id}>
@@ -212,11 +214,12 @@ function MainBannerCarousel() {
                   ))}
                 </div>
 
-                <div className="flex-1 hidden md:flex justify-end relative z-10">
+                {/* Right: Image — visible on mobile too */}
+                <div className="flex-shrink-0 flex justify-end relative z-10 ml-2 md:ml-0 md:flex-1">
                   <div className="relative">
-                    <img src={slide.image} alt="Promotion" className="w-75 lg:w-120 object-contain" />
+                    <img src={slide.image} alt="Promotion" className="w-32 sm:w-48 md:w-75 lg:w-120 object-contain" />
                     <div
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 lg:w-64 h-48 lg:h-64 opacity-[0.05] rounded-full blur-3xl -z-10"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 md:w-48 lg:w-64 h-24 md:h-48 lg:h-64 opacity-[0.05] rounded-full blur-3xl -z-10"
                       style={{ backgroundColor: slide.blobColor }}
                     />
                   </div>
