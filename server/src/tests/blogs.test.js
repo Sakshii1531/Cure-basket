@@ -24,7 +24,9 @@ const elevate = () => User.updateOne({ email: VALID_USER.email }, { role: 'super
 
 const validBlog = () => ({
   title: 'Test Blog Post',
-  content: 'This is the blog content for testing purposes.',
+  sections: [
+    { title: 'Introduction', content: 'This is the blog content for testing purposes.' },
+  ],
 });
 
 beforeEach(login);
@@ -64,13 +66,13 @@ describe('POST /api/blogs', () => {
     expect(res.status).toBe(422);
   });
 
-  it('rejects missing content (422)', async () => {
+  it('rejects missing sections (422)', async () => {
     await elevate();
-    const { content, ...noContent } = validBlog();
+    const { sections, ...noSections } = validBlog();
     const res = await request(app)
       .post('/api/blogs')
       .set('Cookie', authCookie)
-      .send(noContent);
+      .send(noSections);
     expect(res.status).toBe(422);
   });
 });

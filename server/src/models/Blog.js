@@ -9,7 +9,7 @@ const blogSchema = new mongoose.Schema({
   title: { type: String, required: [true, 'Please add a title'], trim: true },
   slug: { type: String, unique: true, lowercase: true, trim: true },
   author: { type: String, default: 'CureBasket Team' },
-  coverImage: { type: String, default: '' },
+  image: { type: String, default: '' },
   sections: [sectionSchema],
   tags: [{ type: String, trim: true }],
   isPublished: { type: Boolean, default: false },
