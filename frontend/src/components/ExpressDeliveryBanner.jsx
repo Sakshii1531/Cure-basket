@@ -17,7 +17,7 @@ function ExpressDeliveryBanner() {
             {cms.description}
           </p>
           <div className="mt-8 flex flex-col md:flex-row items-center gap-4">
-            <button className="bg-[#006D6D] text-white px-8 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 hover:bg-[#005a5a] transition-all shadow-md">
+            <button className="bg-[#006D6D] text-white px-8 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 hover:bg-[#005a5a] transition-all">
               {cms.buttonText}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -29,7 +29,7 @@ function ExpressDeliveryBanner() {
 
         <div className="hidden lg:flex flex-1 justify-center gap-8 z-10 px-4">
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#FBB03B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -38,7 +38,7 @@ function ExpressDeliveryBanner() {
           </div>
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#006D6D]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
               </svg>
@@ -47,7 +47,7 @@ function ExpressDeliveryBanner() {
           </div>
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#FBB03B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

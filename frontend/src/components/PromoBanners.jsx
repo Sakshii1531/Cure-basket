@@ -19,7 +19,7 @@ const PromoBanners = () => {
             <p className="text-gray-600 text-[13px] md:text-[14px] mb-6 max-w-[180px]">
               {delivery.description}
             </p>
-            <button className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] flex items-center gap-2 shadow-sm hover:bg-[#005a5a] transition-all">
+            <button className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] flex items-center gap-2 hover:bg-[#005a5a] transition-all">
               {delivery.buttonText}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -41,7 +41,7 @@ const PromoBanners = () => {
             <p className="text-gray-600 text-[13px] md:text-[14px] mb-6 max-w-[180px]">
               {health.description}
             </p>
-            <button className="bg-[#3B82F6] text-white px-6 py-2.5 rounded-full font-bold text-[14px] flex items-center gap-2 shadow-sm hover:bg-[#2563eb] transition-all">
+            <button className="bg-[#3B82F6] text-white px-6 py-2.5 rounded-full font-bold text-[14px] flex items-center gap-2 hover:bg-[#2563eb] transition-all">
               {health.buttonText}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

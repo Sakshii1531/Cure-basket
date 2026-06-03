@@ -17,7 +17,7 @@ function QualityCareBanner() {
             {cms.description}
           </p>
           <div className="mt-8 flex flex-col md:flex-row items-center gap-4">
-            <button className="bg-[#FBB03B] text-white px-8 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 hover:bg-[#e6a035] transition-all shadow-md">
+            <button className="bg-[#FBB03B] text-white px-8 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 hover:bg-[#e6a035] transition-all">
               {cms.buttonText}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -29,7 +29,7 @@ function QualityCareBanner() {
 
         <div className="hidden lg:flex flex-1 justify-center gap-8 z-10 px-4">
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#FBB03B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581a2.25 2.25 0 003.182 0l4.318-4.318a2.25 2.25 0 000-3.182L11.159 3.659A2.25 2.25 0 009.568 3z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
@@ -39,7 +39,7 @@ function QualityCareBanner() {
           </div>
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#006D6D]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 5.714z" />
               </svg>
@@ -48,7 +48,7 @@ function QualityCareBanner() {
           </div>
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#FBB03B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.129-1.125V11.25c0-4.446-3.605-8.159-7.737-8.159H5.25m11.947 4.909c1.796 0 3.251 1.455 3.251 3.251m-12.33 3.398h13.848" />
               </svg>
