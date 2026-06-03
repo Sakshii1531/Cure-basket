@@ -153,9 +153,8 @@ function MainBannerCarousel() {
                   alt={banner.title}
                   className="w-full h-full object-cover absolute inset-0"
                 />
-                <div className="absolute inset-0 bg-linear-to-r from-black/50 to-transparent" />
                 <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-10 max-w-[70%]">
-                  <h2 className="text-white text-[16px] sm:text-[20px] md:text-[36px] font-bold drop-shadow-lg leading-tight">{banner.title}</h2>
+                  <h2 className="text-primary text-[16px] sm:text-[20px] md:text-[36px] font-bold leading-tight">{banner.title}</h2>
                   {banner.link && (
                     <span className="inline-flex items-center gap-1.5 mt-2 md:mt-3 px-3 py-1.5 md:px-5 md:py-2.5 bg-white/90 text-gray-900 rounded-lg md:rounded-xl font-bold text-xs md:text-sm">
                       Shop Now
@@ -185,7 +184,7 @@ function MainBannerCarousel() {
                   <div className="mt-3 md:mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-6">
                     <button
                       onClick={() => navigate(slide.ctaPath)}
-                      className="px-4 sm:px-8 md:px-10 py-2 md:py-3.5 rounded-lg md:rounded-xl font-bold text-[12px] md:text-[16px] flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 whitespace-nowrap"
+                      className="px-4 sm:px-8 md:px-10 py-2 md:py-3.5 rounded-lg md:rounded-xl font-bold text-[12px] md:text-[16px] flex items-center justify-center gap-1.5 transition-all active:scale-95 whitespace-nowrap"
                       style={{ backgroundColor: slide.btnBg, color: slide.btnColor }}
                     >
                       {slide.cta}
@@ -204,7 +203,7 @@ function MainBannerCarousel() {
                   {slide.pillars.map((pillar, index) => (
                     <React.Fragment key={pillar.id}>
                       <div className="flex flex-col items-center text-center min-w-25">
-                        <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+                        <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
                           <IconRenderer type={pillar.icon} color={pillar.color} />
                         </div>
                         <span className="text-[13px] font-bold text-gray-800 leading-tight whitespace-pre-line">{pillar.text}</span>
@@ -240,7 +239,7 @@ function MainBannerCarousel() {
             <button
               key={index}
               onClick={() => goTo(index)}
-              className={`h-2 md:h-2.5 rounded-full transition-all duration-500 ease-out shadow-sm ${currentSlide === index ? 'w-6 md:w-8 bg-primary' : 'w-2 md:w-2.5 bg-white/60 hover:bg-white'}`}
+              className={`h-2 md:h-2.5 rounded-full transition-all duration-500 ease-out ${currentSlide === index ? 'w-6 md:w-8 bg-primary' : 'w-2 md:w-2.5 bg-white/60 hover:bg-white'}`}
             />
           ))}
         </div>

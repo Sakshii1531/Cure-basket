@@ -17,7 +17,7 @@ function HealthCheckupBanner() {
             {cms.description}
           </p>
           <div className="mt-8 flex flex-col md:flex-row items-center gap-4">
-            <button className="bg-[#3B82F6] text-white px-8 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 hover:bg-[#2563eb] transition-all shadow-md">
+            <button className="bg-[#3B82F6] text-white px-8 py-3.5 rounded-[12px] font-bold text-[16px] flex items-center gap-2 hover:bg-[#2563eb] transition-all">
               {cms.buttonText}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -29,7 +29,7 @@ function HealthCheckupBanner() {
 
         <div className="hidden lg:flex flex-1 justify-center gap-8 z-10 px-4">
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#3B82F6]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
               </svg>
@@ -38,7 +38,7 @@ function HealthCheckupBanner() {
           </div>
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#006D6D]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 5.714z" />
               </svg>
@@ -47,7 +47,7 @@ function HealthCheckupBanner() {
           </div>
           <div className="h-16 w-[1px] bg-gray-300 self-center" />
           <div className="flex flex-col items-center text-center min-w-[100px]">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm mb-3">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3">
               <svg className="w-8 h-8 text-[#3B82F6]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

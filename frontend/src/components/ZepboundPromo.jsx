@@ -20,7 +20,7 @@ const ZepboundPromo = () => {
 
   return (
     <div className="bg-white pt-12 pb-0 px-4 md:px-12 mb-8">
-      <div className="max-w-[1300px] mx-auto overflow-hidden rounded-[32px] shadow-lg relative group">
+      <div className="max-w-[1300px] mx-auto overflow-hidden rounded-[32px] relative group">
         <div 
           className="flex transition-transform duration-700 ease-in-out" 
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}

@@ -14,7 +14,7 @@ function PrescriptionBanner() {
       <div className="max-w-[1250px] mx-auto bg-[#f0fafa] rounded-[24px] p-5 md:p-5 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
         {/* Left Side: Icon and Text */}
         <div className="flex items-center gap-4 md:gap-6 z-10 w-full md:w-auto">
-          <div className="w-14 h-14 md:w-20 md:h-20 bg-white rounded-[16px] flex items-center justify-center shadow-sm shrink-0">
+          <div className="w-14 h-14 md:w-20 md:h-20 bg-white rounded-[16px] flex items-center justify-center shrink-0">
             <svg className="w-8 h-8 md:w-12 md:h-12 text-[#006D6D]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 11h3m-3 3h2" />
