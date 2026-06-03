@@ -6,8 +6,16 @@ exports.createBlogRules = [
     .notEmpty().withMessage('Blog title is required')
     .isLength({ max: 200 }).withMessage('Title must be at most 200 characters'),
 
-  body('content')
-    .notEmpty().withMessage('Blog content is required'),
+  body('sections')
+    .isArray({ min: 1 }).withMessage('At least one section is required'),
+
+  body('sections.*.title')
+    .trim()
+    .notEmpty().withMessage('Section title is required'),
+
+  body('sections.*.content')
+    .trim()
+    .notEmpty().withMessage('Section content is required'),
 
   body('slug')
     .optional()
