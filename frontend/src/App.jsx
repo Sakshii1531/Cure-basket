@@ -55,6 +55,7 @@ import { Toaster } from 'sonner'
 import PrescriptionBanner from './components/PrescriptionBanner'
 import MainBannerCarousel from './components/MainBannerCarousel'
 import SupportModal from './components/SupportModal'
+import ChatWidget from './components/ChatWidget'
 import UploadRxPage from './components/UploadRxPage'
 import MedicinesPage from './components/MedicinesPage'
 import BlogsPage from './components/BlogsPage'
@@ -317,6 +318,8 @@ function AppContent() {
       </div>
       
       {!isAdminPage && !isAuthPage && <MobileBottomNav />}
+
+      {!isAdminPage && <ChatWidget />}
 
       <SupportModal 
         isOpen={isSupportModalOpen} 

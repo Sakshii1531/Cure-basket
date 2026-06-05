@@ -62,7 +62,7 @@ function AdminLayout() {
       {/* Sidebar */}
       <div className="w-64 bg-primary flex flex-col fixed h-full z-30 text-white">
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold text-white">Cure<span className="text-accent">Basket</span></Link>
+          <Link to="/admin" className="text-2xl font-bold text-white">Cure<span className="text-accent">Basket</span></Link>
           <span className="text-xs bg-white/20 text-white px-2 py-1 rounded-full font-bold">Admin</span>
         </div>
 
