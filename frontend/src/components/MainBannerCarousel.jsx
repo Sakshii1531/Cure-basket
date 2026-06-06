@@ -145,7 +145,7 @@ function MainBannerCarousel() {
             slides.map((banner) => (
               <div
                 key={banner._id}
-                className="min-w-full rounded-3xl overflow-hidden relative h-56 sm:h-72 md:h-auto md:min-h-120 cursor-pointer"
+                className="min-w-full rounded-3xl overflow-hidden relative h-40 sm:h-56 md:h-auto md:min-h-[350px] cursor-pointer"
                 onClick={() => banner.link && navigate(banner.link)}
               >
                 <img
@@ -169,7 +169,7 @@ function MainBannerCarousel() {
             slides.map((slide) => (
               <div
                 key={slide.id}
-                className="min-w-full rounded-3xl p-4 md:p-10 flex flex-row md:flex-row items-center relative overflow-hidden min-h-0"
+                className="min-w-full rounded-3xl p-4 md:p-6 lg:p-8 flex flex-row md:flex-row items-center relative overflow-hidden min-h-0"
                 style={{ backgroundColor: slide.bg }}
               >
                 {/* Left: Text content */}
@@ -216,9 +216,9 @@ function MainBannerCarousel() {
                 {/* Right: Image — visible on mobile too */}
                 <div className="flex-shrink-0 flex justify-end relative z-10 ml-2 md:ml-0 md:flex-1">
                   <div className="relative">
-                    <img src={slide.image} alt="Promotion" className="w-32 sm:w-48 md:w-75 lg:w-120 object-contain" />
+                    <img src={slide.image} alt="Promotion" className="w-28 sm:w-40 md:w-60 lg:w-96 object-contain" />
                     <div
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 md:w-48 lg:w-64 h-24 md:h-48 lg:h-64 opacity-[0.05] rounded-full blur-3xl -z-10"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 md:w-40 lg:w-52 h-20 md:h-40 lg:h-52 opacity-[0.05] rounded-full blur-3xl -z-10"
                       style={{ backgroundColor: slide.blobColor }}
                     />
                   </div>

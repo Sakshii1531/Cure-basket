@@ -18,15 +18,15 @@ const PopularBrands = () => {
   }, [])
 
   return (
-    <section className="bg-white pt-8 pb-2 md:py-12 px-4 md:px-12">
+    <section className="pt-8 pb-1 md:pt-12 md:pb-3 px-4 md:px-12">
       <div className="max-w-[1250px] mx-auto">
-        <div className="flex justify-between items-center mb-6 md:mb-8">
+        <div className="flex justify-between items-center mb-3 md:mb-4">
           <h2 className="text-[22px] md:text-[34px] font-semibold text-gray-900 tracking-tight">
             Popular Brands
           </h2>
           <button
             onClick={() => navigate('/all-brands')}
-            className="flex items-center gap-1 md:gap-2 text-[#006D6D] font-bold text-[14px] md:text-[16px] hover:underline"
+            className="flex items-center gap-1 md:gap-2 text-white bg-[#006D6D] font-bold text-[14px] md:text-[16px] border border-[#006D6D] px-3 py-1 md:px-4 md:py-1.5 rounded-full hover:bg-[#005a5a] transition-all"
           >
             View all
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

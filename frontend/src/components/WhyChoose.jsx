@@ -13,7 +13,7 @@ function WhyChoose() {
           Why Choose CureBasket?
         </h2>
 
-        <div className="flex flex-col lg:flex-row gap-6 md:gap-12 lg:gap-20 items-start mb-6 md:mb-14">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-12 lg:gap-20 items-start mb-4 md:mb-6">
           {/* Left: Benefit Icons */}
           <div className="w-full lg:w-[45%] flex justify-between items-start pt-0 md:pt-4 -mt-2.5 md:-mt-6">
             <div className="flex flex-col items-center text-center flex-1 px-2 group">
@@ -38,19 +38,18 @@ function WhyChoose() {
 
           {/* Right: Text */}
           <div className="w-full lg:w-[55%] space-y-2.5 md:space-y-4">
-            <p className="text-[13px] md:text-[15px] text-text-secondary leading-snug md:leading-relaxed font-medium text-justify">
+            <p className="text-[13px] md:text-[15px] text-[#4e5767] leading-snug md:leading-relaxed font-medium text-justify">
               We believe in directing our skills and expertise in delivering and developing quality, in online pharmacy services which is not gained by accident. Our promise to deliver and maintain the present quality of work forms the basis of our work philosophy, a claim endorsed by online pharmacy reviews.
             </p>
-            <p className="text-[13px] md:text-[15px] text-text-secondary leading-snug md:leading-relaxed font-medium text-justify">
+            <p className="text-[13px] md:text-[15px] text-[#4e5767] leading-snug md:leading-relaxed font-medium text-justify">
               We believe that as we develop our work quality we will be one step closer to helping you enrich your lives with good health and happiness. We wish to see our consumers to live life filled with long life and comforts. This is CureBasket's commitment towards the community...
             </p>
             {isExpanded && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-1.5 md:gap-y-3 pt-3 md:pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-1.5 md:gap-y-3 pt-1 md:pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="space-y-1.5 md:space-y-3">
                   {['Hassle-Free Service', 'Our Community', 'Medications', 'Best Buy at Best Prices', 'Referral Programme'].map(item => (
                     <div key={item} className="flex items-center gap-2.5 group cursor-pointer w-fit">
                       <span className="text-[12px] md:text-[13px] font-bold text-gray-700 group-hover:text-primary transition-colors">{item}</span>
-                      <svg className="w-2.5 h-2.5 text-[#f5b443]" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                     </div>
                   ))}
                 </div>
@@ -58,7 +57,6 @@ function WhyChoose() {
                   {['Savings and Safety', 'Information', 'Health Supplements', 'Reliability'].map(item => (
                     <div key={item} className="flex items-center gap-2.5 group cursor-pointer w-fit">
                       <span className="text-[12px] md:text-[13px] font-bold text-gray-700 group-hover:text-primary transition-colors">{item}</span>
-                      <svg className="w-2.5 h-2.5 text-[#f5b443]" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                     </div>
                   ))}
                 </div>

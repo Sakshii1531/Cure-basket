@@ -67,7 +67,7 @@ function ShopByCategory() {
         <h2 className="text-[28px] md:text-[44px] font-semibold text-[#004d4d] leading-tight mb-2 px-4">
           Category
         </h2>
-        <p className="text-gray-600 text-[14px] md:text-[18px] max-w-2xl mx-auto mb-8 md:mb-12 px-4 leading-relaxed">
+        <p className="text-[#4e5767] text-[13px] md:text-[15px] font-medium max-w-2xl mx-auto mb-8 md:mb-12 px-4 leading-relaxed">
           Includes a wide range of genuine medicines for daily health needs. Easy ordering with fast home delivery.
         </p>
 
