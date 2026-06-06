@@ -1,5 +1,5 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 // Use real admin credentials from env or fallback to dev defaults
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'superadmin@example.com';
@@ -38,7 +38,7 @@ test.describe('Admin flow', () => {
 
     // Should land on admin dashboard
     await expect(page).toHaveURL(/\/admin($|\/)/, { timeout: 10000 });
-    await expect(page.locator('text=Dashboard').or(page.locator('text=Analytics').or(page.locator('nav')))).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible({ timeout: 10000 });
   });
 
   test('admin medicines page loads', async ({ page }) => {
@@ -47,12 +47,12 @@ test.describe('Admin flow', () => {
     await page.getByPlaceholder(/admin@curebasket/i).fill(ADMIN_EMAIL);
     await page.getByPlaceholder(/••/i).fill(ADMIN_PASS);
     await page.getByRole('button', { name: /login as admin/i }).click();
-    await page.waitForURL(/\/admin($|\/)/, { timeout: 10000 });
+    // Wait for the dashboard to actually render (confirms auth finished) before
+    // navigating — the URL alone matches /admin/login too, racing the redirect.
+    await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible({ timeout: 10000 });
 
     // Navigate to medicines
     await page.goto('/admin/medicines');
-    await expect(
-      page.locator('text=Medicines').or(page.locator('text=Add Medicine').or(page.locator('table')))
-    ).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: /medicines management/i })).toBeVisible({ timeout: 10000 });
   });
 });

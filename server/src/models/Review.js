@@ -16,4 +16,8 @@ const reviewSchema = new mongoose.Schema({
 // One review per user per medicine
 reviewSchema.index({ user: 1, medicine: 1 }, { unique: true });
 
+// Public review listings: per-medicine approved reviews, and moderation queue.
+reviewSchema.index({ medicine: 1, status: 1, createdAt: -1 });
+reviewSchema.index({ status: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Review', reviewSchema);

@@ -153,4 +153,11 @@ medicineSchema.pre('findOneAndUpdate', async function () {
   if (upd.activeIngredient && !upd.saltComposition) upd.saltComposition = upd.activeIngredient;
 });
 
+// ── Indexes for the hot storefront queries (filter + sort) ──────────────────
+medicineSchema.index({ status: 1, createdAt: -1 });
+medicineSchema.index({ category: 1, status: 1 });
+medicineSchema.index({ brand: 1, status: 1 });
+medicineSchema.index({ isBestSeller: 1, status: 1 });
+medicineSchema.index({ isNewAndBest: 1, status: 1 });
+
 module.exports = mongoose.model('Medicine', medicineSchema);

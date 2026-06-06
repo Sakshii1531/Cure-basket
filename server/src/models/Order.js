@@ -47,4 +47,11 @@ const orderSchema = new mongoose.Schema({
   }
 });
 
+// ── Indexes ─────────────────────────────────────────────────────────────────
+// User order history (getMyOrders), admin filters, and analytics aggregations.
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1, createdAt: -1 });
+orderSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Order', orderSchema);

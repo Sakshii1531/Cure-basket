@@ -5,9 +5,12 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
+const { RedisStore } = require('rate-limit-redis');
+const compression = require('compression');
 const morgan = require('morgan');
 
 const connectDB = require('./config/db');
+const redis = require('./config/redis');
 const seedSuperAdmin = require('./utils/seed');
 
 // Load env vars
@@ -40,6 +43,10 @@ const app = express();
 // Trust the first proxy hop (Render's load balancer) so rate limiting
 // uses the real client IP from X-Forwarded-For, not the shared proxy IP.
 app.set('trust proxy', 1);
+
+// Gzip/brotli-compress all responses. Big win for JSON payloads (product lists,
+// category trees) — cuts bandwidth and time-to-first-byte for every client.
+app.use(compression());
 
 // Enable CORS
 const allowedOrigins = process.env.FRONTEND_ORIGIN
@@ -88,6 +95,13 @@ app.get('/api/health', (req, res) => {
 
 // Rate limiting — skip health check path as a belt-and-suspenders guard,
 // and raise the production cap so normal API usage isn't blocked.
+// When Redis is configured, share the limit counter across all PM2 cluster
+// workers via a Redis store; otherwise fall back to the per-process memory
+// store. (The disabled-Redis stub has no `.call`, so this check is safe.)
+const rateLimitStore = typeof redis.call === 'function'
+  ? new RedisStore({ sendCommand: (...args) => redis.call(...args), prefix: 'cb_rl_' })
+  : undefined;
+
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: process.env.NODE_ENV === 'development' ? 1000 : 300,
@@ -95,8 +109,16 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many requests, please try again later.' },
+  ...(rateLimitStore ? { store: rateLimitStore } : {}),
 });
-app.use(limiter);
+
+// Fail open: if the limiter's store errors (e.g. a Redis blip), let the request
+// through rather than 500-ing everyone. A 429 on a genuine limit hit is sent by
+// the limiter directly and never reaches this callback.
+app.use((req, res, next) => limiter(req, res, (err) => {
+  if (err) console.error('Rate limiter store error (failing open):', err.message);
+  next();
+}));
 
 
 
@@ -148,8 +170,11 @@ const server = app.listen(PORT, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
 
+// Log unhandled rejections but keep serving. A single stray background rejection
+// (e.g. a failed email send) should not drop every in-flight request by killing
+// the process. Genuinely fatal states are covered by PM2's auto-restart and
+// max_memory_restart guard in ecosystem.config.js.
 process.on('unhandledRejection', (err) => {
-  console.error(`Error: ${err.message}`);
-  server.close(() => process.exit(1));
+  console.error('Unhandled promise rejection:', err?.message || err);
 });
 

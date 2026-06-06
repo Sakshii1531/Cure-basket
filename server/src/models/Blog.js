@@ -30,4 +30,8 @@ blogSchema.pre('save', async function () {
   }
 });
 
+// ── Indexes ─────────────────────────────────────────────────────────────────
+blogSchema.index({ isPublished: 1, createdAt: -1 }); // public published feed
+blogSchema.index({ tags: 1 });                       // tag filter
+
 module.exports = mongoose.model('Blog', blogSchema);

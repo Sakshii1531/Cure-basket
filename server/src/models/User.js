@@ -98,4 +98,9 @@ userSchema.methods.can = function (module, action) {
   return perm ? perm.actions.includes(action) : false;
 };
 
+// ── Indexes ─────────────────────────────────────────────────────────────────
+// email already has a unique index. Add role for admin user-list filters and
+// analytics (counts of role: 'user', new signups this month).
+userSchema.index({ role: 1, createdAt: -1 });
+
 module.exports = mongoose.model('User', userSchema);
