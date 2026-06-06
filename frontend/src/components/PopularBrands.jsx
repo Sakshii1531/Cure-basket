@@ -18,18 +18,18 @@ const PopularBrands = () => {
   }, [])
 
   return (
-    <section className="pt-8 pb-1 md:pt-12 md:pb-3 px-4 md:px-12">
+    <section className="pt-3 pb-1 md:pt-12 md:pb-3 px-4 md:px-12">
       <div className="max-w-[1250px] mx-auto">
         <div className="flex justify-between items-center mb-3 md:mb-4">
-          <h2 className="text-[22px] md:text-[34px] font-semibold text-gray-900 tracking-tight">
+          <h2 className="text-[18px] md:text-[34px] font-semibold text-gray-900 tracking-tight">
             Popular Brands
           </h2>
           <button
             onClick={() => navigate('/all-brands')}
-            className="flex items-center gap-1 md:gap-2 text-white bg-[#006D6D] font-bold text-[14px] md:text-[16px] border border-[#006D6D] px-3 py-1 md:px-4 md:py-1.5 rounded-full hover:bg-[#005a5a] transition-all"
+            className="flex items-center gap-0.5 md:gap-2 text-white bg-[#006D6D] font-bold text-[11px] md:text-[16px] border border-[#006D6D] px-2 py-0.5 md:px-4 md:py-1.5 rounded-full hover:bg-[#005a5a] transition-all"
           >
             View all
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </button>
@@ -39,23 +39,23 @@ const PopularBrands = () => {
             <div
               key={brand.id}
               onClick={() => navigate(`/medicines?brand=${brand.id}&brandName=${encodeURIComponent(brand.name)}`)}
-              className="bg-white border border-gray-200 rounded-[24px] p-4 flex flex-col items-center justify-center transition-all cursor-pointer h-[130px] md:h-[150px] min-w-[160px] md:min-w-[220px] shrink-0 hover:border-[#006D6D]/30 group"
+              className="bg-white border border-gray-200 rounded-[20px] p-2 md:p-4 flex flex-col items-center justify-center transition-all cursor-pointer h-[95px] md:h-[150px] min-w-[120px] md:min-w-[220px] shrink-0 hover:border-[#006D6D]/30 group"
             >
-              <div className="flex-1 flex items-center justify-center w-full mb-2">
+              <div className="flex-1 flex items-center justify-center w-full mb-1 md:mb-2">
                 {brand.image ? (
                   <img
                     src={brand.image}
                     alt={brand.name}
-                    className="max-w-[85%] max-h-[65px] md:max-h-[85px] object-contain mix-blend-multiply"
+                    className="max-w-[85%] max-h-[40px] md:max-h-[85px] object-contain mix-blend-multiply"
                     onError={e => { e.target.style.display = 'none' }}
                   />
                 ) : (
-                  <div className="w-12 h-12 bg-[#006D6D]/10 rounded-full flex items-center justify-center">
-                    <span className="text-[#006D6D] font-bold text-xl">{brand.name.charAt(0)}</span>
+                  <div className="w-9 h-9 bg-[#006D6D]/10 rounded-full flex items-center justify-center">
+                    <span className="text-[#006D6D] font-bold text-base">{brand.name.charAt(0)}</span>
                   </div>
                 )}
               </div>
-              <span className="text-[14px] md:text-[16px] font-bold text-gray-700 text-center line-clamp-1">
+              <span className="text-[11px] md:text-[16px] font-bold text-gray-700 text-center line-clamp-1">
                 {brand.name}
               </span>
             </div>

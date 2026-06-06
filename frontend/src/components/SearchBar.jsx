@@ -23,20 +23,20 @@ function SearchBar() {
     <div className="bg-white md:bg-[#f0fafa] py-3 md:py-4 px-4 md:px-12">
       <div className="max-w-[1050px] mx-auto">
         <div className="relative max-w-[1050px] mx-auto">
-          <div className="flex items-center w-full bg-white rounded-lg md:rounded-full border border-gray-300 md:border-gray-200 p-0 shadow-sm md:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow focus-within:shadow-[0_4px_25px_rgba(0,0,0,0.1)] mb-3 overflow-hidden">
+          <div className="flex items-center w-full bg-white rounded-xl md:rounded-full border border-gray-300 md:border-gray-200 p-0 shadow-sm md:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow focus-within:shadow-[0_4px_25px_rgba(0,0,0,0.1)] mb-3 overflow-hidden">
             <input
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search for a medication or condition"
-              className="flex-grow px-4 md:px-10 py-3 md:py-1 focus:outline-none text-gray-700 text-[14px] md:text-[17px] placeholder:text-[12px] md:placeholder:text-[14px] placeholder-gray-400 font-medium"
+              className="flex-grow px-4 md:px-10 py-2 md:py-1 focus:outline-none text-gray-700 text-[14px] md:text-[17px] placeholder:text-[12px] md:placeholder:text-[14px] placeholder-gray-400 font-medium"
             />
             <div className="flex items-center gap-0 shrink-0">
-              <div className="w-[1px] h-8 bg-gray-100 md:hidden"></div>
+              <div className="w-[1px] h-6 bg-gray-100 md:hidden"></div>
               <button
                 onClick={handleSearch}
-                className="flex items-center justify-center bg-transparent md:bg-[#006D6D] text-gray-400 md:text-white w-12 h-12 md:w-10 md:h-10 rounded-none md:rounded-full hover:bg-gray-50 md:hover:bg-[#005a5a] transition-all group md:mr-1.5"
+                className="flex items-center justify-center bg-transparent md:bg-[#006D6D] text-gray-400 md:text-white w-10 h-10 rounded-none md:rounded-full hover:bg-gray-50 md:hover:bg-[#005a5a] transition-all group md:mr-1.5"
               >
                 <svg
                   className="w-6 h-6 md:w-5 md:h-5 transition-transform group-hover:scale-110"

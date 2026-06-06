@@ -126,7 +126,7 @@ function Testimonials() {
         <div className="flex justify-center mt-4 md:mt-12">
           <button
             onClick={() => navigate('/all-reviews')}
-            className="bg-primary text-white px-12 py-3 rounded-xl font-bold text-[14px] transition-all shadow-lg hover:shadow-xl hover:bg-primary/90 active:scale-95"
+            className="bg-[#004d4d] text-white px-12 py-3 rounded-xl font-bold text-[14px] transition-all shadow-lg hover:shadow-xl hover:bg-[#004d4d]/90 active:scale-95"
           >
             Read All Reviews
           </button>

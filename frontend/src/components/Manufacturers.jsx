@@ -8,7 +8,7 @@ function Manufacturers() {
   return (
     <section className="bg-white pt-16 pb-8 px-4 md:px-12">
       <div className="max-w-[1250px] mx-auto bg-[#f8f8f8] rounded-[24px] md:rounded-[32px] border border-gray-100 p-5 md:p-12 text-center">
-        <h2 className="text-[18px] md:text-[24px] font-bold text-[#004D4D] uppercase tracking-wider mb-4 md:mb-6">
+        <h2 className="text-[22px] md:text-[36px] font-bold text-[#004D4D] uppercase tracking-wider mb-4 md:mb-6">
           MANUFACTURES
         </h2>
         <p className={`text-[12px] md:text-[15px] text-gray-600 leading-[1.15] md:leading-tight tracking-tight text-justify mb-6 md:mb-8 font-medium ${isExpanded ? '' : 'line-clamp-2'}`}>
