@@ -59,24 +59,24 @@ function BestSellers({ onProductClick }) {
   if (!loading && products.length === 0) return null
 
   return (
-    <section className="bg-white pt-4 pb-12 md:pt-8 md:pb-12 px-4 md:px-12">
+    <section className="bg-white pt-1 pb-1 md:pt-8 md:pb-12 px-4 md:px-12">
       <div className="max-w-312.5 mx-auto">
-        <div className="flex justify-between items-center mb-6 md:mb-8 px-1">
-          <h2 className="text-[22px] md:text-[34px] font-bold text-gray-900 tracking-tight">
+        <div className="flex justify-between items-center mb-3 md:mb-8 px-1">
+          <h2 className="text-[18px] md:text-[34px] font-bold text-gray-900 tracking-tight">
             Best Sellers
           </h2>
           <button
             onClick={() => navigate('/best-sellers')}
-            className="flex items-center gap-1 md:gap-2 text-white bg-primary font-bold text-[14px] md:text-[16px] border border-primary px-3 py-1 md:px-4 md:py-1.5 rounded-full hover:bg-primary-dark transition-all"
+            className="flex items-center gap-0.5 md:gap-2 text-white bg-primary font-bold text-[11px] md:text-[16px] border border-primary px-2 py-0.5 md:px-4 md:py-1.5 rounded-full hover:bg-primary-dark transition-all"
           >
             View all
-            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 md:w-5 md:h-5 stroke-[2.5] md:stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </button>
         </div>
 
-        <div className="flex gap-4 md:gap-8 overflow-x-auto no-scrollbar pb-6 px-1 scroll-smooth">
+        <div className="flex gap-4 md:gap-8 overflow-x-auto no-scrollbar pb-4 md:pb-6 px-1 scroll-smooth">
           {loading ? (
             Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (

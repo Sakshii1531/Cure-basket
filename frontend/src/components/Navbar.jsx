@@ -35,11 +35,29 @@ function Navbar({ openSupport }) {
 
   return (
     <div className="sticky top-0 z-[100] bg-white">
+      {/* Top Teal Blue Section */}
+      <div className="bg-[#004d4d] py-0.5 px-4 md:px-8 flex xl:hidden items-center justify-end w-full text-white text-[11.5px] font-semibold gap-6">
+        <button 
+          onClick={() => openSupport('contact')}
+          className="flex items-center gap-1.5 active:scale-95 transition-transform hover:opacity-80"
+        >
+          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          <span>Contact Us</span>
+        </button>
+        <button 
+          onClick={() => openSupport('call')}
+          className="flex items-center gap-1.5 active:scale-95 transition-transform hover:opacity-80"
+        >
+          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          <span>Click to Call</span>
+        </button>
+      </div>
+
       {/* Mobile Header (Hidden on Desktop) */}
       <div className="xl:hidden pl-4 pr-4 py-0 flex flex-col gap-0 border-b border-gray-100 shadow-sm overflow-hidden">
-        <div className="flex items-end justify-between py-0">
+        <div className="flex items-center justify-between py-0">
           {/* Logo + Back Button */}
-          <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer py-0 mb-[-8px]">
+          <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer py-2">
             {!isHomePage && (
               <button
                 onClick={() => navigate(-1)}
@@ -51,27 +69,10 @@ function Navbar({ openSupport }) {
                 </svg>
               </button>
             )}
-            <img src={curebasketLogo} alt="Logo" className="w-24 h-24 object-contain" />
+            <img src={curebasketLogo} alt="Logo" className="w-20 h-12 object-contain" />
           </div>
 
-          <div className="flex flex-col items-end gap-0.5 justify-center py-0 pb-1">
-            {/* Top row: Contact */}
-            <div className="flex items-center gap-3 text-[#006D6D] pr-1">
-              <button 
-                onClick={() => openSupport('contact')}
-                className="flex items-center gap-1 active:scale-95 transition-transform"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                <span className="text-[10px] font-bold">Contact Us</span>
-              </button>
-              <button 
-                onClick={() => openSupport('call')}
-                className="flex items-center gap-1 active:scale-95 transition-transform"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                <span className="text-[10px] font-bold">Click to Call</span>
-              </button>
-            </div>
+          <div className="flex items-center h-16 py-0 pb-1">
             {/* Bottom row: Icons */}
             <div className="flex items-center gap-4">
               {/* Profile Button */}
@@ -81,33 +82,33 @@ function Navbar({ openSupport }) {
                 aria-label="User Account"
               >
                 {isLoggedIn && user ? (
-                  <div className="w-7 h-7 bg-[#006D6D]/10 text-[#006D6D] rounded-full flex items-center justify-center font-bold text-xs uppercase border border-[#006D6D]/20">
+                  <div className="w-6 h-6 bg-[#006D6D]/10 text-[#006D6D] rounded-full flex items-center justify-center font-bold text-[10px] uppercase border border-[#006D6D]/20">
                     {user.name ? user.name[0] : 'U'}
                   </div>
                 ) : (
-                  <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
               </button>
-              <div className="w-[1px] h-6 bg-gray-200"></div>
+              <div className="w-[1px] h-5 bg-gray-200"></div>
               {/* Cart Button */}
               <button 
                 onClick={() => navigate('/cart')}
                 className="text-gray-800 relative active:scale-95 transition-transform flex items-center justify-center"
                 aria-label="Shopping Cart"
               >
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                     {cartCount}
                   </span>
                 )}
               </button>
               <button onClick={() => setIsMobileMenuOpen(true)} className="text-gray-800 ml-1">
-                <svg className="w-9 h-9" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
               </button>
             </div>
           </div>
