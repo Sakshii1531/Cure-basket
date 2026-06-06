@@ -1,0 +1,80 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Nginx site config for Cure-basket on a single VPS (Hostinger KVM4).
+#
+# It does three jobs:
+#   1. Serves the built React SPA (frontend/dist) as static files.
+#   2. Reverse-proxies /api and /uploads to the Node app (PM2) on port 5001.
+#   3. Terminates TLS (certs added by certbot — see DEPLOYMENT steps).
+#
+# Install:
+#   sudo cp deploy/nginx-curebasket.conf.example /etc/nginx/sites-available/curebasket
+#   sudo ln -s /etc/nginx/sites-available/curebasket /etc/nginx/sites-enabled/curebasket
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# Replace YOUR_DOMAIN.com and the dist path before using.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Gzip (Nginx-side; complements the app's compression for proxied responses)
+gzip on;
+gzip_types text/plain text/css application/json application/javascript application/xml image/svg+xml;
+gzip_min_length 1024;
+
+# Redirect all HTTP to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name YOUR_DOMAIN.com www.YOUR_DOMAIN.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name YOUR_DOMAIN.com www.YOUR_DOMAIN.com;
+
+    # TLS — certbot fills these in (or point them at your certs manually)
+    ssl_certificate     /etc/letsencrypt/live/YOUR_DOMAIN.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/YOUR_DOMAIN.com/privkey.pem;
+
+    # Allow large prescription/image uploads through the proxy
+    client_max_body_size 15m;
+
+    # ── Frontend: built SPA ──────────────────────────────────────────────────
+    # Point this at the absolute path of your built frontend on the VPS, e.g.
+    #   /var/www/curebasket/frontend/dist
+    root /var/www/curebasket/frontend/dist;
+    index index.html;
+
+    # Cache hashed static assets aggressively
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # ── API → Node (PM2) ─────────────────────────────────────────────────────
+    location /api/ {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_read_timeout 60s;
+    }
+
+    # ── Uploaded files served by the Node app ────────────────────────────────
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_set_header Host            $host;
+        proxy_set_header X-Real-IP       $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # ── SPA fallback: every other route returns index.html ───────────────────
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
