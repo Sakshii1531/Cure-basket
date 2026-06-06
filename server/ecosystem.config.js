@@ -8,7 +8,7 @@
 module.exports = {
   apps: [
     {
-      name: 'cure-basket-api',
+      name: 'curebasket-backend',
       script: 'src/index.js',
       cwd: __dirname,
       instances: 'max',          // one worker per CPU core; set a number to cap it
