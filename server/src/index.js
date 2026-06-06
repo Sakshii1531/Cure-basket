@@ -1,5 +1,11 @@
-const express = require('express');
 const dotenv = require('dotenv');
+
+// Load env vars FIRST — before any local module is required. config/redis.js and
+// config/db.js read process.env at require-time to decide whether to connect, so
+// the .env file must already be loaded by then or Redis/DB self-disable.
+dotenv.config();
+
+const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
@@ -12,9 +18,6 @@ const morgan = require('morgan');
 const connectDB = require('./config/db');
 const redis = require('./config/redis');
 const seedSuperAdmin = require('./utils/seed');
-
-// Load env vars
-dotenv.config();
 
 // Connect to database, then seed super admin
 connectDB().then(seedSuperAdmin).catch((err) => console.error('Seed error:', err.message));
