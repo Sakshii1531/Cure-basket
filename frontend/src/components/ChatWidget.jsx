@@ -1,23 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
+import api from '../utils/api'
+import { useAuth } from '../context/AuthContext'
+
+const fmtTime = (ts) =>
+  new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+// A stable per-browser id used to own an anonymous conversation.
+const getSessionId = () => {
+  let id = localStorage.getItem('cb_chat_session')
+  if (!id) {
+    id = (crypto.randomUUID?.() || `s-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+    localStorage.setItem('cb_chat_session', id)
+  }
+  return id
+}
 
 const ChatWidget = () => {
+  const { user, isLoggedIn } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
-  const [isAgentOnline, setIsAgentOnline] = useState(true)
-  
+  const [supportOnline, setSupportOnline] = useState(true)
+
   // Chat state
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Hi there! Welcome to CureBasket. How can we help you today?",
-      sender: 'agent',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ])
+  const [messages, setMessages] = useState([])
   const [inputMessage, setInputMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [sending, setSending] = useState(false)
 
-  // Leave a message form state
+  // Leave-a-message (offline) form state
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -27,16 +37,79 @@ const ChatWidget = () => {
   const inputRef = useRef(null)
   const containerRef = useRef(null)
 
-  // Listen to open-chat-widget custom event
-  useEffect(() => {
-    const handleOpenChat = () => {
-      setIsOpen(true)
+  const sessionId = useRef(getSessionId())
+  const conversationId = useRef(localStorage.getItem('cb_chat_conversation') || null)
+  const sinceRef = useRef(null)        // ISO time of the newest message we've rendered
+  const initedRef = useRef(false)
+
+  const WELCOME = {
+    _id: 'welcome',
+    sender: 'system',
+    text: "Hi there! Welcome to CureBasket. How can we help you today?",
+    createdAt: new Date().toISOString(),
+  }
+
+  // Append server messages we haven't already rendered (dedupe by _id).
+  const mergeMessages = (incoming) => {
+    if (!incoming?.length) return
+    setMessages((prev) => {
+      const seen = new Set(prev.map((m) => m._id))
+      const fresh = incoming.filter((m) => !seen.has(m._id))
+      if (!fresh.length) return prev
+      sinceRef.current = fresh[fresh.length - 1].createdAt
+      return [...prev, ...fresh]
+    })
+  }
+
+  const initConversation = async () => {
+    try {
+      const payload = isLoggedIn && user
+        ? { sessionId: sessionId.current, name: user.name, email: user.email }
+        : { sessionId: sessionId.current }
+      const res = await api.post('/chat/conversations', payload)
+      const { conversation, messages: history, supportOnline: online } = res.data.data
+      conversationId.current = conversation._id
+      localStorage.setItem('cb_chat_conversation', conversation._id)
+      setSupportOnline(online)
+      const initial = history.length ? history : [WELCOME]
+      setMessages(initial)
+      sinceRef.current = initial[initial.length - 1]?.createdAt || new Date().toISOString()
+      initedRef.current = true
+    } catch {
+      setMessages([WELCOME])
     }
+  }
+
+  // Listen to global open-chat-widget event
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true)
     window.addEventListener('open-chat-widget', handleOpenChat)
     return () => window.removeEventListener('open-chat-widget', handleOpenChat)
   }, [])
 
-  // Auto-scroll to bottom of messages
+  // Initialise + poll while the chat window is open
+  useEffect(() => {
+    if (!isOpen) return
+    if (!initedRef.current) initConversation()
+
+    const interval = setInterval(async () => {
+      if (!conversationId.current) return
+      try {
+        const res = await api.get(
+          `/chat/conversations/${conversationId.current}/messages`,
+          { params: { sessionId: sessionId.current, since: sinceRef.current } }
+        )
+        mergeMessages(res.data.data.messages)
+        setSupportOnline(res.data.data.supportOnline)
+      } catch {
+        /* transient — keep polling */
+      }
+    }, 4000)
+
+    return () => clearInterval(interval)
+  }, [isOpen])
+
+  // Auto-scroll to bottom
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -45,25 +118,21 @@ const ChatWidget = () => {
 
   // Focus input when chat opens
   useEffect(() => {
-    if (isOpen && isAgentOnline && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 100)
+    if (isOpen && supportOnline && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100)
     }
-  }, [isOpen, isAgentOnline])
+  }, [isOpen, supportOnline])
 
-  // Close on Escape key
+  // Close on Escape
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false)
-      }
+      if (e.key === 'Escape' && isOpen) setIsOpen(false)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen])
 
-  // Prevent background page from scrolling when scrolling inside the chat widget
+  // Prevent background scroll when scrolling inside the widget
   useEffect(() => {
     const container = containerRef.current
     if (!container || !isOpen) return
@@ -71,20 +140,14 @@ const ChatWidget = () => {
     const handleScrollPropagation = (e) => {
       let target = e.target
       let isScrollableElement = false
-
       while (target && target !== container) {
         const style = window.getComputedStyle(target)
         const overflowY = style.overflowY
         const isScrollableY = overflowY === 'auto' || overflowY === 'scroll'
         const canScroll = target.scrollHeight > target.clientHeight
-
         if (isScrollableY && canScroll) {
           isScrollableElement = true
-          const scrollTop = target.scrollTop
-          const scrollHeight = target.scrollHeight
-          const clientHeight = target.clientHeight
-
-          // If scrolling up at the top, or scrolling down at the bottom, prevent default body scroll
+          const { scrollTop, scrollHeight, clientHeight } = target
           if ((scrollTop === 0 && e.deltaY < 0) || (scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0)) {
             e.preventDefault()
           }
@@ -92,97 +155,88 @@ const ChatWidget = () => {
         }
         target = target.parentNode
       }
-
-      // If scrolling on a non-scrollable part of the widget, block the wheel event completely
-      if (!isScrollableElement && e.type === 'wheel') {
-        e.preventDefault()
-      }
+      if (!isScrollableElement && e.type === 'wheel') e.preventDefault()
     }
 
     container.addEventListener('wheel', handleScrollPropagation, { passive: false })
-    return () => {
-      container.removeEventListener('wheel', handleScrollPropagation)
-    }
+    return () => container.removeEventListener('wheel', handleScrollPropagation)
   }, [isOpen])
 
-  // Chat message submission
-  const handleSendMessage = (e) => {
+  // Send a chat message
+  const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!inputMessage.trim()) return
+    const text = inputMessage.trim()
+    if (!text || sending) return
 
-    const userMsg = {
-      id: Date.now(),
-      text: inputMessage.trim(),
-      sender: 'user',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-
-    setMessages(prev => [...prev, userMsg])
-    const currentInput = inputMessage.trim().toLowerCase()
+    // Optimistic append
+    const tempId = `temp-${Date.now()}`
+    setMessages((prev) => [...prev, { _id: tempId, sender: 'user', text, createdAt: new Date().toISOString() }])
     setInputMessage('')
+    setSending(true)
     setIsTyping(true)
 
-    // Simulate agent reply
-    setTimeout(() => {
+    try {
+      if (!conversationId.current) await initConversation()
+      const res = await api.post(
+        `/chat/conversations/${conversationId.current}/messages`,
+        { sessionId: sessionId.current, text }
+      )
+      const saved = res.data.data
+      // Replace the optimistic message with the saved one and advance `since`
+      setMessages((prev) => prev.map((m) => (m._id === tempId ? saved : m)))
+      sinceRef.current = saved.createdAt
+    } catch (err) {
+      setMessages((prev) => prev.filter((m) => m._id !== tempId))
+      toast.error(err.response?.data?.error || 'Failed to send. Please try again.')
+    } finally {
+      setSending(false)
       setIsTyping(false)
-      
-      let replyText = "Thanks for reaching out! A support representative will review your query and get back to you shortly."
-      
-      if (currentInput.includes('order') || currentInput.includes('track')) {
-        replyText = "You can track your active orders by visiting the 'Track Order' page from the main menu, or by checking the 'My Orders' section in your Account profile."
-      } else if (currentInput.includes('prescription') || currentInput.includes('rx') || currentInput.includes('upload')) {
-        replyText = "To upload a prescription, please click 'Upload Rx' in the header. Once uploaded, our pharmacists will review it and prepare your order within minutes!"
-      } else if (currentInput.includes('refund') || currentInput.includes('cancel') || currentInput.includes('return')) {
-        replyText = "Cancellations are supported before shipping. Refunds are automatically processed to your original payment method and take about 5-7 business days to reflect."
-      } else if (currentInput.includes('hello') || currentInput.includes('hi ') || currentInput.includes('hey')) {
-        replyText = "Hello! I am CureBasket's virtual pharmacist assistant. How can we help you with your medications or order today?"
-      }
-
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1,
-        text: replyText,
-        sender: 'agent',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }])
-    }, 1200)
+    }
   }
 
-  // Form handling
+  // Offline "Leave a Message" form
   const handleFormChange = (e) => {
     const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
-    }
+    setForm((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
   const validateForm = () => {
     const errs = {}
     if (!form.name.trim()) errs.name = 'Full Name is required'
-    if (!form.email.trim()) {
-      errs.email = 'Email Address is required'
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      errs.email = 'Please enter a valid email address'
-    }
+    if (!form.email.trim()) errs.email = 'Email Address is required'
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Please enter a valid email address'
     if (!form.subject.trim()) errs.subject = 'Subject is required'
     if (!form.message.trim()) errs.message = 'Message text is required'
-
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault()
     if (!validateForm()) return
-
     setIsSubmitting(true)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const start = await api.post('/chat/conversations', {
+        sessionId: sessionId.current,
+        name: form.name,
+        email: form.email,
+        subject: form.subject,
+      })
+      const convId = start.data.data.conversation._id
+      conversationId.current = convId
+      localStorage.setItem('cb_chat_conversation', convId)
+      await api.post(`/chat/conversations/${convId}/messages`, {
+        sessionId: sessionId.current,
+        text: form.message,
+      })
       setIsSubmitted(true)
       toast.success('Your message has been sent successfully!')
-    }, 1000)
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to send message.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleResetForm = () => {
@@ -229,42 +283,28 @@ const ChatWidget = () => {
             <div>
               <h2 className="text-[14px] font-bold leading-tight">CureBasket Support</h2>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className={`w-2 h-2 rounded-full ${isAgentOnline ? 'bg-emerald-400 animate-pulse' : 'bg-orange-400'}`}></span>
+                <span className={`w-2 h-2 rounded-full ${supportOnline ? 'bg-emerald-400 animate-pulse' : 'bg-orange-400'}`}></span>
                 <span className="text-[11px] text-white/80 font-medium">
-                  {isAgentOnline ? 'Online' : 'Offline'}
+                  {supportOnline ? 'Online' : 'Offline'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Simulation Switch for Testing */}
-            <button
-              onClick={() => {
-                setIsAgentOnline(!isAgentOnline)
-                handleResetForm()
-              }}
-              className="text-[9px] text-white/80 hover:text-white bg-white/15 hover:bg-white/20 px-2 py-1 rounded-full transition-colors font-bold uppercase tracking-wider"
-              title="Click to toggle online/offline state for testing"
-            >
-              {isAgentOnline ? 'Test Offline' : 'Test Online'}
-            </button>
-
-            {/* Close button */}
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
-              aria-label="Close support chat"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </div>
+          {/* Close button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-1 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+            aria-label="Close support chat"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
 
         {/* Content Body */}
-        {isAgentOnline ? (
+        {supportOnline ? (
           // ONLINE: Live Chat Interface
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 no-scrollbar overscroll-contain">
@@ -272,7 +312,7 @@ const ChatWidget = () => {
                 const isUser = msg.sender === 'user'
                 return (
                   <div
-                    key={msg.id}
+                    key={msg._id}
                     className={`flex flex-col max-w-[80%] ${isUser ? 'ml-auto items-end' : 'mr-auto items-start'}`}
                   >
                     <div
@@ -284,7 +324,7 @@ const ChatWidget = () => {
                     >
                       {msg.text}
                     </div>
-                    <span className="text-[10px] text-gray-400 mt-1 font-medium px-1">{msg.time}</span>
+                    <span className="text-[10px] text-gray-400 mt-1 font-medium px-1">{fmtTime(msg.createdAt)}</span>
                   </div>
                 )
               })}
@@ -315,7 +355,7 @@ const ChatWidget = () => {
               />
               <button
                 type="submit"
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || sending}
                 className="h-10 w-10 bg-primary hover:bg-primary-dark text-white rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0 shadow-sm"
                 aria-label="Send message"
               >

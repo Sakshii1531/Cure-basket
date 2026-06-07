@@ -38,6 +38,7 @@ const banners = require('./routes/bannerRoutes');
 const users = require('./routes/userRoutes');
 const analytics = require('./routes/analyticsRoutes');
 const uploadRoute = require('./routes/uploadRoutes');
+const chat = require('./routes/chatRoutes');
 
 const path = require('path');
 
@@ -149,6 +150,7 @@ app.use('/api/banners', banners);
 app.use('/api/users', users);
 app.use('/api/analytics', analytics);
 app.use('/api/upload', uploadRoute);
+app.use('/api/chat', chat);
 
 app.get('/', (req, res) => res.send('API is running...'));
 
