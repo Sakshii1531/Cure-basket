@@ -125,17 +125,19 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                     </div>
                   );
                 } else {
+                  const displayedProducts = group.products.slice(0, 2);
+                  const hasMore = group.products.length > 2;
                   return (
                     <div key={group.categoryName} className="w-[350px] md:w-[410px] min-w-[350px] md:min-w-[410px] max-w-[350px] md:max-w-[410px] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white flex flex-col transition-shadow shrink-0">
                       <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
                         {group.categoryName}
                       </div>
                       <div className="p-2 md:p-4 flex flex-col gap-1.5 md:gap-2 h-full justify-start min-h-[120px] md:min-h-[180px]">
-                        {group.products.map((product, idx) => {
+                        {displayedProducts.map((product, idx) => {
                           const imgSrc = product.image && product.image !== 'no-photo.jpg'
                             ? product.image
                             : fallbackImages[(groupIdx + idx) % fallbackImages.length];
-                          const isLast = idx === group.products.length - 1;
+                          const isLast = idx === displayedProducts.length - 1;
                           const genericSub = product.genericName
                             ? (product.genericName.toLowerCase().startsWith('generic') ? product.genericName : `Generic ${product.genericName}`)
                             : '';
@@ -171,6 +173,20 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                             </div>
                           );
                         })}
+
+                        {hasMore && (
+                          <div className="pt-2 border-t border-gray-100 mt-2">
+                            <button
+                              onClick={() => navigate(`/category/${encodeURIComponent(group.categoryName)}`)}
+                              className="w-full py-2 bg-gray-50 hover:bg-[#006D6D]/5 text-[#006D6D] rounded-xl font-bold text-[13px] md:text-[14px] transition-all flex items-center justify-center gap-1 border border-gray-100 hover:border-[#006D6D]/20 active:scale-98"
+                            >
+                              <span>Show All Medicines ({group.products.length})</span>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
