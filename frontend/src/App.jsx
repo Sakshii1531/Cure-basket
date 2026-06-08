@@ -76,6 +76,7 @@ import FAQsPage from './components/FAQsPage'
 import ReviewGuidelinesPage from './components/ReviewGuidelinesPage'
 import IndianPharmaciesPage from './components/IndianPharmaciesPage'
 import InsuranceCoveragePage from './components/InsuranceCoveragePage'
+import Unsubscribe from './components/Unsubscribe'
 
 const AdminLayout = lazy(() => import('./admin/layout/AdminLayout'))
 const Dashboard = lazy(() => import('./admin/pages/Dashboard'))
@@ -101,6 +102,7 @@ const MedicineDetails = lazy(() => import('./admin/pages/MedicineDetails'))
 const BankContact = lazy(() => import('./admin/pages/BankContact'))
 const OrderShipping = lazy(() => import('./admin/pages/OrderShipping'))
 const Dispense = lazy(() => import('./admin/pages/Dispense'))
+const Subscribers = lazy(() => import('./admin/pages/Subscribers'))
 
 function AdminSpinner() {
   return (
@@ -194,7 +196,7 @@ function AppContent() {
     '/all-reviews', '/best-sellers', '/all-brands', '/all-products', '/blogs',
     '/about-us', '/site-map', '/terms-conditions', '/privacy-policy', '/disclaimer', '/articles',
     '/referral', '/how-to-order', '/refund-policy', '/cancellation-policy', '/faqs',
-    '/review-guidelines', '/about-indian-pharmacies', '/insurance-coverage'
+    '/review-guidelines', '/about-indian-pharmacies', '/insurance-coverage', '/unsubscribe'
   ].includes(location.pathname)
     || location.pathname.startsWith('/category/')
     || location.pathname.startsWith('/product/')
@@ -279,6 +281,7 @@ function AppContent() {
         <Route path="/review-guidelines" element={<ReviewGuidelinesPage />} />
         <Route path="/about-indian-pharmacies" element={<IndianPharmaciesPage />} />
         <Route path="/insurance-coverage" element={<InsuranceCoveragePage />} />
+        <Route path="/unsubscribe" element={<Unsubscribe />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<Suspense fallback={<AdminSpinner />}><AdminLogin /></Suspense>} />
@@ -305,6 +308,7 @@ function AppContent() {
           <Route path="bank-contact" element={<Suspense fallback={<AdminSpinner />}><BankContact /></Suspense>} />
           <Route path="order-shipping" element={<Suspense fallback={<AdminSpinner />}><OrderShipping /></Suspense>} />
           <Route path="medicine-details" element={<Suspense fallback={<AdminSpinner />}><MedicineDetails /></Suspense>} />
+          <Route path="subscribers" element={<Suspense fallback={<AdminSpinner />}><Subscribers /></Suspense>} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

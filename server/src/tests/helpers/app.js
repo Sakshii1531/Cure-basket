@@ -19,6 +19,7 @@ require('../../models/Banner');
 require('../../models/Settings');
 require('../../models/Conversation');
 require('../../models/Message');
+require('../../models/Subscriber');
 
 const auth = require('../../routes/authRoutes');
 const medicines = require('../../routes/medicineRoutes');
@@ -33,6 +34,7 @@ const roles = require('../../routes/roleRoutes');
 const analytics = require('../../routes/analyticsRoutes');
 const settings = require('../../routes/settingsRoutes');
 const chat = require('../../routes/chatRoutes');
+const subscribers = require('../../routes/subscriberRoutes');
 
 const app = express();
 app.use(express.json());
@@ -51,5 +53,6 @@ app.use('/api/roles', roles);
 app.use('/api/analytics', analytics);
 app.use('/api/settings', settings);
 app.use('/api/chat', chat);
+app.use('/api/subscribers', subscribers);
 
 module.exports = app;
