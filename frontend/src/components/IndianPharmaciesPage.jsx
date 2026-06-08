@@ -39,7 +39,7 @@ function IndianPharmaciesPage() {
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#006D6D] to-[#004D4D] text-white pt-12 pb-16 px-4 md:px-8 text-center relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto space-y-3 relative z-10">
-          <h1 className="text-[32px] md:text-[44px] font-bold tracking-tight">{content.heroTitle}</h1>
+          <h1 className="text-[24px] md:text-[44px] font-bold tracking-tight">{content.heroTitle}</h1>
           <p className="text-[14px] md:text-[16px] text-[#CFF4F4] max-w-xl mx-auto font-medium">
             {content.heroSub}
           </p>
@@ -53,13 +53,13 @@ function IndianPharmaciesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           <div className="space-y-4">
             <h2 className="text-[20px] md:text-[26px] font-bold text-gray-900 leading-tight">The Generic Pharmacy of the World</h2>
-            <p className="text-[14px] md:text-[15.5px] text-gray-600 font-medium leading-relaxed text-justify">
+            <p className="text-[14px] md:text-[15.5px] text-gray-600 font-medium leading-relaxed text-left md:text-justify">
               {content.desc1}
             </p>
           </div>
           <div className="space-y-4">
             <h2 className="text-[20px] md:text-[26px] font-bold text-gray-900 leading-tight">Why is Sourcing So Economical?</h2>
-            <p className="text-[14px] md:text-[15.5px] text-gray-600 font-medium leading-relaxed text-justify">
+            <p className="text-[14px] md:text-[15.5px] text-gray-600 font-medium leading-relaxed text-left md:text-justify">
               {content.desc2}
             </p>
           </div>

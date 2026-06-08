@@ -63,7 +63,7 @@ function ReferralPage() {
               {content.tag}
             </span>
           )}
-          <h1 className="text-[34px] md:text-[50px] font-extrabold tracking-tight">{content.heroTitle}</h1>
+          <h1 className="text-[24px] md:text-[50px] font-extrabold tracking-tight">{content.heroTitle}</h1>
           <p className="text-[15px] md:text-[19px] text-[#CFF4F4] max-w-2xl mx-auto font-medium leading-relaxed">
             {content.heroSub}
           </p>

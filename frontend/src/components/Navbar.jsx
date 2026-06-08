@@ -123,7 +123,7 @@ function Navbar({ openSupport }) {
             <div className="flex flex-col h-full">
               <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                 <div onClick={() => { navigate('/'); closeMobileMenu(); }} className="flex items-center gap-2 cursor-pointer">
-                  <img src={curebasketLogo} alt="Logo" className="w-8 h-8" />
+                  <img src={curebasketLogo} alt="Logo" className="w-10 h-10 object-contain" />
                   <span className="font-bold text-[#006D6D] text-[18px]">CureBasket</span>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400">

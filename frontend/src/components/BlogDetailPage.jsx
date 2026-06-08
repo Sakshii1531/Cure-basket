@@ -14,9 +14,11 @@ const BlogDetailPage = () => {
   const navigate = useNavigate();
   const { slug } = useParams();
   const [apiBlog, setApiBlog] = useState(null);
+  const [activeSection, setActiveSection] = useState('introduction');
 
   useEffect(() => {
     if (!slug) return;
+    setActiveSection('introduction');
     api.get(`/blogs/${slug}`)
       .then(res => {
         const b = res.data.data;
@@ -24,6 +26,28 @@ const BlogDetailPage = () => {
       })
       .catch(() => {});
   }, [slug]);
+
+  useEffect(() => {
+    // Reset colors of all h2 titles in sections
+    const sections = document.querySelectorAll('section[id]');
+    sections.forEach(sec => {
+      const h2 = sec.querySelector('h2');
+      if (h2) {
+        h2.style.color = '';
+      }
+    });
+
+    // Highlight the active section's h2 title
+    if (activeSection) {
+      const activeEl = document.getElementById(activeSection);
+      if (activeEl) {
+        const h2 = activeEl.querySelector('h2');
+        if (h2) {
+          h2.style.color = '#f5b23e';
+        }
+      }
+    }
+  }, [activeSection, apiBlog]);
 
   const blog = apiBlog
     ? {
@@ -100,15 +124,20 @@ const BlogDetailPage = () => {
       {/* Section Navigation Points */}
       <div className="border-b border-gray-200 mt-0">
         <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-3 flex items-center gap-2 md:gap-3 overflow-x-auto text-sm font-medium text-gray-700 whitespace-nowrap">
-          {['Introduction', 'Causes', 'Symptoms', 'Treatment', 'Prevention', 'When to See a Doctor', 'Conclusion'].map((section, idx) => (
-            <a
-              key={idx}
-              href={`#${section.toLowerCase().replace(/\s+/g, '-')}`}
-              className={`px-4 py-2 rounded-full transition-colors ${idx === 0 ? 'bg-[#f5b23e] text-gray-900 font-bold' : 'hover:bg-gray-100'}`}
-            >
-              {section}
-            </a>
-          ))}
+          {['Introduction', 'Causes', 'Symptoms', 'Treatment', 'Prevention', 'When to See a Doctor', 'Conclusion'].map((section, idx) => {
+            const sectionSlug = section.toLowerCase().replace(/\s+/g, '-');
+            const isActive = activeSection === sectionSlug;
+            return (
+              <a
+                key={idx}
+                href={`#${sectionSlug}`}
+                onClick={() => setActiveSection(sectionSlug)}
+                className={`px-4 py-2 rounded-full transition-colors ${isActive ? 'bg-[#f5b23e] text-gray-900 font-bold' : 'hover:bg-gray-100'}`}
+              >
+                {section}
+              </a>
+            );
+          })}
         </div>
       </div>
 
