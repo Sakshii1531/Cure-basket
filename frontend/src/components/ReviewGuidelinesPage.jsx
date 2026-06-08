@@ -43,7 +43,7 @@ function ReviewGuidelinesPage() {
         <div className="absolute bottom-5 right-10 w-36 h-36 bg-[#f5b23e]/10 rounded-full blur-2xl"></div>
 
         <div className="max-w-[1200px] mx-auto space-y-3 relative z-10">
-          <h1 className="text-[32px] md:text-[44px] font-bold tracking-tight">{content.heroTitle}</h1>
+          <h1 className="text-[24px] md:text-[44px] font-bold tracking-tight">{content.heroTitle}</h1>
           <p className="text-[14px] md:text-[16px] text-[#CFF4F4] max-w-xl mx-auto font-medium">
             {content.heroSub}
           </p>

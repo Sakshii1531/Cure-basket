@@ -63,7 +63,7 @@ function AboutUsPage() {
         <div className="absolute bottom-5 right-10 w-36 h-36 bg-white/10 rounded-full blur-2xl"></div>
 
         <div className="max-w-[1200px] mx-auto relative z-10 space-y-4">
-          <h1 className="text-[32px] md:text-[48px] font-bold tracking-tight">{content.heroTitle}</h1>
+          <h1 className="text-[24px] md:text-[48px] font-bold tracking-tight">{content.heroTitle}</h1>
           <p className="text-[15px] md:text-[18px] text-[#CFF4F4] max-w-2xl mx-auto font-medium">
             {content.heroSub}
           </p>
