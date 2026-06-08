@@ -123,25 +123,67 @@ exports.deleteMedicine = async (req, res, next) => {
 
 // ─── Excel column → schema field mapping ─────────────────────────────────────
 const COLUMN_MAP = {
-  'title':            'title',
-  'category':         'category',        // resolved by name
-  'price label':      'priceLabel',
-  'pack size':        'packSize',
-  'quantity options': 'quantityOptions', // comma-separated → [Number]
-  'price per unit':   'pricePerUnit',
-  'total price':      'totalPrice',
-  'old price':        'oldPrice',
-  'discount':         'discount',
-  'description':      'description',
-  'precautions':      'precautions',     // plain text → [{ label, status, description }]
-  'side effects':     'sideEffects',
-  'how to use':       'howToUse',
-  'sku':              'sku',
-  'generic for':      'genericFor',
-  'active ingredient':'activeIngredient',
-  'manufacturer':     'manufacturer',
-  'country origin':   'countryOrigin',
-  'uses':             'uses',
+  'title':             'title',
+  'name':              'title',
+  'medicine name':     'title',
+  'med name':          'title',
+  
+  'category':          'category',
+  'price label':       'priceLabel',
+  
+  'pack size':         'packSize',
+  'packsize':          'packSize',
+  'packaging':         'packSize',
+  
+  'quantity options':  'quantityOptions',
+  'quantityoptions':   'quantityOptions',
+  
+  'price per unit':    'pricePerUnit',
+  'priceperunit':      'pricePerUnit',
+  'price':             'pricePerUnit',
+  
+  'total price':       'totalPrice',
+  'totalprice':        'totalPrice',
+  
+  'old price':         'oldPrice',
+  'oldprice':          'oldPrice',
+  'mrp':               'oldPrice',
+  
+  'discount':          'discount',
+  'description':       'description',
+  
+  'precautions':       'precautions',
+  'safety advice':     'precautions',
+  'safetyadvice':      'precautions',
+  
+  'side effects':      'sideEffects',
+  'sideeffects':       'sideEffects',
+  
+  'how to use':        'howToUse',
+  'howtouse':          'howToUse',
+  
+  'sku':               'sku',
+  
+  'generic for':       'genericFor',
+  'genericfor':        'genericFor',
+  'generic name':      'genericFor',
+  'genericname':       'genericFor',
+  
+  'active ingredient': 'activeIngredient',
+  'activeingredient':  'activeIngredient',
+  'medicine salt':     'activeIngredient',
+  'medicinesalt':      'activeIngredient',
+  'salt composition':  'activeIngredient',
+  'saltcomposition':   'activeIngredient',
+  
+  'manufacturer':      'manufacturer',
+  
+  'country origin':    'countryOrigin',
+  'countryorigin':     'countryOrigin',
+  'country of origin': 'countryOrigin',
+  'countryoforigin':   'countryOrigin',
+  
+  'uses':              'uses',
 };
 
 function normalizeHeader(h) {
@@ -156,13 +198,21 @@ function parseRow(rawRow, headerMap) {
   return row;
 }
 
+function parsePrice(val) {
+  if (val === undefined || val === null || val === '') return 0;
+  const clean = String(val).replace(/[^\d.]/g, '');
+  const parsed = parseFloat(clean);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
 function buildMedicineDoc(row, categoryId) {
+  const pricePerUnit = parsePrice(row.pricePerUnit);
   const doc = {
     title:            row.title,
     category:         categoryId,
-    packSize:         row.packSize,
-    pricePerUnit:     parseFloat(row.pricePerUnit) || 0,
-    totalPrice:       parseFloat(row.totalPrice) || 0,
+    packSize:         row.packSize || '1 Pack',
+    pricePerUnit:     pricePerUnit,
+    totalPrice:       parsePrice(row.totalPrice) || pricePerUnit || 0,
     priceLabel:       row.priceLabel || 'USD',
     quantityOptions:  row.quantityOptions
       ? row.quantityOptions.split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n) && n > 0)
@@ -177,9 +227,9 @@ function buildMedicineDoc(row, categoryId) {
     countryOrigin:    row.countryOrigin || undefined,
   };
 
-  if (row.oldPrice)  doc.oldPrice  = parseFloat(row.oldPrice);
-  if (row.discount)  doc.discount  = parseFloat(row.discount);
-  if (row.sku)       doc.sku       = parseInt(row.sku, 10);
+  if (row.oldPrice)  doc.oldPrice  = parsePrice(row.oldPrice);
+  if (row.discount)  doc.discount  = parsePrice(row.discount);
+  if (row.sku)       doc.sku       = parseInt(String(row.sku).replace(/[^\d]/g, ''), 10) || undefined;
 
   // Map precautions plain text into the structured array format
   if (row.precautions) {
@@ -215,7 +265,7 @@ exports.bulkUploadMedicines = async (req, res) => {
     }
 
     if (!Object.values(headerMap).includes('title')) {
-      return res.status(400).json({ success: false, error: 'Excel file must have a "Title" column' });
+      return res.status(400).json({ success: false, error: 'Excel file must have a "Title" or "Name" column' });
     }
 
     // Pre-load all categories for name lookup (case-insensitive)
@@ -243,15 +293,13 @@ exports.bulkUploadMedicines = async (req, res) => {
         errors.push({ row: rowNum, error: 'Missing required field: Title' });
         continue;
       }
-      if (!row.packSize) {
-        errors.push({ row: rowNum, error: `Row "${row.title}": Missing required field: Pack Size` });
-        continue;
-      }
+
+      const packSize = row.packSize || '1 Pack';
 
       // Duplicate check: title + packSize combination
       const exists = await Medicine.exists({
         title:    { $regex: new RegExp(`^${row.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-        packSize: { $regex: new RegExp(`^${row.packSize.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        packSize: { $regex: new RegExp(`^${packSize.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
       });
       if (exists) {
         skipped++;
