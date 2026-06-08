@@ -33,6 +33,17 @@ const conversationSchema = new mongoose.Schema({
   lastUserSeenAt: { type: Date, default: Date.now },
 
   createdAt: { type: Date, default: Date.now },
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
+
+// Live presence: the customer polls every few seconds while the widget is open,
+// refreshing lastUserSeenAt. When they close the tab/widget, polling stops and
+// this goes false within ~15s — so the admin sees them drop to "Away".
+conversationSchema.virtual('customerOnline').get(function () {
+  if (!this.lastUserSeenAt) return false;
+  return Date.now() - new Date(this.lastUserSeenAt).getTime() < 15000;
 });
 
 // Inbox queries (filter by status, newest activity first) and owner lookups.

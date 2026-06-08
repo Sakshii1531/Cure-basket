@@ -41,6 +41,22 @@ describe('POST /api/chat/conversations', () => {
     const res = await request(app).post('/api/chat/conversations').send({ name: 'x' });
     expect(res.status).toBe(422);
   });
+
+  it('captures a guest name/email from a later start (offline form)', async () => {
+    // First open creates an anonymous conversation (empty identity)…
+    await request(app).post('/api/chat/conversations').send({ sessionId: 'guest-1' });
+    // …then the offline "Leave a Message" form submits name + email.
+    const res = await request(app)
+      .post('/api/chat/conversations')
+      .send({ sessionId: 'guest-1', name: 'Jane Guest', email: 'jane@example.com' });
+    expect(res.body.data.conversation.customer.name).toBe('Jane Guest');
+    expect(res.body.data.conversation.customer.email).toBe('jane@example.com');
+  });
+
+  it('reports live customer presence (customerOnline)', async () => {
+    const res = await startConversation();
+    expect(res.body.data.conversation.customerOnline).toBe(true);
+  });
 });
 
 describe('customer messaging', () => {
@@ -126,5 +142,64 @@ describe('admin chat', () => {
       .send({ status: 'resolved' });
     expect(res.status).toBe(200);
     expect(res.body.data.status).toBe('resolved');
+  });
+
+  it('marks the customer Away once they stop polling (closed tab)', async () => {
+    const Conversation = require('../models/Conversation');
+    const conv = (await startConversation()).body.data.conversation;
+    expect(conv.customerOnline).toBe(true);
+
+    // Simulate the tab being closed: lastUserSeenAt goes stale (no more polls).
+    await Conversation.updateOne({ _id: conv._id }, { lastUserSeenAt: new Date(Date.now() - 60000) });
+
+    const view = await request(app).get(`/api/chat/admin/conversations/${conv._id}`).set('Cookie', adminCookie);
+    expect(view.body.data.conversation.customerOnline).toBe(false);
+  });
+});
+
+describe('AI assistant (generateBotReply)', () => {
+  const { generateBotReply } = require('../services/chatBot');
+  const Category = require('../models/Category');
+  const Medicine = require('../models/Medicine');
+
+  it('escalates when the visitor asks for a human', async () => {
+    const r = await generateBotReply('can I talk to a person please');
+    expect(r.escalate).toBe(true);
+  });
+
+  it('refuses medical advice and escalates', async () => {
+    const r = await generateBotReply('what should I take for a headache?');
+    expect(r.escalate).toBe(true);
+    expect(r.text.toLowerCase()).toMatch(/advice|doctor|pharmacist/);
+  });
+
+  it('answers the prescription FAQ without escalating', async () => {
+    const r = await generateBotReply('how do I upload my prescription?');
+    expect(r.escalate).toBe(false);
+    expect(r.text).toMatch(/Upload Rx/i);
+  });
+
+  it('greets without escalating', async () => {
+    const r = await generateBotReply('hi');
+    expect(r.escalate).toBe(false);
+  });
+
+  it('answers product availability from the live catalog', async () => {
+    const cat = await Category.create({ name: 'Pain Relief' });
+    await Medicine.create({ title: 'Paracetamol 500mg', category: cat._id, pricePerUnit: 2, totalPrice: 20, status: 'Active' });
+    const r = await generateBotReply('do you have Paracetamol?');
+    expect(r.escalate).toBe(false);
+    expect(r.text).toMatch(/Paracetamol/i);
+  });
+
+  it('handles a no-match availability query gracefully (no escalation)', async () => {
+    const r = await generateBotReply('do you have zzzznotarealdrug?');
+    expect(r.escalate).toBe(false);
+    expect(r.text.toLowerCase()).toMatch(/couldn.t find|search the site/);
+  });
+
+  it('escalates ambiguous messages when no LLM key is configured', async () => {
+    const r = await generateBotReply('tell me a fun fact about space');
+    expect(r.escalate).toBe(true);
   });
 });
