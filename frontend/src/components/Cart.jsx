@@ -20,7 +20,9 @@ const Cart = () => {
           </button>
         </div>
         <div className="flex justify-center">
-          <h1 className="text-[16px] md:text-[20px] font-bold text-gray-800 whitespace-nowrap">My Cart ({items.length})</h1>
+          <h1 className="text-[16px] md:text-[20px] font-bold text-gray-800 whitespace-nowrap">
+            {items.length > 0 ? `My Cart (${items.length})` : 'My Cart'}
+          </h1>
         </div>
         <div className="flex justify-end"></div>
       </div>

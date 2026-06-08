@@ -42,7 +42,7 @@ function TermsConditionsPage() {
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#006D6D] to-[#004D4D] text-white pt-12 pb-16 px-4 md:px-8 text-center relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto space-y-3 relative z-10">
-          <h1 className="text-[32px] md:text-[44px] font-bold tracking-tight">{content.heroTitle}</h1>
+          <h1 className="text-[24px] md:text-[44px] font-bold tracking-tight">{content.heroTitle}</h1>
           <p className="text-[14px] md:text-[16px] text-[#CFF4F4] max-w-xl mx-auto font-medium">
             {content.heroSub}
           </p>
@@ -91,7 +91,7 @@ function TermsConditionsPage() {
                 <h2 className="text-[20px] md:text-[24px] font-bold text-gray-900 border-b border-gray-100 pb-2">
                   {section.title}
                 </h2>
-                <p className="text-[14.5px] md:text-[16px] text-gray-600 font-medium leading-relaxed text-justify">
+                <p className="text-[14.5px] md:text-[16px] text-gray-600 font-medium leading-relaxed text-left md:text-justify">
                   {section.content}
                 </p>
               </section>
