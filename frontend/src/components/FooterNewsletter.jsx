@@ -76,7 +76,7 @@ function FooterNewsletter() {
           </div>
 
           {/* Right Side: Newsletter + Social */}
-          <div className="w-full lg:w-[400px] shrink-0 relative bg-white md:bg-transparent p-3.5 md:p-0 rounded-[16px] md:rounded-[24px] border border-gray-100 md:border-none shadow-sm md:shadow-none">
+          <div className="w-full lg:w-[400px] shrink-0 relative bg-white md:bg-transparent p-4 pb-12 md:p-0 md:pb-0 rounded-[16px] md:rounded-[24px] border border-gray-100 md:border-none shadow-sm md:shadow-none">
             <img
               src={medico}
               alt="Medico"
@@ -107,7 +107,7 @@ function FooterNewsletter() {
                 </div>
  
                 {/* Social Media Icons */}
-                <div className="mt-2 md:mt-4">
+                <div className="mt-2 md:mt-4 pr-16 md:pr-0">
                   <h4 className="text-[11.5px] md:text-[18px] font-bold text-[#006D6D] mb-1.5 md:mb-4">Follow CureBasket</h4>
                   <div className="flex flex-wrap gap-3.5 md:gap-4">
                     {/* Instagram */}

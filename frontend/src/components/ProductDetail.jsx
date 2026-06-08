@@ -455,8 +455,129 @@ function ProductDetail({ onBack }) {
     )
   }
 
+  const renderPricingBox = (isMobile) => (
+    <div className={`bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-5 px-5 pb-5 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] ${isMobile ? 'mb-6' : 'lg:sticky lg:top-24'}`}>
+      {savingsPercent > 0 && (
+        <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save {savingsPercent}%</div>
+      )}
+      
+      <div className="mb-4 md:mb-3">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[24px] md:text-[26px] font-bold text-gray-900">₹{selectedPrice}</span>
+          <span className="text-gray-400 line-through text-[12px]">₹{selectedMRP}</span>
+        </div>
+        {savingsPercent > 0 && (
+          <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save {product?.priceLabel || '$'}{savingsAmount} ({savingsPercent}%)</div>
+        )}
+      </div>
+
+      {/* Package Selection */}
+      <div className="space-y-2 mb-4 md:mb-1.5">
+        <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Select Quantity (Package)</h4>
+        <div className="space-y-2">
+          {packageOptions.map(pkg => (
+            <label 
+              key={pkg.id}
+              className={`flex items-center justify-between py-2 md:py-1.5 px-3 md:px-2.5 rounded-xl border-2 cursor-pointer transition-all relative ${selectedPackage.id === pkg.id ? 'border-[#006D6D] bg-[#E6F7F7]/20' : 'border-gray-100 hover:border-gray-200'}`}
+              onClick={() => setSelectedPackage(pkg)}
+            >
+              <div className="flex items-center gap-2">
+                <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${selectedPackage.id === pkg.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
+                  {selectedPackage.id === pkg.id && <div className="w-1.5 h-1.5 rounded-full bg-[#006D6D]"></div>}
+                </div>
+                <span className="text-[11px] font-bold text-gray-900">{pkg.label}</span>
+              </div>
+              <div className="text-right">
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-gray-900">₹{pkg.price.toFixed(2)}</span>
+                  {pkg.mrp > pkg.price && (
+                    <span className="text-[9px] text-gray-400 line-through font-medium">₹{pkg.mrp.toFixed(2)}</span>
+                  )}
+                </div>
+                <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>₹{pkg.perUnit.toFixed(2)} / unit</div>
+              </div>
+              {pkg.popular && (
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[7px] md:text-[8px] font-bold text-[#FBB03B] shadow-sm z-10">
+                  Best Value
+                </div>
+              )}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Quantity Selector */}
+      <div className="flex items-center justify-between mb-4 md:mb-2">
+        <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Quantity</span>
+        <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+          <button
+            type="button"
+            onClick={() => setQuantity(q => Math.max(1, q - 1))}
+            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
+          >−</button>
+          <span className="w-8 text-center font-bold text-gray-900 text-[13px] select-none">{quantity}</span>
+          <button
+            type="button"
+            onClick={() => setQuantity(q => q + 1)}
+            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
+          >+</button>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="space-y-2">
+        <button
+          onClick={guardedAction(() => {
+            addToCart(product, quantity, selectedPackage);
+            navigate('/cart');
+          }, 'add-to-cart')}
+          className="w-full bg-[#FFD200] text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#FFD200]/10 text-[13px]"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          Add to Cart
+        </button>
+        <button
+          disabled={pData.prescription === 'Required' && prescriptionStatus !== 'approved'}
+          onClick={guardedAction(() => navigate('/checkout', { state: { product, selectedPackage, quantity } }), 'buy-now')}
+          className={`w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[13px] ${pData.prescription === 'Required' && prescriptionStatus !== 'approved' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+        >
+          <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          Buy Now
+        </button>
+        {pData.prescription === 'Required' && prescriptionStatus === 'none' && (
+          <p className="text-center text-[11px] font-bold text-[#d97706] bg-[#FFF8E7] border border-[#FFD200]/30 py-1.5 px-3 rounded-lg mt-1">Upload a prescription above to enable Buy Now</p>
+        )}
+        {pData.prescription === 'Required' && prescriptionStatus === 'pending' && (
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
+            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <p className="text-[11px] text-amber-700 font-medium">Your prescription is under review. Buy Now will be enabled once a pharmacist approves it.</p>
+          </div>
+        )}
+        {pData.prescription === 'Required' && prescriptionStatus === 'rejected' && (
+          <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
+            <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <p className="text-[11px] text-red-700 font-medium">Your prescription was rejected. Please upload a new valid prescription.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
   return (
     <div className="bg-white min-h-screen pb-10 md:pb-20">
+      {/* Mobile Back Button */}
+      <div className="max-w-[1250px] mx-auto px-4 pt-4 md:hidden">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-500 hover:text-[#006D6D] transition-colors font-medium group"
+        >
+          <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Back
+        </button>
+      </div>
+
       {/* Breadcrumbs */}
       <div className="max-w-[1250px] mx-auto px-4 md:px-12 py-4 hidden md:block">
         <nav className="flex items-center gap-2 text-[12px] font-medium text-gray-500">
@@ -497,7 +618,7 @@ function ProductDetail({ onBack }) {
 
               {/* Main Image */}
               <div className="flex items-center justify-center pt-8 pb-4 h-auto overflow-hidden">
-                <img src={product.image} alt={product.title || product.name} className="w-full max-h-[300px] md:max-h-[700px] object-contain transform scale-110 md:scale-[1.45]" />
+                <img src={product.image} alt={product.title || product.name} className="w-full max-h-[300px] md:max-h-[700px] object-contain transform scale-95 md:scale-[1.45]" />
               </div>
 
               {/* Thumbnails */}
@@ -579,6 +700,11 @@ function ProductDetail({ onBack }) {
                 </button>
               </div>
 
+              {/* Mobile-only Pricing Box */}
+              <div className="block lg:hidden pt-4">
+                {renderPricingBox(true)}
+              </div>
+
               {/* Trust Badges */}
               <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-3 pt-2">
                 {[
@@ -619,112 +745,8 @@ function ProductDetail({ onBack }) {
         </div>
 
         {/* Right Column: Pricing & Cart Card */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-5 px-5 pb-5 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] lg:sticky lg:top-24">
-            {savingsPercent > 0 && (
-              <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save {savingsPercent}%</div>
-            )}
-            
-            <div className="mb-4 md:mb-3">
-              <div className="flex items-baseline gap-2">
-                <span className="text-[24px] md:text-[26px] font-bold text-gray-900">₹{selectedPrice}</span>
-                <span className="text-gray-400 line-through text-[12px]">₹{selectedMRP}</span>
-              </div>
-              {savingsPercent > 0 && (
-                <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save {product?.priceLabel || '$'}{savingsAmount} ({savingsPercent}%)</div>
-              )}
-            </div>
-
-            {/* Package Selection */}
-            <div className="space-y-2 mb-4 md:mb-1.5">
-              <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Select Quantity (Package)</h4>
-              <div className="space-y-2">
-                {packageOptions.map(pkg => (
-                  <label 
-                    key={pkg.id}
-                    className={`flex items-center justify-between py-2 md:py-1.5 px-3 md:px-2.5 rounded-xl border-2 cursor-pointer transition-all relative ${selectedPackage.id === pkg.id ? 'border-[#006D6D] bg-[#E6F7F7]/20' : 'border-gray-100 hover:border-gray-200'}`}
-                    onClick={() => setSelectedPackage(pkg)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${selectedPackage.id === pkg.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
-                        {selectedPackage.id === pkg.id && <div className="w-1.5 h-1.5 rounded-full bg-[#006D6D]"></div>}
-                      </div>
-                      <span className="text-[11px] font-bold text-gray-900">{pkg.label}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-gray-900">₹{pkg.price.toFixed(2)}</span>
-                        {pkg.mrp > pkg.price && (
-                          <span className="text-[9px] text-gray-400 line-through font-medium">₹{pkg.mrp.toFixed(2)}</span>
-                        )}
-                      </div>
-                      <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>₹{pkg.perUnit.toFixed(2)} / unit</div>
-                    </div>
-                    {pkg.popular && (
-                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[7px] md:text-[8px] font-bold text-[#FBB03B] shadow-sm z-10">
-                        Best Value
-                      </div>
-                    )}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Quantity Selector */}
-            <div className="flex items-center justify-between mb-4 md:mb-2">
-              <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Quantity</span>
-              <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
-                >−</button>
-                <span className="w-8 text-center font-bold text-gray-900 text-[13px] select-none">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(q => q + 1)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
-                >+</button>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-2">
-              <button
-                onClick={guardedAction(() => {
-                  addToCart(product, quantity, selectedPackage);
-                  navigate('/cart');
-                }, 'add-to-cart')}
-                className="w-full bg-[#FFD200] text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#FFD200]/10 text-[13px]"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                Add to Cart
-              </button>
-              <button
-                disabled={pData.prescription === 'Required' && prescriptionStatus !== 'approved'}
-                onClick={guardedAction(() => navigate('/checkout', { state: { product, selectedPackage, quantity } }), 'buy-now')}
-                className={`w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[13px] ${pData.prescription === 'Required' && prescriptionStatus !== 'approved' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
-              >
-                <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                Buy Now
-              </button>
-              {pData.prescription === 'Required' && prescriptionStatus === 'none' && (
-                <p className="text-center text-[11px] font-bold text-[#d97706] bg-[#FFF8E7] border border-[#FFD200]/30 py-1.5 px-3 rounded-lg mt-1">Upload a prescription above to enable Buy Now</p>
-              )}
-              {pData.prescription === 'Required' && prescriptionStatus === 'pending' && (
-                <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
-                  <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <p className="text-[11px] text-amber-700 font-medium">Your prescription is under review. Buy Now will be enabled once a pharmacist approves it.</p>
-                </div>
-              )}
-              {pData.prescription === 'Required' && prescriptionStatus === 'rejected' && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
-                  <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <p className="text-[11px] text-red-700 font-medium">Your prescription was rejected. Please upload a new valid prescription.</p>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="hidden lg:block space-y-6">
+          {renderPricingBox(false)}
         </div>
       </div>
 
