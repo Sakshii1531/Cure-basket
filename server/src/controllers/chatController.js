@@ -48,12 +48,21 @@ exports.startConversation = async (req, res) => {
 
     if (!conversation) {
       conversation = await Conversation.create({ customer, subject: subject || '' });
-    } else if (req.user && !conversation.customer.user) {
-      // Visitor logged in mid-conversation — attach their account.
-      conversation.customer.user = req.user._id;
-      conversation.customer.name = req.user.name;
-      conversation.customer.email = req.user.email;
-      await conversation.save();
+    } else {
+      // Enrich the existing conversation with any identity we just learned —
+      // a logged-in account, or the name/email a guest typed in the offline
+      // "Leave a Message" form (otherwise it would stay an anonymous "Guest").
+      let changed = false;
+      if (req.user && !conversation.customer.user) {
+        conversation.customer.user = req.user._id;
+        conversation.customer.name = req.user.name;
+        conversation.customer.email = req.user.email;
+        changed = true;
+      }
+      if (name && !conversation.customer.name) { conversation.customer.name = name; changed = true; }
+      if (email && !conversation.customer.email) { conversation.customer.email = email; changed = true; }
+      if (subject && !conversation.subject) { conversation.subject = subject; changed = true; }
+      if (changed) await conversation.save();
     }
 
     const messages = await Message.find({ conversation: conversation._id }).sort('createdAt');

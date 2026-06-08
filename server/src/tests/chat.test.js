@@ -41,6 +41,22 @@ describe('POST /api/chat/conversations', () => {
     const res = await request(app).post('/api/chat/conversations').send({ name: 'x' });
     expect(res.status).toBe(422);
   });
+
+  it('captures a guest name/email from a later start (offline form)', async () => {
+    // First open creates an anonymous conversation (empty identity)…
+    await request(app).post('/api/chat/conversations').send({ sessionId: 'guest-1' });
+    // …then the offline "Leave a Message" form submits name + email.
+    const res = await request(app)
+      .post('/api/chat/conversations')
+      .send({ sessionId: 'guest-1', name: 'Jane Guest', email: 'jane@example.com' });
+    expect(res.body.data.conversation.customer.name).toBe('Jane Guest');
+    expect(res.body.data.conversation.customer.email).toBe('jane@example.com');
+  });
+
+  it('reports live customer presence (customerOnline)', async () => {
+    const res = await startConversation();
+    expect(res.body.data.conversation.customerOnline).toBe(true);
+  });
 });
 
 describe('customer messaging', () => {
@@ -126,6 +142,18 @@ describe('admin chat', () => {
       .send({ status: 'resolved' });
     expect(res.status).toBe(200);
     expect(res.body.data.status).toBe('resolved');
+  });
+
+  it('marks the customer Away once they stop polling (closed tab)', async () => {
+    const Conversation = require('../models/Conversation');
+    const conv = (await startConversation()).body.data.conversation;
+    expect(conv.customerOnline).toBe(true);
+
+    // Simulate the tab being closed: lastUserSeenAt goes stale (no more polls).
+    await Conversation.updateOne({ _id: conv._id }, { lastUserSeenAt: new Date(Date.now() - 60000) });
+
+    const view = await request(app).get(`/api/chat/admin/conversations/${conv._id}`).set('Cookie', adminCookie);
+    expect(view.body.data.conversation.customerOnline).toBe(false);
   });
 });
 

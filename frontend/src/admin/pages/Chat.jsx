@@ -172,8 +172,12 @@ function Chat() {
                 >
                   <div className="flex justify-between items-center gap-2">
                     <span className="font-bold text-gray-900 text-sm truncate flex items-center gap-2">
-                      {c.unreadForAdmin && <span className="w-2 h-2 bg-red-500 rounded-full shrink-0"></span>}
+                      <span
+                        className={`w-2 h-2 rounded-full shrink-0 ${c.customerOnline ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                        title={c.customerOnline ? 'Online now' : 'Away'}
+                      ></span>
                       {customerName(c)}
+                      {c.unreadForAdmin && <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0"></span>}
                     </span>
                     <span className="text-[10px] text-gray-400 shrink-0">{fmtDate(c.lastMessageAt)}</span>
                   </div>
@@ -200,7 +204,13 @@ function Chat() {
               {/* Thread header */}
               <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
                 <div>
-                  <p className="font-bold text-gray-900 text-sm">{customerName(thread.conversation)}</p>
+                  <p className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${thread.conversation.customerOnline ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`}></span>
+                    {customerName(thread.conversation)}
+                    <span className={`text-[10px] font-semibold ${thread.conversation.customerOnline ? 'text-emerald-600' : 'text-gray-400'}`}>
+                      {thread.conversation.customerOnline ? 'Online' : 'Away'}
+                    </span>
+                  </p>
                   <p className="text-xs text-gray-400">
                     {thread.conversation.customer?.email || 'No email (guest)'}
                   </p>
