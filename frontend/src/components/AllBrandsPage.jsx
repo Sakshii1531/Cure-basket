@@ -32,49 +32,50 @@ function AllBrandsPage({ onBack }) {
           <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Back to Home
+          <span className="hidden md:inline">Back to Home</span>
+          <span className="md:hidden font-bold text-gray-900">All Popular Brands</span>
         </button>
 
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-[36px] md:text-[48px] font-bold text-gray-900 tracking-tight mb-4">
+        <div className="mb-8 md:mb-12">
+          <h1 className="hidden md:block text-[28px] md:text-[48px] font-bold text-gray-900 tracking-tight mb-3 md:mb-4">
             All Popular Brands
           </h1>
-          <p className="text-gray-500 text-[18px] max-w-2xl leading-relaxed">
+          <p className="text-gray-500 text-[14px] md:text-[18px] max-w-2xl leading-relaxed">
             We partner with the world's leading pharmaceutical manufacturers to ensure you receive the highest quality medications and healthcare products.
           </p>
         </div>
 
         {/* Brands Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-[24px] h-[140px] animate-pulse" />
+              <div key={i} className="bg-white rounded-[16px] md:rounded-[24px] h-[130px] md:h-[180px] animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             {brands.map((brand) => (
               <div 
                 key={brand.id}
                 onClick={() => navigate(`/medicines?brand=${brand.id}&brandName=${encodeURIComponent(brand.name)}`)}
-                className="bg-white border border-gray-100 rounded-[24px] p-4 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:border-[#006D6D]/30 transition-all cursor-pointer h-[160px] md:h-[180px] group"
+                className="bg-white border border-gray-100 rounded-[16px] md:rounded-[24px] p-3 md:p-4 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:border-[#006D6D]/30 transition-all cursor-pointer h-[130px] md:h-[180px] group"
               >
-                <div className="flex-1 flex items-center justify-center w-full mb-3">
+                <div className="flex-1 flex items-center justify-center w-full mb-2 md:mb-3">
                   {brand.image ? (
                     <img 
                       src={brand.image} 
                       alt={brand.name} 
-                      className="max-w-[85%] max-h-[80px] md:max-h-[100px] object-contain mix-blend-multiply"
+                      className="max-w-[85%] max-h-[60px] md:max-h-[100px] object-contain mix-blend-multiply"
                       onError={e => { e.target.style.display = 'none' }}
                     />
                   ) : (
-                    <div className="w-16 h-16 bg-[#006D6D]/10 rounded-full flex items-center justify-center">
-                      <span className="text-[#006D6D] font-bold text-2xl">{brand.name.charAt(0)}</span>
+                    <div className="w-12 h-12 md:w-16 md:h-16 bg-[#006D6D]/10 rounded-full flex items-center justify-center">
+                      <span className="text-[#006D6D] font-bold text-xl md:text-2xl">{brand.name.charAt(0)}</span>
                     </div>
                   )}
                 </div>
-                <span className="text-[15px] md:text-[18px] font-bold text-gray-700 text-center line-clamp-1">
+                <span className="text-[13px] md:text-[18px] font-bold text-gray-700 text-center line-clamp-1">
                   {brand.name}
                 </span>
                 <p className="text-[12px] text-gray-400 mt-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">View Medicines</p>

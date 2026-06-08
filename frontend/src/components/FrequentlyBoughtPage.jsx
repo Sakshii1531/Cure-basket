@@ -31,13 +31,13 @@ const CATEGORY_META = {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 p-6 animate-pulse">
-      <div className="w-full h-40 bg-gray-100 rounded-xl mb-6" />
+    <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-3 md:p-6 animate-pulse">
+      <div className="w-full h-24 md:h-40 bg-gray-100 rounded-xl mb-3 md:mb-6" />
       <div className="h-4 bg-gray-100 rounded mb-1.5" />
-      <div className="h-3 w-1/2 bg-gray-100 rounded mb-4" />
+      <div className="h-3 w-1/2 bg-gray-100 rounded mb-3 md:mb-4" />
       <div className="flex items-center justify-between mt-auto">
-        <div className="h-8 w-16 bg-gray-100 rounded" />
-        <div className="h-10 w-24 bg-gray-100 rounded-xl" />
+        <div className="h-6 w-12 md:h-8 md:w-16 bg-gray-100 rounded" />
+        <div className="h-8 w-16 md:h-10 md:w-24 bg-gray-100 rounded-lg md:rounded-xl" />
       </div>
     </div>
   )
@@ -148,7 +148,7 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
 
         {!categoryFilter && (
           <div className="mb-8 md:mb-12">
-            <h1 className="text-[28px] md:text-[42px] font-bold text-gray-900 tracking-tight mb-3 md:mb-4 capitalize">
+            <h1 className="text-[22px] md:text-[42px] font-bold text-gray-900 tracking-tight mb-3 md:mb-4 capitalize">
               Frequently Bought Together
             </h1>
             <p className="text-gray-500 text-[14px] md:text-[16px] max-w-2xl leading-relaxed font-medium">
@@ -161,7 +161,7 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {loading ? (
             Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
           ) : products.length > 0 ? (
@@ -169,9 +169,9 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
               <div
                 key={product._id}
                 onClick={() => handleProductClick(product)}
-                className="bg-white rounded-3xl border border-gray-100 p-6 flex flex-col cursor-pointer hover:shadow-xl transition-all duration-300 group"
+                className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-3 md:p-6 flex flex-col cursor-pointer hover:shadow-xl transition-all duration-300 group"
               >
-                <div className="w-full h-40 flex items-center justify-center mb-6">
+                <div className="w-full h-24 md:h-40 flex items-center justify-center mb-3 md:mb-6">
                   <img
                     src={product.image && product.image !== 'no-photo.jpg' ? product.image : productImg}
                     alt={product.name}
@@ -181,21 +181,21 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
                 </div>
 
                 <div className="grow flex flex-col">
-                  <h3 className="text-[15px] font-bold text-gray-900 mb-1 leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                  <h3 className="text-[14px] md:text-[15px] font-bold text-gray-900 mb-0.5 leading-tight group-hover:text-primary transition-colors line-clamp-2">
                     {product.name}
                   </h3>
-                  <p className="text-[13px] font-bold text-gray-400 mb-4">({product.genericName})</p>
+                  <p className="text-[11px] md:text-[13px] font-bold text-gray-400 mb-2 md:mb-4">({product.genericName})</p>
 
                   <div className="mt-auto flex items-center justify-between">
-                    <span className="text-[20px] font-black text-gray-900">₹{product.price}</span>
+                    <span className="text-[16px] md:text-[20px] font-black text-gray-900">₹{product.price}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
                       }}
-                      className="flex items-center gap-2 bg-secondary text-primary px-4 py-2 rounded-xl text-[13px] font-black hover:bg-primary hover:text-white transition-all active:scale-95"
+                      className="flex items-center gap-1 md:gap-2 bg-secondary text-primary px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[11px] md:text-[13px] font-black hover:bg-primary hover:text-white transition-all active:scale-95"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                      <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                       Add
                     </button>
                   </div>

@@ -73,12 +73,13 @@ function MedicinesPage({ onProductClick }) {
           <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Back to Home
+          <span className="hidden md:inline">Back to Home</span>
+          <span className="md:hidden font-bold text-gray-900">All Medicines</span>
         </button>
 
-        <div className="mb-8">
-          <h1 className="text-[32px] md:text-[42px] font-bold text-gray-900 tracking-tight mb-3">All Medicines</h1>
-          <p className="text-gray-500 text-[16px] max-w-2xl leading-relaxed">
+        <div className="mb-6 md:mb-8">
+          <h1 className="hidden md:block text-[32px] md:text-[42px] font-bold text-gray-900 tracking-tight mb-3">All Medicines</h1>
+          <p className="text-gray-500 text-[14px] md:text-[16px] max-w-2xl leading-relaxed">
             Browse our wide range of genuine medications. Trusted quality, delivered to you.
           </p>
         </div>
