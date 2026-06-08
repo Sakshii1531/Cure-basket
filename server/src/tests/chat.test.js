@@ -203,3 +203,77 @@ describe('AI assistant (generateBotReply)', () => {
     expect(r.escalate).toBe(true);
   });
 });
+
+describe('chatbot clarification loop & connection prompt', () => {
+  const chatBot = require('../services/chatBot');
+  const Conversation = require('../models/Conversation');
+  const Message = require('../models/Message');
+
+  it('clarifies twice before connection prompt and handles user response', async () => {
+    const res = await startConversation();
+    const conv = res.body.data.conversation;
+
+    // Message 1: First gibberish
+    await request(app)
+      .post(`/api/chat/conversations/${conv._id}/messages`)
+      .send({ sessionId: SESSION, text: 'qwerqwer' });
+    await chatBot.respond(conv._id);
+
+    let dbConv = await Conversation.findById(conv._id);
+    expect(dbConv.clarificationCount).toBe(1);
+    expect(dbConv.status).toBe('bot');
+
+    let botMsgs = await Message.find({ conversation: conv._id, sender: 'bot' }).sort('createdAt');
+    expect(botMsgs.length).toBe(1);
+    expect(botMsgs[0].text).toContain("rephrase or clarify");
+
+    // Message 2: Second gibberish
+    await request(app)
+      .post(`/api/chat/conversations/${conv._id}/messages`)
+      .send({ sessionId: SESSION, text: 'asdfasdf' });
+    await chatBot.respond(conv._id);
+
+    dbConv = await Conversation.findById(conv._id);
+    expect(dbConv.clarificationCount).toBe(2);
+    expect(dbConv.status).toBe('bot');
+
+    botMsgs = await Message.find({ conversation: conv._id, sender: 'bot' }).sort('createdAt');
+    expect(botMsgs.length).toBe(2);
+    expect(botMsgs[1].text).toContain("connect you to an executive");
+
+    // Message 3: Confirm connection
+    await request(app)
+      .post(`/api/chat/conversations/${conv._id}/messages`)
+      .send({ sessionId: SESSION, text: 'yes please' });
+    await chatBot.respond(conv._id);
+
+    dbConv = await Conversation.findById(conv._id);
+    expect(dbConv.clarificationCount).toBe(0);
+    expect(dbConv.status).toBe('waiting_human');
+
+    const lastMsg = await Message.findOne({ conversation: conv._id }).sort('-createdAt');
+    expect(lastMsg.sender).toBe('system');
+    expect(lastMsg.text).toContain("Connecting you with a member of our team");
+  });
+  
+  it('resets clarificationCount when a query is successfully matched', async () => {
+    const res = await startConversation();
+    const conv = res.body.data.conversation;
+
+    await request(app)
+      .post(`/api/chat/conversations/${conv._id}/messages`)
+      .send({ sessionId: SESSION, text: 'qwerqwer' });
+    await chatBot.respond(conv._id);
+
+    let dbConv = await Conversation.findById(conv._id);
+    expect(dbConv.clarificationCount).toBe(1);
+
+    await request(app)
+      .post(`/api/chat/conversations/${conv._id}/messages`)
+      .send({ sessionId: SESSION, text: 'how do I upload my prescription?' });
+    await chatBot.respond(conv._id);
+
+    dbConv = await Conversation.findById(conv._id);
+    expect(dbConv.clarificationCount).toBe(0);
+  });
+});

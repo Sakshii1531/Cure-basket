@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const XLSX = require('xlsx');
 const Medicine = require('../models/Medicine');
 const Category = require('../models/Category');
+const SearchQuery = require('../models/SearchQuery');
 const { clearCache } = require('../middlewares/cacheMiddleware');
 const sanitizeError = require('../utils/sanitizeError');
 
@@ -22,6 +23,74 @@ exports.getMedicines = async (req, res, next) => {
           filter[key] = req.query[key] === 'true';
         } else {
           filter[key] = req.query[key];
+        }
+      }
+    }
+
+    // Extract search query (prioritizing q/search/name[regex] keys)
+    let searchVal = '';
+    if (req.query.q) {
+      searchVal = req.query.q;
+    } else if (req.query.search) {
+      searchVal = req.query.search;
+    } else if (req.query['name[regex]']) {
+      searchVal = req.query['name[regex]'];
+    } else if (req.query.name) {
+      searchVal = typeof req.query.name === 'string' ? req.query.name : (req.query.name.regex || '');
+    }
+
+    if (searchVal) {
+      const cleanSearch = String(searchVal).trim();
+      if (cleanSearch) {
+        // Track user search query asynchronously if length is >= 3
+        if (cleanSearch.length >= 3) {
+          SearchQuery.findOneAndUpdate(
+            { query: cleanSearch.toLowerCase() },
+            {
+              $inc: { count: 1 },
+              $setOnInsert: { originalQuery: cleanSearch },
+              updatedAt: new Date()
+            },
+            { upsert: true }
+          ).catch((err) => console.error('Error tracking search query:', err));
+        }
+
+        const words = cleanSearch.split(/\s+/).filter(Boolean);
+        if (words.length > 0) {
+          const Brand = require('../models/Brand');
+          // Resolve categories and brands that match the clean search string
+          const [matchedCats, matchedBrands] = await Promise.all([
+            Category.find({ name: { $regex: cleanSearch, $options: 'i' } }).select('_id').lean(),
+            Brand.find({ name: { $regex: cleanSearch, $options: 'i' } }).select('_id').lean()
+          ]);
+
+          const catIds = matchedCats.map(c => c._id);
+          const brandIds = matchedBrands.map(b => b._id);
+
+          filter.$and = words.map(word => {
+            const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Handle spacing variation for dosage/strength units (e.g. 5mg -> 5\s*mg)
+            const fuzzyWord = escapedWord.replace(/(\d+)([a-zA-Z]+)/g, '$1\\s*$2')
+                                         .replace(/([a-zA-Z]+)(\d+)/g, '$1\\s*$2');
+            const pattern = new RegExp(fuzzyWord, 'i');
+
+            const orConditions = [
+              { title: { $regex: pattern } },
+              { name: { $regex: pattern } },
+              { genericFor: { $regex: pattern } },
+              { activeIngredient: { $regex: pattern } },
+              { description: { $regex: pattern } }
+            ];
+
+            if (catIds.length > 0) {
+              orConditions.push({ category: { $in: catIds } });
+            }
+            if (brandIds.length > 0) {
+              orConditions.push({ brand: { $in: brandIds } });
+            }
+
+            return { $or: orConditions };
+          });
         }
       }
     }
@@ -340,6 +409,25 @@ exports.bulkUploadMedicines = async (req, res) => {
       success: true,
       summary: { inserted, skipped, errors: errors.length },
       errors,
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+// @desc    Get top popular searches
+// @route   GET /api/medicines/popular-searches
+// @access  Public
+exports.getPopularSearches = async (req, res, next) => {
+  try {
+    const popular = await SearchQuery.find()
+      .sort({ count: -1, updatedAt: -1 })
+      .limit(10)
+      .select('originalQuery count -_id');
+
+    res.status(200).json({
+      success: true,
+      data: popular.map(item => item.originalQuery)
     });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });

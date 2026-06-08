@@ -18,6 +18,7 @@ const conversationSchema = new mongoose.Schema({
   },
 
   assignedAdmin: { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
+  clarificationCount: { type: Number, default: 0 },
   subject: { type: String, trim: true, default: '' },
 
   // Drives inbox sorting + the unread badge for the chemist.
