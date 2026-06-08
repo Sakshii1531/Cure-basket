@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Settings = require('../models/Settings');
-const sendEmail = require('../utils/sendEmail');
 const sanitizeError = require('../utils/sanitizeError');
+const { notifyChemist, emailReplyToCustomer } = require('../services/chatNotifications');
+const chatBot = require('../services/chatBot');
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -21,45 +22,6 @@ const ownsConversation = (conv, req) => {
   if (sessionId && conv.customer.sessionId === sessionId) return true;
   if (req.user && conv.customer.user && conv.customer.user.equals(req.user._id)) return true;
   return false;
-};
-
-const notifyChemist = async (conv, text) => {
-  try {
-    const to = process.env.SUPPORT_NOTIFY_EMAIL || process.env.SUPER_ADMIN_EMAIL;
-    if (!to) return;
-    const who = conv.customer.name || conv.customer.email || 'A website visitor';
-    await sendEmail({
-      to,
-      subject: `New CureBasket chat from ${who}`,
-      html: `
-        <div style="font-family:sans-serif">
-          <h2>New live chat message</h2>
-          <p><strong>${who}</strong> sent:</p>
-          <blockquote style="border-left:3px solid #006D6D;padding-left:12px;color:#333">${text}</blockquote>
-          <p>Open the admin panel → <strong>Live Chat</strong> to reply.</p>
-        </div>`,
-    });
-  } catch (err) {
-    console.error('[chat] chemist notification failed:', err.message);
-  }
-};
-
-const emailReplyToCustomer = async (conv, text) => {
-  try {
-    if (!conv.customer.email) return;
-    await sendEmail({
-      to: conv.customer.email,
-      subject: 'CureBasket replied to your question',
-      html: `
-        <div style="font-family:sans-serif">
-          <p>Hi ${conv.customer.name || 'there'}, our team replied to your chat:</p>
-          <blockquote style="border-left:3px solid #006D6D;padding-left:12px;color:#333">${text}</blockquote>
-          <p>Visit the website and open the chat to continue the conversation.</p>
-        </div>`,
-    });
-  } catch (err) {
-    console.error('[chat] customer reply email failed:', err.message);
-  }
 };
 
 // ── customer endpoints (optionalAuth) ───────────────────────────────────────
@@ -86,12 +48,21 @@ exports.startConversation = async (req, res) => {
 
     if (!conversation) {
       conversation = await Conversation.create({ customer, subject: subject || '' });
-    } else if (req.user && !conversation.customer.user) {
-      // Visitor logged in mid-conversation — attach their account.
-      conversation.customer.user = req.user._id;
-      conversation.customer.name = req.user.name;
-      conversation.customer.email = req.user.email;
-      await conversation.save();
+    } else {
+      // Enrich the existing conversation with any identity we just learned —
+      // a logged-in account, or the name/email a guest typed in the offline
+      // "Leave a Message" form (otherwise it would stay an anonymous "Guest").
+      let changed = false;
+      if (req.user && !conversation.customer.user) {
+        conversation.customer.user = req.user._id;
+        conversation.customer.name = req.user.name;
+        conversation.customer.email = req.user.email;
+        changed = true;
+      }
+      if (name && !conversation.customer.name) { conversation.customer.name = name; changed = true; }
+      if (email && !conversation.customer.email) { conversation.customer.email = email; changed = true; }
+      if (subject && !conversation.subject) { conversation.subject = subject; changed = true; }
+      if (changed) await conversation.save();
     }
 
     const messages = await Message.find({ conversation: conversation._id }).sort('createdAt');
@@ -159,9 +130,9 @@ exports.postMessage = async (req, res) => {
       return res.status(403).json({ success: false, error: 'Not authorized for this conversation' });
     }
 
-    // Capture pre-message state to decide whether to email the chemist:
-    // notify on the first message, or when they'd previously read everything —
-    // but not for every follow-up in an already-unread burst (avoids spam).
+    const supportOnline = await isSupportOnline();
+    // Pre-message state for the (offline) chemist-notification debounce: notify
+    // on the first message or when they'd read everything, not every follow-up.
     const hadMessages = !!conversation.lastMessageText;
     const wasUnread = conversation.unreadForAdmin;
 
@@ -177,6 +148,19 @@ exports.postMessage = async (req, res) => {
     conversation.lastMessageText = message.text;
     conversation.lastMessageSender = 'user';
     conversation.lastUserSeenAt = message.createdAt;
+
+    // When support is online and no human has taken over, the AI assistant
+    // fields the message first (escalating to a human if it can't help). Its
+    // reply reaches the customer on their next poll.
+    if (supportOnline && conversation.status !== 'human_active') {
+      await conversation.save();
+      res.status(201).json({ success: true, data: message });
+      chatBot.respond(conversation._id).catch((e) => console.error('[chat] bot failed:', e.message));
+      return;
+    }
+
+    // Support offline (async ticket) or a human is mid-conversation → flag the
+    // chemist directly, as in Phase 1.
     conversation.unreadForAdmin = true;
     if (conversation.status !== 'human_active') conversation.status = 'waiting_human';
     await conversation.save();
