@@ -128,3 +128,50 @@ describe('admin chat', () => {
     expect(res.body.data.status).toBe('resolved');
   });
 });
+
+describe('AI assistant (generateBotReply)', () => {
+  const { generateBotReply } = require('../services/chatBot');
+  const Category = require('../models/Category');
+  const Medicine = require('../models/Medicine');
+
+  it('escalates when the visitor asks for a human', async () => {
+    const r = await generateBotReply('can I talk to a person please');
+    expect(r.escalate).toBe(true);
+  });
+
+  it('refuses medical advice and escalates', async () => {
+    const r = await generateBotReply('what should I take for a headache?');
+    expect(r.escalate).toBe(true);
+    expect(r.text.toLowerCase()).toMatch(/advice|doctor|pharmacist/);
+  });
+
+  it('answers the prescription FAQ without escalating', async () => {
+    const r = await generateBotReply('how do I upload my prescription?');
+    expect(r.escalate).toBe(false);
+    expect(r.text).toMatch(/Upload Rx/i);
+  });
+
+  it('greets without escalating', async () => {
+    const r = await generateBotReply('hi');
+    expect(r.escalate).toBe(false);
+  });
+
+  it('answers product availability from the live catalog', async () => {
+    const cat = await Category.create({ name: 'Pain Relief' });
+    await Medicine.create({ title: 'Paracetamol 500mg', category: cat._id, pricePerUnit: 2, totalPrice: 20, status: 'Active' });
+    const r = await generateBotReply('do you have Paracetamol?');
+    expect(r.escalate).toBe(false);
+    expect(r.text).toMatch(/Paracetamol/i);
+  });
+
+  it('handles a no-match availability query gracefully (no escalation)', async () => {
+    const r = await generateBotReply('do you have zzzznotarealdrug?');
+    expect(r.escalate).toBe(false);
+    expect(r.text.toLowerCase()).toMatch(/couldn.t find|search the site/);
+  });
+
+  it('escalates ambiguous messages when no LLM key is configured', async () => {
+    const r = await generateBotReply('tell me a fun fact about space');
+    expect(r.escalate).toBe(true);
+  });
+});
