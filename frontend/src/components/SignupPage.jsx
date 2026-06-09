@@ -2,24 +2,58 @@ import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
+// Country dial codes for the phone field. `code` (ISO) is the unique option
+// value since several countries share a dial code (e.g. +1 US/CA).
+const COUNTRY_CODES = [
+  { code: 'IN', flag: '🇮🇳', dial: '+91' },
+  { code: 'US', flag: '🇺🇸', dial: '+1' },
+  { code: 'GB', flag: '🇬🇧', dial: '+44' },
+  { code: 'AE', flag: '🇦🇪', dial: '+971' },
+  { code: 'AU', flag: '🇦🇺', dial: '+61' },
+  { code: 'CA', flag: '🇨🇦', dial: '+1' },
+  { code: 'SG', flag: '🇸🇬', dial: '+65' },
+  { code: 'SA', flag: '🇸🇦', dial: '+966' },
+  { code: 'BD', flag: '🇧🇩', dial: '+880' },
+  { code: 'PK', flag: '🇵🇰', dial: '+92' },
+  { code: 'LK', flag: '🇱🇰', dial: '+94' },
+  { code: 'NP', flag: '🇳🇵', dial: '+977' },
+  { code: 'MY', flag: '🇲🇾', dial: '+60' },
+  { code: 'ID', flag: '🇮🇩', dial: '+62' },
+  { code: 'ZA', flag: '🇿🇦', dial: '+27' },
+  { code: 'NG', flag: '🇳🇬', dial: '+234' },
+  { code: 'DE', flag: '🇩🇪', dial: '+49' },
+  { code: 'FR', flag: '🇫🇷', dial: '+33' },
+  { code: 'IT', flag: '🇮🇹', dial: '+39' },
+  { code: 'ES', flag: '🇪🇸', dial: '+34' },
+  { code: 'NL', flag: '🇳🇱', dial: '+31' },
+  { code: 'BR', flag: '🇧🇷', dial: '+55' },
+  { code: 'JP', flag: '🇯🇵', dial: '+81' },
+  { code: 'CN', flag: '🇨🇳', dial: '+86' },
+  { code: 'NZ', flag: '🇳🇿', dial: '+64' },
+]
+
 const SignupPage = () => {
   const { register } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
+  const [country, setCountry] = useState('IN')
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  const dialCode = (COUNTRY_CODES.find((c) => c.code === country) || COUNTRY_CODES[0]).dial
 
   const validate = () => {
     const errs = {}
     if (!form.name.trim()) errs.name = 'Full name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
+    const localDigits = form.phone.replace(/\D/g, '')
     if (!form.phone.trim()) {
       errs.phone = 'Phone number is required'
-    } else if (!/^[+]?[\d\s\-().]{7,20}$/.test(form.phone)) {
+    } else if (localDigits.length < 6 || localDigits.length > 14) {
       errs.phone = 'Enter a valid phone number'
     }
     if (!form.password || form.password.length < 8) {
@@ -40,7 +74,8 @@ const SignupPage = () => {
     setLoading(true)
     setApiError('')
     try {
-      await register(form.name, form.email, form.password, form.phone)
+      const fullPhone = `${dialCode}${form.phone.replace(/\D/g, '')}`
+      await register(form.name, form.email, form.password, fullPhone)
       const from = typeof location.state?.from === 'string'
         ? location.state.from
         : (location.state?.from?.pathname || '/')
@@ -112,13 +147,28 @@ const SignupPage = () => {
 
           <div>
             <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-0.5 block">Phone Number</label>
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="+1 800 000 0000"
-              className={`w-full border-2 rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all ${errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
-            />
+            <div className={`flex items-stretch border-2 rounded-xl overflow-hidden transition-all ${errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-100 focus-within:border-primary bg-gray-50 focus-within:bg-white'}`}>
+              <select
+                name="country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                aria-label="Country code"
+                className="bg-transparent pl-3 pr-2 py-2 text-[13px] font-bold text-gray-700 outline-none border-r-2 border-gray-100 cursor-pointer"
+              >
+                {COUNTRY_CODES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.flag} {c.dial}</option>
+                ))}
+              </select>
+              <input
+                name="phone"
+                type="tel"
+                inputMode="numeric"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="800 000 0000"
+                className="flex-1 bg-transparent px-3 py-2 text-[13px] font-medium outline-none"
+              />
+            </div>
             {errors.phone && <p className="text-red-500 text-[10px] mt-0.5 font-medium">{errors.phone}</p>}
           </div>
 
