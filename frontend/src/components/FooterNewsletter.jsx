@@ -32,9 +32,7 @@ function FooterNewsletter() {
     { name: 'Terms And Conditions', path: '/terms-conditions' },
     { name: 'Privacy Policy', path: '/privacy-policy' },
     { name: 'Disclaimer', path: '/disclaimer' },
-    { name: 'Blog', path: '/blogs' },
-    { name: 'Articles', path: '/articles' },
-    { name: 'Referral Program', path: '/referral' }
+    { name: 'Blog', path: '/blogs' }
   ];
 
   const categoriesLinks = [

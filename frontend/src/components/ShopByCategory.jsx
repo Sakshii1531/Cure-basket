@@ -79,14 +79,14 @@ function ShopByCategory() {
           .animate-scroll {
             display: flex;
             width: fit-content;
-            animation: scroll 40s linear infinite;
+            animation: scroll 80s linear infinite;
           }
           .animate-scroll:hover {
             animation-play-state: paused;
           }
           @media (max-width: 768px) {
             .animate-scroll {
-              animation: scroll 30s linear infinite;
+              animation: scroll 60s linear infinite;
             }
           }
         `}} />
