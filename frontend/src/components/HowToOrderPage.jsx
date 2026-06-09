@@ -71,13 +71,19 @@ function HowToOrderPage() {
       </div>
 
       {/* Steps Timeline Layout */}
-      <div className="max-w-[850px] mx-auto px-4 md:px-8 py-16 md:py-24 relative">
-        {/* Central connecting line for timeline on tablet/desktop */}
-        <div className="absolute left-9 md:left-[39px] top-24 bottom-24 w-0.5 bg-[#006D6D]/15 pointer-events-none"></div>
-
+      <div className="max-w-[850px] mx-auto px-4 md:px-8 py-16 md:py-24">
         <div className="space-y-12">
           {(content.steps || []).map((st, i) => (
             <div key={i} className="flex gap-6 md:gap-8 items-start relative group">
+              {/* Connector line — runs from this circle's center to the next
+                  one (height = remaining row + the space-y-12 gap = +3rem). */}
+              {i < (content.steps || []).length - 1 && (
+                <div
+                  className="absolute top-[25px] md:top-[30px] left-[25px] md:left-[30px] -translate-x-1/2 w-0.5 bg-[#006D6D]/15 pointer-events-none"
+                  style={{ height: 'calc(100% + 3rem)' }}
+                ></div>
+              )}
+
               {/* Stepper Circle */}
               <div className="w-[50px] h-[50px] md:w-[60px] md:h-[60px] rounded-full bg-[#f5b23e]/10 border-2 border-[#f5b23e] flex items-center justify-center font-bold text-[#d48806] text-[18px] md:text-[22px] shrink-0 transition-transform duration-300 group-hover:scale-110 relative z-10 shadow-sm shadow-[#f5b23e]/10">
                 {st.num || (i + 1)}
