@@ -32,7 +32,7 @@ const MEDICAL_ADVICE =
   /(what should i (take|use|do)|which (medicine|drug|tablet|medication).*(for|to)|is it safe to (take|use)|can i (take|use|mix) .* (with|and|together)|how (much|many|often).*(take|dose)|dosage|side ?effects?|i (have|feel|am|'m|am suffering|got).*(pain|fever|cough|cold|headache|infection|rash|allerg)|symptom|overdose|drug interaction|interactions?\b)/i;
 
 const AVAILABILITY =
-  /(do you (have|sell|stock|carry)|is\s+.+\s+available|in stock|available\??$|price of|cost of|how much (is|for)|looking for|want to buy|can i (get|buy)|sell\b)/i;
+  /(do you (have|sell|stock|carry)|is\s+.+\s+available|in stock|available\??$|price of|cost of|how much (is|for)|looking for|want to buy|can i (get|buy)|sell|link of|link for|details? of|info on|inquiry about|tell me about|find|search for|buy\b)/i;
 
 const FAQ = [
   { test: /(upload|submit|send).*(prescription|rx)|how.*prescription/i,
@@ -53,7 +53,7 @@ const FAQ = [
 const extractQuery = (text) =>
   text
     .replace(/[?!.,]/g, ' ')
-    .replace(/\b(do|you|have|sell|stock|carry|is|are|the|a|an|available|in|of|price|cost|how|much|many|looking|for|i|need|want|to|buy|get|me|please|hey|hi|hello|any|there|guys|tablet|tablets|capsule|medicine|medicines|medication|brand|got)\b/gi, ' ')
+    .replace(/\b(do|you|have|sell|stock|stocks|stok|stoc|carry|is|are|the|a|an|available|availablke|availble|availabe|availeble|avialable|in|of|price|prce|priec|prices|cost|cst|costs|how|much|many|looking|lookin|look|for|i|need|want|to|buy|get|me|please|hey|hi|hello|any|there|guys|tablet|tablets|capsule|capsules|medicine|medicines|medication|brand|got|link|lnk|links|details|detail|info|inquiry|inquire|inquiries|about)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -61,22 +61,43 @@ const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const searchCatalog = async (query) => {
   if (!query || query.length < 2) return { meds: [], brands: [] };
-  const rx = new RegExp(escapeRegex(query), 'i');
+
+  const words = query.split(/\s+/).map(w => w.trim()).filter(w => w.length >= 3 || /\d/.test(w));
+  if (words.length === 0) return { meds: [], brands: [] };
+
+  const conditions = words.map(word => {
+    const escaped = escapeRegex(word);
+    const fuzzyWord = escaped.replace(/(\d+)([a-zA-Z]+)/g, '$1\\s*$2')
+                             .replace(/([a-zA-Z]+)(\d+)/g, '$1\\s*$2');
+    const rx = new RegExp(fuzzyWord, 'i');
+    return {
+      $or: [
+        { title: rx },
+        { name: rx },
+        { genericFor: rx },
+        { activeIngredient: rx }
+      ]
+    };
+  });
+
   const [meds, brands] = await Promise.all([
     Medicine.find({
       status: 'Active',
-      $or: [{ title: rx }, { name: rx }, { genericFor: rx }, { activeIngredient: rx }],
+      $and: conditions
     }).limit(4).select('title pricePerUnit priceLabel'),
-    Brand.find({ name: rx }).limit(3).select('name'),
+    Brand.find({
+      $and: words.map(w => ({ name: new RegExp(escapeRegex(w), 'i') }))
+    }).limit(3).select('name'),
   ]);
+
   return { meds, brands };
 };
 
 const formatMeds = (query, meds) => {
   const list = meds
-    .map((m) => `${m.title}${m.pricePerUnit != null ? ` — ${m.pricePerUnit} ${m.priceLabel || 'USD'}` : ''}`)
-    .join('; ');
-  return `Yes! We have: ${list}. Search “${query}” on the site to view details and order.`;
+    .map((m) => `[${m.title}](/product/${m._id})${m.pricePerUnit != null ? ` (₹${m.pricePerUnit})` : ''}`)
+    .join(', ');
+  return `Yes! We have: ${list}. You can click the links to view details and place your order.`;
 };
 
 // ── Gemini fallback (free tier, REST — no SDK dependency) ────────────────────
@@ -175,21 +196,59 @@ const respond = async (conversationId) => {
     const last = await Message.findOne({ conversation: conversationId, sender: 'user' }).sort('-createdAt');
     if (!last) return;
 
-    const { text, escalate } = await generateBotReply(last.text);
+    let { text, escalate } = await generateBotReply(last.text);
+
+    let clarificationCount = conversation.clarificationCount || 0;
+    let finalReplyText = text;
+    let finalEscalate = escalate;
+
+    if (escalate) {
+      if (clarificationCount >= 2) {
+        const userText = last.text.toLowerCase().trim();
+        const isYes = /^(yes|yeah|yep|sure|ok|okay|y|connect|executive|chemist|human|person|please)/i.test(userText);
+        const isNo = /^(no|nope|neither|dont|don't|n|stop)/i.test(userText);
+        
+        if (isYes) {
+          finalReplyText = "Sure! Connecting you with a member of our team now. They’ll reply right here shortly.";
+          finalEscalate = true;
+          clarificationCount = 0;
+        } else if (isNo) {
+          finalReplyText = "Okay, I won't connect you. How else can I help you today?";
+          finalEscalate = false;
+          clarificationCount = 0;
+        } else {
+          finalReplyText = "Let me connect you with a member of our team who can help with that — they’ll reply right here shortly.";
+          finalEscalate = true;
+          clarificationCount = 0;
+        }
+      } else {
+        clarificationCount += 1;
+        finalEscalate = false;
+        if (clarificationCount === 1) {
+          finalReplyText = "I'm sorry, I didn't quite catch that. Could you please rephrase or clarify your question?";
+        } else if (clarificationCount === 2) {
+          finalReplyText = "I'm still having trouble understanding. Would you like me to connect you to an executive?";
+        }
+      }
+    } else {
+      clarificationCount = 0;
+    }
+
+    conversation.clarificationCount = clarificationCount;
 
     const botMsg = await Message.create({
       conversation: conversationId,
-      sender: escalate ? 'system' : 'bot',
-      senderName: escalate ? '' : 'CureBasket Assistant',
-      text,
-      readByAdmin: !escalate, // escalations should show as needing attention
+      sender: finalEscalate ? 'system' : 'bot',
+      senderName: finalEscalate ? '' : 'CureBasket Assistant',
+      text: finalReplyText,
+      readByAdmin: !finalEscalate, // escalations should show as needing attention
       readByUser: false,
     });
 
     conversation.lastMessageAt = botMsg.createdAt;
-    conversation.lastMessageText = text;
+    conversation.lastMessageText = finalReplyText;
     conversation.lastMessageSender = botMsg.sender;
-    if (escalate) {
+    if (finalEscalate) {
       conversation.status = 'waiting_human';
       conversation.unreadForAdmin = true;
     } else {
@@ -198,7 +257,7 @@ const respond = async (conversationId) => {
     }
     await conversation.save();
 
-    if (escalate) notifyChemist(conversation, last.text);
+    if (finalEscalate) notifyChemist(conversation, last.text);
   } catch (err) {
     console.error('[chatBot] respond failed:', err.message);
   }

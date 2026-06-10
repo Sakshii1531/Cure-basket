@@ -37,7 +37,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get('/medicines?isNewAndBest=true&status=Active&limit=8')
+    api.get('/medicines?isNewAndBest=true&status=Active&limit=100')
       .then(res => setProducts(res.data.data || []))
       .catch(() => { })
       .finally(() => setLoading(false))
@@ -105,35 +105,40 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                       <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
                         {group.categoryName}
                       </div>
-                      <div className={`flex-grow p-2 md:p-4 ${gradientClass} relative flex flex-col min-h-[120px] md:min-h-[180px]`}>
-                        <h3 className="text-[18px] md:text-[20px] font-bold leading-[1.2] mb-1 text-gray-900 max-w-[55%] text-left">
-                          Need a <span className="text-[#006D6D]">{group.categoryName.toLowerCase()}</span> plan?
-                        </h3>
-                        <p className="text-black text-[12px] leading-relaxed mb-3 max-w-[55%] text-left">
-                          {product.description || `Get expert guidance and personalized care to help you achieve your ${group.categoryName.toLowerCase()} goals safely and effectively.`}
-                        </p>
-
-                        <img
-                          src={imgSrc}
-                          className="absolute bottom-0 -right-6 w-[70%] h-auto object-contain max-h-[90%]"
-                          alt={product.name}
-                          onError={e => { e.target.src = productImg }}
-                        />
+                      <div className={`flex-grow p-3 md:p-5 ${gradientClass} flex flex-row items-center gap-2 md:gap-4 min-h-[120px] md:min-h-[180px]`}>
+                        <div className="flex-grow flex flex-col justify-center text-left w-[55%]">
+                          <h3 className="text-[16px] md:text-[18px] font-bold leading-tight mb-1 text-gray-900">
+                            Need a <span className="text-[#006D6D]">{group.categoryName.toLowerCase()}</span> plan?
+                          </h3>
+                          <p className="text-black/80 text-[11px] md:text-[12px] leading-relaxed line-clamp-4">
+                            {product.description || `Get expert guidance and personalized care to help you achieve your ${group.categoryName.toLowerCase()} goals safely and effectively.`}
+                          </p>
+                        </div>
+                        <div className="w-[40%] h-24 md:h-32 flex items-center justify-center shrink-0 bg-white/20 backdrop-blur-xs rounded-xl overflow-hidden p-1.5 border border-white/30">
+                          <img
+                            src={imgSrc}
+                            className="w-full h-full object-contain"
+                            alt={product.name}
+                            onError={e => { e.target.src = productImg }}
+                          />
+                        </div>
                       </div>
                     </div>
                   );
                 } else {
+                  const displayedProducts = group.products.slice(0, 2);
+                  const hasMore = group.products.length > 2;
                   return (
                     <div key={group.categoryName} className="w-[350px] md:w-[410px] min-w-[350px] md:min-w-[410px] max-w-[350px] md:max-w-[410px] rounded-[24px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white flex flex-col transition-shadow shrink-0">
                       <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
                         {group.categoryName}
                       </div>
                       <div className="p-2 md:p-4 flex flex-col gap-1.5 md:gap-2 h-full justify-start min-h-[120px] md:min-h-[180px]">
-                        {group.products.map((product, idx) => {
+                        {displayedProducts.map((product, idx) => {
                           const imgSrc = product.image && product.image !== 'no-photo.jpg'
                             ? product.image
                             : fallbackImages[(groupIdx + idx) % fallbackImages.length];
-                          const isLast = idx === group.products.length - 1;
+                          const isLast = idx === displayedProducts.length - 1;
                           const genericSub = product.genericName
                             ? (product.genericName.toLowerCase().startsWith('generic') ? product.genericName : `Generic ${product.genericName}`)
                             : '';
@@ -173,6 +178,20 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                             </div>
                           );
                         })}
+
+                        {hasMore && (
+                          <div className="pt-2 border-t border-gray-100 mt-2">
+                            <button
+                              onClick={() => navigate(`/category/${encodeURIComponent(group.categoryName)}`)}
+                              className="w-full py-2 bg-gray-50 hover:bg-[#006D6D]/5 text-[#006D6D] rounded-xl font-bold text-[13px] md:text-[14px] transition-all flex items-center justify-center gap-1 border border-gray-100 hover:border-[#006D6D]/20 active:scale-98"
+                            >
+                              <span>Show All Medicines ({group.products.length})</span>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -189,20 +208,22 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                 <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
                   Weight Loss Treatment
                 </div>
-                <div className="flex-grow p-2 md:p-4 bg-gradient-to-tr from-[#d1e9f5] to-[#f4cfdf] relative flex flex-col min-h-[120px] md:min-h-[180px]">
-                  <h3 className="text-[18px] md:text-[20px] font-bold leading-[1.2] mb-1 text-gray-900 max-w-[50%]">
-                    Need a <span className="text-[#006D6D]">weight loss treatment</span> plan?
-                  </h3>
-                  <p className="text-black text-[12px] leading-relaxed mb-3 max-w-[50%]">
-                    Get expert guidance and personalized care to help you achieve your weight goals safely and effectively.
-                  </p>
-
-                  {/* Product Images */}
-                  <img
-                    src={weightLossImg}
-                    className="absolute bottom-0 -right-6 w-[70%] h-auto object-contain"
-                    alt="Medication"
-                  />
+                <div className="flex-grow p-3 md:p-5 bg-gradient-to-tr from-[#d1e9f5] to-[#f4cfdf] flex flex-row items-center gap-2 md:gap-4 min-h-[120px] md:min-h-[180px]">
+                  <div className="flex-grow flex flex-col justify-center text-left w-[55%]">
+                    <h3 className="text-[16px] md:text-[18px] font-bold leading-tight mb-1 text-gray-900">
+                      Need a <span className="text-[#006D6D]">weight loss</span> plan?
+                    </h3>
+                    <p className="text-black/80 text-[11px] md:text-[12px] leading-relaxed line-clamp-4">
+                      Get expert guidance and personalized care to help you achieve your weight goals safely and effectively.
+                    </p>
+                  </div>
+                  <div className="w-[40%] h-24 md:h-32 flex items-center justify-center shrink-0 bg-white/20 backdrop-blur-xs rounded-xl overflow-hidden p-1.5 border border-white/30">
+                    <img
+                      src={weightLossImg}
+                      className="w-full h-full object-contain"
+                      alt="Medication"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -306,20 +327,22 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                 <div className="bg-[#006D6D] text-white py-2.5 md:py-4 px-4 text-center font-bold text-[13px] md:text-[14px] tracking-[0.15em] uppercase">
                   Hair Loss Treatment
                 </div>
-                <div className="flex-grow p-2 md:p-4 bg-gradient-to-tr from-[#fff2cc] via-[#f2fcfc] to-[#f9e5ef] relative flex flex-col min-h-[120px] md:min-h-[180px]">
-                  <h3 className="text-[18px] md:text-[20px] font-bold leading-[1.2] mb-1 text-gray-900 max-w-[50%]">
-                    Struggling with <span className="text-[#006D6D]">hair loss?</span>
-                  </h3>
-                  <p className="text-black text-[12px] leading-relaxed mb-3 max-w-[50%]">
-                    Regain your confidence with treatments designed to strengthen, restore, and protect your hair.
-                  </p>
-
-                  {/* Product Images */}
-                  <img
-                    src={hairLossImg}
-                    className="absolute bottom-4 right-0 w-[50%] h-auto object-contain"
-                    alt="Hair Loss Medication"
-                  />
+                <div className="flex-grow p-3 md:p-5 bg-gradient-to-tr from-[#fff2cc] via-[#f2fcfc] to-[#f9e5ef] flex flex-row items-center gap-2 md:gap-4 min-h-[120px] md:min-h-[180px]">
+                  <div className="flex-grow flex flex-col justify-center text-left w-[55%]">
+                    <h3 className="text-[16px] md:text-[18px] font-bold leading-tight mb-1 text-gray-900">
+                      Struggling with <span className="text-[#006D6D]">hair loss?</span>
+                    </h3>
+                    <p className="text-black/80 text-[11px] md:text-[12px] leading-relaxed line-clamp-4">
+                      Regain your confidence with treatments designed to strengthen, restore, and protect your hair.
+                    </p>
+                  </div>
+                  <div className="w-[40%] h-24 md:h-32 flex items-center justify-center shrink-0 bg-white/20 backdrop-blur-xs rounded-xl overflow-hidden p-1.5 border border-white/30">
+                    <img
+                      src={hairLossImg}
+                      className="w-full h-full object-contain"
+                      alt="Hair Loss Medication"
+                    />
+                  </div>
                 </div>
               </div>
 

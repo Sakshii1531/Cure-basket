@@ -1,9 +1,28 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../utils/api'
 
 function SearchBar() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [popularSearches, setPopularSearches] = useState([])
+
+  useEffect(() => {
+    api.get('/medicines/popular-searches')
+      .then(res => {
+        if (res.data && res.data.success && Array.isArray(res.data.data)) {
+          const dynamic = res.data.data;
+          const fallbacks = ['Foundayo™', 'Wegovy', 'Tadalafil (Cialis)', 'Sildenafil (Viagra)', 'Atorvastatin'];
+          const merged = Array.from(new Set([...dynamic, ...fallbacks])).slice(0, 5);
+          setPopularSearches(merged);
+        } else {
+          setPopularSearches(['Foundayo™', 'Wegovy', 'Tadalafil (Cialis)', 'Sildenafil (Viagra)', 'Atorvastatin']);
+        }
+      })
+      .catch(() => {
+        setPopularSearches(['Foundayo™', 'Wegovy', 'Tadalafil (Cialis)', 'Sildenafil (Viagra)', 'Atorvastatin']);
+      });
+  }, [])
 
   const handleSearch = () => {
     const q = query.trim()
@@ -55,7 +74,7 @@ function SearchBar() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-3 mt-4">
             <span className="text-[13px] md:text-[14px] font-bold text-gray-800 shrink-0 hidden md:block">Popular searches:</span>
             <div className="flex overflow-x-auto no-scrollbar md:flex-wrap gap-2 pb-1 w-full md:w-auto px-2 md:px-0">
-              {['Foundayo™', 'Wegovy', 'Tadalafil (Cialis)', 'Sildenafil (Viagra)', 'Atorvastatin'].map((term) => (
+              {popularSearches.map((term) => (
                 <button
                   key={term}
                   onClick={() => handlePopular(term)}

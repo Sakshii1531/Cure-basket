@@ -1,4 +1,4 @@
-import curebasketLogo from '../assets/logo1.png'
+import curebasketLogo from '../assets/favicon.svg'
 import joinImage from '../assets/join-image.png'
 
 function HcpPage({ onClose }) {

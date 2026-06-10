@@ -6,7 +6,11 @@ const {
   updateMedicine,
   deleteMedicine,
   bulkUploadMedicines,
+<<<<<<< HEAD
   validateStock,
+=======
+  getPopularSearches,
+>>>>>>> 0350737e648078008a879f1820218848c1d3d41f
 } = require('../controllers/medicineController');
 
 const router = express.Router();
@@ -25,6 +29,8 @@ router
 router
   .route('/bulk-upload')
   .post(protect, authorize('admin', 'superadmin'), uploadExcel.single('file'), bulkUploadMedicines);
+
+router.get('/popular-searches', getPopularSearches);
 
 router
   .route('/validate-stock')

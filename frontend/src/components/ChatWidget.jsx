@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
@@ -17,8 +18,51 @@ const getSessionId = () => {
 }
 
 const ChatWidget = () => {
+  const navigate = useNavigate()
   const { user, isLoggedIn } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+
+  const renderMessageText = (text) => {
+    if (!text) return '';
+    const mdLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = mdLinkRegex.exec(text)) !== null) {
+      const [fullMatch, linkText, url] = match;
+      const matchIndex = match.index;
+      
+      if (matchIndex > lastIndex) {
+        parts.push(text.substring(lastIndex, matchIndex));
+      }
+      
+      parts.push(
+        <a
+          key={matchIndex}
+          href={url}
+          onClick={(e) => {
+            if (url.startsWith('/')) {
+              e.preventDefault();
+              navigate(url);
+            }
+          }}
+          className="text-[#006D6D] underline font-bold hover:text-[#005a5a]"
+        >
+          {linkText}
+        </a>
+      );
+      
+      lastIndex = mdLinkRegex.lastIndex;
+    }
+    
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+    
+    return parts.length > 0 ? parts : text;
+  };
+
   const [supportOnline, setSupportOnline] = useState(true)
 
   // Chat state
@@ -322,7 +366,7 @@ const ChatWidget = () => {
                           : 'bg-white text-gray-900 border border-gray-100 rounded-[18px] rounded-tl-none'
                       }`}
                     >
-                      {msg.text}
+                      {renderMessageText(msg.text)}
                     </div>
                     <span className="text-[10px] text-gray-400 mt-1 font-medium px-1">{fmtTime(msg.createdAt)}</span>
                   </div>
