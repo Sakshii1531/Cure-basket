@@ -59,8 +59,7 @@ const AccountPage = () => {
   }, [isLoggedIn])
 
   const [profileForm, setProfileForm] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     dob: '',
     gender: '',
@@ -78,11 +77,9 @@ const AccountPage = () => {
 
   useEffect(() => {
     if (user) {
-      const parts = (user.name || '').trim().split(' ')
       setProfileForm(prev => ({
         ...prev,
-        firstName: parts[0] || '',
-        lastName: parts.slice(1).join(' ') || '',
+        fullName: user.name || '',
         email: user.email || '',
         dob: user.dob || '',
         gender: user.gender || '',
@@ -93,16 +90,15 @@ const AccountPage = () => {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault()
-    if (!profileForm.firstName.trim()) {
-      setProfileError('First name is required.')
+    if (!profileForm.fullName.trim()) {
+      setProfileError('Full name is required.')
       return
     }
     setProfileSaving(true)
     setProfileError('')
     try {
-      const fullName = `${profileForm.firstName.trim()} ${profileForm.lastName.trim()}`.trim()
       const res = await api.put('/auth/me', {
-        name: fullName,
+        name: profileForm.fullName.trim(),
         phone: profileForm.contactNumber,
         dob: profileForm.dob,
         gender: profileForm.gender,
@@ -416,21 +412,12 @@ const AccountPage = () => {
               
               {/* Name and Email Row */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-[13px] font-semibold text-[#006D6D] mb-1.5 block font-sans">First Name<span className="text-red-500">*</span></label>
-                  <input 
-                    type="text" 
-                    value={profileForm.firstName} 
-                    onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})}
-                    className="border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
-                  />
-                </div>
-                <div>
-                  <label className="text-[13px] font-semibold text-[#006D6D] mb-1.5 block font-sans">Last Name<span className="text-red-500">*</span></label>
-                  <input 
-                    type="text" 
-                    value={profileForm.lastName} 
-                    onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})}
+                <div className="md:col-span-2">
+                  <label className="text-[13px] font-semibold text-[#006D6D] mb-1.5 block font-sans">Full Name<span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={profileForm.fullName}
+                    onChange={(e) => setProfileForm({...profileForm, fullName: e.target.value})}
                     className="border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
                   />
                 </div>
