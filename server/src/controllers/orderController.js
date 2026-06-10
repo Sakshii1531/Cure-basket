@@ -300,19 +300,32 @@ exports.getOrders = async (req, res) => {
 // @route   GET /api/orders/:id
 // @access  Private
 exports.getOrderById = async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return res.status(404).json({ success: false, error: 'Order not found' });
-  }
+  // Accept either the full 24-char ObjectId, or the short code the UI shows the
+  // customer (the last 6–8 hex chars of the id, optionally prefixed with "CB-"
+  // or "#"). The short code is resolved by matching the end of the ObjectId
+  // within the requester's own orders (admins may match across all orders).
+  const rawId = (req.params.id || '').trim().replace(/^#/, '').replace(/^cb-/i, '');
+  const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+
   try {
-    const order = await Order.findById(req.params.id)
-      .populate('items.medicine', 'name image');
+    let order = null;
+
+    if (mongoose.Types.ObjectId.isValid(rawId) && rawId.length === 24) {
+      order = await Order.findById(rawId).populate('items.medicine', 'name image');
+    } else if (/^[0-9a-f]{4,23}$/i.test(rawId)) {
+      const suffix = rawId.toLowerCase();
+      const scope = isAdmin ? {} : { user: req.user.id };
+      const candidates = await Order.find(scope)
+        .sort('-createdAt')
+        .populate('items.medicine', 'name image');
+      order = candidates.find((o) => o._id.toString().toLowerCase().endsWith(suffix)) || null;
+    }
 
     if (!order) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
 
     const isOwner = order.user.toString() === req.user.id;
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, error: 'Not authorized to view this order' });
     }
