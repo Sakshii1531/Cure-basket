@@ -53,7 +53,7 @@ function OrderShipping() {
         <form onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Min Order Amount (₹)</label>
+              <label className="text-sm font-semibold text-gray-700 block mb-1">Min Order Amount ($)</label>
               <input
                 type="number"
                 value={data.minOrderAmount}
@@ -62,7 +62,7 @@ function OrderShipping() {
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Shipping Charges (₹)</label>
+              <label className="text-sm font-semibold text-gray-700 block mb-1">Shipping Charges ($)</label>
               <input
                 type="number"
                 value={data.shippingCharges}
@@ -71,7 +71,7 @@ function OrderShipping() {
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Free Shipping Above (₹)</label>
+              <label className="text-sm font-semibold text-gray-700 block mb-1">Free Shipping Above ($)</label>
               <input
                 type="number"
                 value={data.freeShippingThreshold}

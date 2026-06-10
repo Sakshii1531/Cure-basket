@@ -73,7 +73,7 @@ function Orders() {
                     <td className="px-6 py-4 font-bold text-primary font-mono text-xs">{order._id.slice(-8).toUpperCase()}</td>
                     <td className="px-6 py-4">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 font-semibold text-gray-900">{order.user?.name || 'Unknown'}</td>
-                    <td className="px-6 py-4 font-bold">₹{order.totalAmount}</td>
+                    <td className="px-6 py-4 font-bold">${order.totalAmount}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-bold ${order.paymentStatus === 'Paid' ? 'bg-emerald-50 text-emerald-600' : order.paymentStatus === 'Failed' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
                         {order.paymentStatus}

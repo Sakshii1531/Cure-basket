@@ -6,6 +6,7 @@ const {
   updateMedicine,
   deleteMedicine,
   bulkUploadMedicines,
+  validateStock,
 } = require('../controllers/medicineController');
 
 const router = express.Router();
@@ -24,6 +25,10 @@ router
 router
   .route('/bulk-upload')
   .post(protect, authorize('admin', 'superadmin'), uploadExcel.single('file'), bulkUploadMedicines);
+
+router
+  .route('/validate-stock')
+  .post(validateStock);
 
 router
   .route('/:id')

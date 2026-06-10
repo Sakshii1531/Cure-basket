@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import api from '../utils/api'
 import { useCart } from '../context/CartContext'
+import { isOutOfStock } from '../utils/stockUtils'
 import med1 from '../assets/med1.png'
 
 const SORT_OPTIONS = [
@@ -143,15 +144,24 @@ function MedicinesPage({ onProductClick }) {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {medicines.map((product, i) => {
               const { badge, badgeBg, badgeText } = badges[i % badges.length]
+              const outOfStock = isOutOfStock(product)
               return (
                 <div
                   key={product._id}
                   onClick={() => onProductClick?.(product)}
-                  className="bg-white rounded-[24px] border border-gray-100 p-4 md:p-6 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl transition-all duration-300 group"
+                  className={`bg-white rounded-[24px] border border-gray-100 p-4 md:p-6 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-xl transition-all duration-300 group ${
+                    outOfStock ? 'bg-gray-50 opacity-60 cursor-not-allowed' : ''
+                  }`}
                 >
-                  <div className={`absolute top-3 right-3 px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 ${badgeBg} ${badgeText}`}>
-                    {badge}
-                  </div>
+                  {outOfStock ? (
+                    <div className="absolute top-3 right-3 px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 bg-red-600 text-white">
+                      Out of Stock
+                    </div>
+                  ) : (
+                    <div className={`absolute top-3 right-3 px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 ${badgeBg} ${badgeText}`}>
+                      {badge}
+                    </div>
+                  )}
 
                   <div className="flex flex-col flex-grow">
                     <div className="w-full h-[120px] md:h-[160px] flex items-center justify-center mb-4 md:mb-6">
@@ -186,17 +196,27 @@ function MedicinesPage({ onProductClick }) {
                     <div className="flex flex-col text-left">
                       {product.originalPrice && (
                         <span className="text-[10px] md:text-[12px] text-gray-400 line-through font-medium leading-none mb-0.5">
-                          ₹{product.originalPrice}
+                          ${product.originalPrice}
                         </span>
                       )}
                       <span className="text-[20px] md:text-[24px] font-black text-gray-900 leading-none">
-                        ₹{product.price}
+                        ${product.price}
                       </span>
                     </div>
 
                     <button
-                      onClick={e => { e.stopPropagation(); addToCart({ ...product, _id: product._id }) }}
-                      className="w-9 h-9 md:w-11 md:h-11 bg-[#FFD200] rounded-full flex items-center justify-center text-white shadow-md active:scale-95 hover:bg-[#f39c12] transition-colors"
+                      disabled={outOfStock}
+                      onClick={e => {
+                        e.stopPropagation()
+                        if (!outOfStock) {
+                          addToCart({ ...product, _id: product._id })
+                        }
+                      }}
+                      className={`w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-colors ${
+                        outOfStock
+                          ? 'bg-gray-300 opacity-60 cursor-not-allowed text-gray-500'
+                          : 'bg-[#FFD200] text-white hover:bg-[#f39c12]'
+                      }`}
                     >
                       <svg className="w-5 md:w-6 h-5 md:h-6" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />

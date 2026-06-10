@@ -48,10 +48,10 @@ function RevenueChart({ data, loading }) {
                 <div
                   className="w-full bg-primary rounded-t transition-all duration-500 hover:bg-primary/90 cursor-default"
                   style={{ height: `${Math.max(pct, 4)}px`, minHeight: '4px' }}
-                  title={`₹${d.revenue.toLocaleString()}`}
+                  title={`$${d.revenue.toLocaleString()}`}
                 />
                 <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                  ₹{(d.revenue / 1000).toFixed(1)}k
+                  $${(d.revenue / 1000).toFixed(1)}k
                 </span>
               </div>
               <span className="text-[10px] text-gray-400">{MONTH_NAMES[(d._id.month - 1)]}</span>
@@ -110,7 +110,7 @@ function Analytics() {
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard label="Revenue This Month" value={summary ? `₹${summary.revenue.thisMonth.toLocaleString()}` : '—'} sub={summary ? growthBadge(summary.revenue.growthPercent) : null} loading={loading} />
+        <StatCard label="Revenue This Month" value={summary ? `$${summary.revenue.thisMonth.toLocaleString()}` : '—'} sub={summary ? growthBadge(summary.revenue.growthPercent) : null} loading={loading} />
         <StatCard label="Orders This Month" value={summary ? summary.orders.thisMonth.toLocaleString() : '—'} sub={summary ? growthBadge(summary.orders.growthPercent) : null} loading={loading} />
         <StatCard label="Total Orders" value={summary ? summary.orders.total.toLocaleString() : '—'} loading={loading} />
         <StatCard label="Total Users" value={summary ? summary.users.total.toLocaleString() : '—'} sub={summary ? `+${summary.users.newThisMonth} this month` : null} loading={loading} />
@@ -168,14 +168,14 @@ function Analytics() {
               <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
                 <div>
                   <p className="text-xs text-gray-500 font-semibold uppercase">This Month</p>
-                  <p className="text-xl font-bold text-gray-900 mt-0.5">₹{summary.revenue.thisMonth.toLocaleString()}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-0.5">${summary.revenue.thisMonth.toLocaleString()}</p>
                 </div>
                 {growthBadge(summary.revenue.growthPercent)}
               </div>
               <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
                 <div>
                   <p className="text-xs text-gray-500 font-semibold uppercase">Last Month</p>
-                  <p className="text-xl font-bold text-gray-900 mt-0.5">₹{summary.revenue.lastMonth.toLocaleString()}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-0.5">${summary.revenue.lastMonth.toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -200,7 +200,7 @@ function Analytics() {
                 {summary.recentOrders.map(order => (
                   <tr key={order._id} className="text-gray-700">
                     <td className="py-3 font-semibold text-gray-900">{order.user?.name || 'Unknown'}</td>
-                    <td className="py-3 font-bold">₹{order.totalAmount}</td>
+                    <td className="py-3 font-bold">${order.totalAmount}</td>
                     <td className="py-3"><span className="px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full text-xs font-bold">{order.status}</span></td>
                     <td className="py-3 text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                   </tr>

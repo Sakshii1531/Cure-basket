@@ -220,7 +220,7 @@ const AccountPage = () => {
                     </div>
                     <div className="flex items-center gap-6 self-stretch md:self-auto justify-between md:justify-end font-sans">
                       <span className="text-[14px] text-gray-500 font-semibold">{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
-                      <span className="text-[18px] font-bold text-gray-850">₹{order.totalAmount}</span>
+                      <span className="text-[18px] font-bold text-gray-850">${order.totalAmount}</span>
                     </div>
                   </div>
                 )
@@ -262,7 +262,7 @@ const AccountPage = () => {
                     {item.genericName && (
                       <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.genericName}</p>
                     )}
-                    <p className="text-[14px] font-bold text-[#006D6D] mt-2">₹{item.price}</p>
+                    <p className="text-[14px] font-bold text-[#006D6D] mt-2">${item.price}</p>
                   </div>
                   <div className="flex flex-col gap-2 shrink-0">
                     <button 

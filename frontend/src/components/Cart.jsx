@@ -1,14 +1,56 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
+import api from '../utils/api'
 
 const Cart = () => {
   const navigate = useNavigate()
   const { guardedAction } = useAuthGate()
   const { items, removeFromCart, updateQty, cartTotal } = useCart()
 
+  const [stockErrors, setStockErrors] = useState({})
+  const [globalStockError, setGlobalStockError] = useState('')
+  const [validationLoading, setValidationLoading] = useState(false)
+
+  useEffect(() => {
+    if (items.length === 0) {
+      setStockErrors({})
+      setGlobalStockError('')
+      return
+    }
+
+    const validate = async () => {
+      setValidationLoading(true)
+      try {
+        const payload = {
+          items: items.map(item => ({
+            medicine: item._id,
+            quantity: item.qty
+          }))
+        }
+        const res = await api.post('/medicines/validate-stock', payload)
+        if (res.data.success) {
+          setStockErrors({})
+          setGlobalStockError('')
+        }
+      } catch (err) {
+        if (err.response && err.response.data && err.response.data.errors) {
+          setStockErrors(err.response.data.errors)
+          setGlobalStockError(err.response.data.message || 'Some items in your cart have stock issues.')
+        } else {
+          setGlobalStockError(err.response?.data?.message || err.response?.data?.error || 'Failed to validate stock')
+        }
+      } finally {
+        setValidationLoading(false)
+      }
+    }
+
+    validate()
+  }, [items])
+
   const shipping = items.length > 0 ? 50 : 0
+  const hasErrors = Object.keys(stockErrors).length > 0
 
   return (
     <div className="bg-[#f8f9fa]">
@@ -45,52 +87,82 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
 
             <div className="space-y-4">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
-                {items.map((item) => (
-                  <div key={item.itemKey || item._id} className="p-5 flex gap-5">
-                    <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 shrink-0">
-                      {item.image ? (
-                        <img src={item.image} alt={item.name} className="max-w-full max-h-full object-contain" />
-                      ) : (
-                        <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs font-bold">IMG</div>
-                      )}
-                    </div>
-                    <div className="flex-1 flex flex-col justify-between py-0.5">
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <h3 className="text-[14px] md:text-[15px] font-semibold text-gray-900 leading-tight">{item.name}</h3>
-                          {item.generic && <p className="text-[12px] text-gray-500 mt-1">{item.generic}</p>}
-                        </div>
-                        <div className="text-right">
-                          <div className="text-[16px] md:text-[17px] font-bold text-gray-900">₹{(item.price * item.qty).toFixed(2)}</div>
-                          {item.originalPrice && (
-                            <div className="text-[12px] text-gray-400 line-through mt-0.5">₹{(item.originalPrice * item.qty).toFixed(2)}</div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-gray-50 px-2 py-1">
-                          <button
-                            onClick={() => updateQty(item.itemKey, item.qty - 1)}
-                            className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold"
-                          >−</button>
-                          <span className="text-[13px] font-semibold text-gray-800 min-w-[20px] text-center">{item.qty}</span>
-                          <button
-                            onClick={() => updateQty(item.itemKey, item.qty + 1)}
-                            className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold"
-                          >+</button>
-                        </div>
-                        <button
-                          onClick={() => removeFromCart(item.itemKey)}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </button>
-                      </div>
-                    </div>
+              {hasErrors && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
+                  <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <h4 className="text-[14px] font-bold text-red-800">Checkout Unavailable</h4>
+                    <p className="text-[12px] text-red-600 mt-1">
+                      Some items in your cart are out of stock or have insufficient quantity. Please update your cart before proceeding.
+                    </p>
                   </div>
-                ))}
+                </div>
+              )}
+
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
+                {items.map((item) => {
+                  const hasStockError = !!stockErrors[item._id]
+                  return (
+                    <div
+                      key={item.itemKey || item._id}
+                      className={`p-5 flex gap-5 transition-all duration-200 ${
+                        hasStockError ? 'bg-red-50/20 opacity-80 border-l-4 border-red-500' : ''
+                      }`}
+                    >
+                      <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 shrink-0">
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="max-w-full max-h-full object-contain" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs font-bold">IMG</div>
+                        )}
+                      </div>
+                      <div className="flex-1 flex flex-col justify-between py-0.5">
+                        <div className="flex justify-between items-start gap-4">
+                          <div>
+                            <h3 className="text-[14px] md:text-[15px] font-semibold text-gray-900 leading-tight">{item.name}</h3>
+                            {item.generic && <p className="text-[12px] text-gray-500 mt-1">{item.generic}</p>}
+                            {hasStockError && (
+                              <div className="flex items-center gap-1.5 text-red-600 mt-2 text-[12px] font-semibold bg-red-50 px-2.5 py-1 rounded-md w-fit border border-red-100">
+                                <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <span>{stockErrors[item._id].message}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[16px] md:text-[17px] font-bold text-gray-900">${(item.price * item.qty).toFixed(2)}</div>
+                            {item.originalPrice && (
+                              <div className="text-[12px] text-gray-400 line-through mt-0.5">${(item.originalPrice * item.qty).toFixed(2)}</div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-gray-50 px-2 py-1">
+                            <button
+                              onClick={() => updateQty(item.itemKey, item.qty - 1)}
+                              className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold"
+                            >−</button>
+                            <span className="text-[13px] font-semibold text-gray-800 min-w-[20px] text-center">{item.qty}</span>
+                            <button
+                              onClick={() => updateQty(item.itemKey, item.qty + 1)}
+                              className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold"
+                            >+</button>
+                          </div>
+                          <button
+                            onClick={() => removeFromCart(item.itemKey)}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
@@ -101,11 +173,11 @@ const Cart = () => {
                 <div className="space-y-3.5">
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-gray-500">Subtotal</span>
-                    <span className="text-[13px] font-semibold text-gray-900">₹{cartTotal.toFixed(2)}</span>
+                    <span className="text-[13px] font-semibold text-gray-900">${cartTotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-gray-500">Shipping Fee</span>
-                    <span className="text-[13px] font-semibold text-gray-900">₹{shipping.toFixed(2)}</span>
+                    <span className="text-[13px] font-semibold text-gray-900">${shipping.toFixed(2)}</span>
                   </div>
 
                   <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
@@ -113,13 +185,18 @@ const Cart = () => {
                       <div className="text-[15px] font-bold text-gray-900">Total Amount</div>
                       <div className="text-[10px] text-gray-400 mt-0.5">Inclusive of all taxes</div>
                     </div>
-                    <div className="text-[22px] font-bold text-[#006D6D]">₹{(cartTotal + shipping).toFixed(2)}</div>
+                    <div className="text-[22px] font-bold text-[#006D6D]">${(cartTotal + shipping).toFixed(2)}</div>
                   </div>
                 </div>
 
                 <button
                   onClick={guardedAction(() => navigate('/checkout'), 'checkout')}
-                  className="w-full bg-[#006D6D] text-white font-semibold py-3.5 rounded-xl text-[14px] shadow-md hover:bg-[#005a5a] transition-all active:scale-[0.98] mt-6 flex items-center justify-center gap-2"
+                  disabled={hasErrors || validationLoading}
+                  className={`w-full font-semibold py-3.5 rounded-xl text-[14px] shadow-md transition-all mt-6 flex items-center justify-center gap-2 ${
+                    hasErrors || validationLoading
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-80 pointer-events-none'
+                      : 'bg-[#006D6D] text-white hover:bg-[#005a5a] active:scale-[0.98]'
+                  }`}
                 >
                   Proceed to Checkout
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>

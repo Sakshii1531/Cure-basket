@@ -72,7 +72,7 @@ describe('UserDetails Component', () => {
     expect(screen.getByText('123 Main St, Metropolis')).toBeInTheDocument();
 
     // Check order history list shows up
-    expect(screen.getByText('₹1200')).toBeInTheDocument();
+    expect(screen.getByText('$1200')).toBeInTheDocument();
     expect(screen.getByText('ERABC123')).toBeInTheDocument(); // order ID slice last 8 chars uppercase
   });
 });
