@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import api from '../utils/api'
 import { useCart } from '../context/CartContext'
 import { useAuthGate } from '../hooks/useAuthGate'
+import { isOutOfStock } from '../utils/stockUtils'
 import productImg from '../assets/product.png'
 import pharm1 from '../assets/pharm-1.png'
 import pharm2 from '../assets/pharm-2.png'
@@ -85,15 +86,24 @@ function BestSellers({ onProductClick }) {
               const imgSrc = product.image && product.image !== 'no-photo.jpg'
                 ? product.image
                 : fallbackImages[i % fallbackImages.length]
+              const outOfStock = isOutOfStock(product)
               return (
                 <div
                   key={product._id}
                   onClick={() => handleClick(product)}
-                  className="min-w-42.5 md:min-w-100 bg-white rounded-[20px] md:rounded-3xl border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-md transition-shadow shrink-0"
+                  className={`min-w-42.5 md:min-w-100 bg-white rounded-[20px] md:rounded-3xl border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-md transition-all shrink-0 ${
+                    outOfStock ? 'bg-gray-50 opacity-60 cursor-not-allowed' : ''
+                  }`}
                 >
-                  <div className={`absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 ${badge ? 'bg-primary text-white' : 'bg-accent text-gray-900'}`}>
-                    {badge || 'Best Seller'}
-                  </div>
+                  {outOfStock ? (
+                    <div className="absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 bg-red-600 text-white">
+                      Out of Stock
+                    </div>
+                  ) : (
+                    <div className={`absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 ${badge ? 'bg-primary text-white' : 'bg-accent text-gray-900'}`}>
+                      {badge || 'Best Seller'}
+                    </div>
+                  )}
 
                   <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 mt-1 grow">
                     <div className="w-full md:w-40 h-20 md:h-32 shrink-0 flex items-center justify-center">
@@ -119,22 +129,29 @@ function BestSellers({ onProductClick }) {
                     <div className="flex flex-col justify-end">
                       {product.mrp && product.mrp > product.price ? (
                         <span className="text-[10px] md:text-[12px] text-gray-400 line-through font-medium leading-none mb-0.5">
-                          ₹{product.mrp}
+                          ${product.mrp}
                         </span>
                       ) : (
-                        <span className="text-[10px] md:text-[12px] text-transparent leading-none mb-0.5 select-none">₹0</span>
+                        <span className="text-[10px] md:text-[12px] text-transparent leading-none mb-0.5 select-none">$0</span>
                       )}
                       <span className="text-[16px] md:text-[22px] font-black text-gray-900 leading-none">
-                        ₹{product.price}
+                        ${product.price}
                       </span>
                     </div>
 
                     <button
+                      disabled={outOfStock}
                       onClick={e => {
                         e.stopPropagation()
-                        guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                        if (!outOfStock) {
+                          guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                        }
                       }}
-                      className="w-7 h-7 md:w-10 md:h-10 bg-accent rounded-full flex items-center justify-center shadow-md active:scale-95 hover:bg-accent/90 transition-colors"
+                      className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform ${
+                        outOfStock
+                          ? 'bg-gray-300 opacity-60 cursor-not-allowed text-gray-500'
+                          : 'bg-accent text-gray-900 hover:bg-accent/90'
+                      }`}
                     >
                       <svg className="w-3.5 h-3.5 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

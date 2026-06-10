@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
+import { isOutOfStock } from '../utils/stockUtils'
 import api from '../utils/api'
 import productImg from '../assets/product.png'
 
@@ -81,13 +82,20 @@ function BestSellersPage({ onBack }) {
           ) : (
             products.map((product) => {
               const badge = discountBadge(product.price, product.mrp)
+              const outOfStock = isOutOfStock(product)
               return (
                 <div
                   key={product._id}
                   onClick={() => handleProductClick(product)}
-                  className="bg-white rounded-[16px] md:rounded-[24px] border border-gray-200 p-2.5 md:px-4 md:py-3 relative flex flex-col h-full cursor-pointer shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-shadow group"
+                  className={`bg-white rounded-[16px] md:rounded-[24px] border border-gray-200 p-2.5 md:px-4 md:py-3 relative flex flex-col h-full cursor-pointer shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all group ${
+                    outOfStock ? 'bg-gray-50 opacity-60 cursor-not-allowed' : ''
+                  }`}
                 >
-                  {badge ? (
+                  {outOfStock ? (
+                    <div className="absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 bg-red-600 text-white">
+                      Out of Stock
+                    </div>
+                  ) : badge ? (
                     <div className="absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 bg-primary text-white">
                       {badge}
                     </div>
@@ -115,16 +123,23 @@ function BestSellersPage({ onBack }) {
                   <div className="mt-auto pt-2 md:pt-4 flex justify-between items-end border-t border-gray-50">
                     <div className="flex flex-col">
                       {product.mrp && product.mrp > product.price && (
-                        <span className="text-[10px] md:text-[12px] text-gray-400 line-through font-medium leading-none mb-0.5">₹{product.mrp}</span>
+                        <span className="text-[10px] md:text-[12px] text-gray-400 line-through font-medium leading-none mb-0.5">${product.mrp}</span>
                       )}
-                      <span className="text-[17px] md:text-[28px] font-black text-gray-900 leading-none">₹{product.price}</span>
+                      <span className="text-[17px] md:text-[28px] font-black text-gray-900 leading-none">${product.price}</span>
                     </div>
                     <button
+                      disabled={outOfStock}
                       onClick={(e) => {
                         e.stopPropagation()
-                        guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                        if (!outOfStock) {
+                          guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                        }
                       }}
-                      className="w-8 h-8 md:w-11 md:h-11 bg-accent rounded-full flex items-center justify-center shadow-md active:scale-95 hover:bg-accent/90 transition-colors"
+                      className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform ${
+                        outOfStock
+                          ? 'bg-gray-300 opacity-60 cursor-not-allowed text-gray-500'
+                          : 'bg-accent text-gray-900 hover:bg-accent/90'
+                      }`}
                     >
                       <svg className="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

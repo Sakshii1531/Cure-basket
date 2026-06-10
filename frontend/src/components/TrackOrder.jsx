@@ -135,7 +135,7 @@ const TrackOrder = () => {
                   { label: 'Order ID', value: <span className="font-mono text-[11px]">{order._id}</span> },
                   { label: 'Placed On', value: new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
                   { label: 'Delivery Address', value: formatAddress(order.shippingAddress) },
-                  { label: 'Total Amount', value: `₹${Number(order.totalAmount).toFixed(2)}` },
+                  { label: 'Total Amount', value: `$${Number(order.totalAmount).toFixed(2)}` },
                   { label: 'Payment', value: order.paymentStatus },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex justify-between gap-4">
@@ -153,7 +153,7 @@ const TrackOrder = () => {
                     {order.items.map((item, i) => (
                       <div key={i} className="flex justify-between text-[12px]">
                         <span className="text-gray-700 font-medium">{item.name || item.medicine?.name || 'Medicine'} × {item.quantity}</span>
-                        <span className="text-gray-900 font-bold">₹{((item.price || 0) * item.quantity).toFixed(2)}</span>
+                        <span className="text-gray-900 font-bold">${((item.price || 0) * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>

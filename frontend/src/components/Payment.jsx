@@ -153,13 +153,13 @@ const Payment = () => {
               {orderItems.map((item, i) => (
                 <div key={i} className="flex justify-between text-[13px] text-gray-600">
                   <span>{item.name} × {item.quantity}</span>
-                  <span className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>
             <div className="border-t border-gray-100 pt-3 flex justify-between text-[15px] font-bold text-gray-900">
               <span>Total</span>
-              <span className="text-[#006D6D]">₹{totalAmount.toFixed(2)}</span>
+              <span className="text-[#006D6D]">${totalAmount.toFixed(2)}</span>
             </div>
           </div>
 

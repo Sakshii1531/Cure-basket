@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
+import { isOutOfStock } from '../utils/stockUtils'
 import productImg from '../assets/product.png'
 import med1 from '../assets/med1.png'
 import api from '../utils/api'
@@ -455,113 +456,165 @@ function ProductDetail({ onBack }) {
     )
   }
 
-  const renderPricingBox = (isMobile) => (
-    <div className={`bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-5 px-5 pb-5 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] ${isMobile ? 'mb-6' : 'lg:sticky lg:top-24'}`}>
-      {savingsPercent > 0 && (
-        <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save {savingsPercent}%</div>
-      )}
-      
-      <div className="mb-4 md:mb-3">
-        <div className="flex items-baseline gap-2">
-          <span className="text-[24px] md:text-[26px] font-bold text-gray-900">₹{selectedPrice}</span>
-          <span className="text-gray-400 line-through text-[12px]">₹{selectedMRP}</span>
-        </div>
-        {savingsPercent > 0 && (
-          <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save {product?.priceLabel || '$'}{savingsAmount} ({savingsPercent}%)</div>
-        )}
-      </div>
+  const renderPricingBox = (isMobile) => {
+    const outOfStock = isOutOfStock(product);
 
-      {/* Package Selection */}
-      <div className="space-y-2 mb-4 md:mb-1.5">
-        <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Select Quantity (Package)</h4>
-        <div className="space-y-2">
-          {packageOptions.map(pkg => (
-            <label 
-              key={pkg.id}
-              className={`flex items-center justify-between py-2 md:py-1.5 px-3 md:px-2.5 rounded-xl border-2 cursor-pointer transition-all relative ${selectedPackage.id === pkg.id ? 'border-[#006D6D] bg-[#E6F7F7]/20' : 'border-gray-100 hover:border-gray-200'}`}
-              onClick={() => setSelectedPackage(pkg)}
-            >
-              <div className="flex items-center gap-2">
-                <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${selectedPackage.id === pkg.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
-                  {selectedPackage.id === pkg.id && <div className="w-1.5 h-1.5 rounded-full bg-[#006D6D]"></div>}
-                </div>
-                <span className="text-[11px] font-bold text-gray-900">{pkg.label}</span>
-              </div>
-              <div className="text-right">
-                <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-gray-900">₹{pkg.price.toFixed(2)}</span>
-                  {pkg.mrp > pkg.price && (
-                    <span className="text-[9px] text-gray-400 line-through font-medium">₹{pkg.mrp.toFixed(2)}</span>
+    return (
+      <div className={`bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-5 px-5 pb-5 md:pt-4 md:px-7 md:pb-4 shadow-[0_20px_50px_rgba(0,0,0,0.06)] ${isMobile ? 'mb-6' : 'lg:sticky lg:top-24'}`}>
+        {outOfStock ? (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3.5 rounded-2xl text-center font-bold text-[14px] mb-4 flex flex-col items-center gap-1 shadow-sm">
+            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Currently Unavailable</span>
+          </div>
+        ) : savingsPercent > 0 ? (
+          <div className="bg-[#FFF8E7] text-[#FBB03B] text-[9px] font-black px-2 py-0.5 rounded-md w-fit mb-2 md:mb-1.5 uppercase tracking-tighter">Save {savingsPercent}%</div>
+        ) : null}
+        
+        <div className="mb-4 md:mb-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-[24px] md:text-[26px] font-bold text-gray-900">${selectedPrice}</span>
+            {!outOfStock && <span className="text-gray-400 line-through text-[12px]">${selectedMRP}</span>}
+          </div>
+          {!outOfStock && savingsPercent > 0 && (
+            <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save {product?.priceLabel || '$'}{savingsAmount} ({savingsPercent}%)</div>
+          )}
+        </div>
+
+        {/* Outer container with pointer-events disabled if out of stock */}
+        <div className={outOfStock ? 'pointer-events-none select-none opacity-50 cursor-not-allowed' : ''}>
+          {/* Package Selection */}
+          <div className="space-y-2 mb-4 md:mb-1.5">
+            <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Select Quantity (Package)</h4>
+            <div className="space-y-2">
+              {packageOptions.map(pkg => (
+                <label 
+                  key={pkg.id}
+                  className={`flex items-center justify-between py-2 md:py-1.5 px-3 md:px-2.5 rounded-xl border-2 cursor-pointer transition-all relative ${selectedPackage.id === pkg.id ? 'border-[#006D6D] bg-[#E6F7F7]/20' : 'border-gray-100 hover:border-gray-200'}`}
+                  onClick={() => !outOfStock && setSelectedPackage(pkg)}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${selectedPackage.id === pkg.id ? 'border-[#006D6D]' : 'border-gray-300'}`}>
+                      {selectedPackage.id === pkg.id && <div className="w-1.5 h-1.5 rounded-full bg-[#006D6D]"></div>}
+                    </div>
+                    <span className="text-[11px] font-bold text-gray-900">{pkg.label}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-gray-900">${pkg.price.toFixed(2)}</span>
+                      {pkg.mrp > pkg.price && (
+                        <span className="text-[9px] text-gray-400 line-through font-medium">${pkg.mrp.toFixed(2)}</span>
+                      )}
+                    </div>
+                    <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>${pkg.perUnit.toFixed(2)} / unit</div>
+                  </div>
+                  {pkg.popular && (
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[7px] md:text-[8px] font-bold text-[#FBB03B] shadow-sm z-10">
+                      Best Value
+                    </div>
                   )}
-                </div>
-                <div className={`text-[9px] font-medium ${selectedPackage.id === pkg.id ? 'text-[#006D6D]' : 'text-gray-400'}`}>₹{pkg.perUnit.toFixed(2)} / unit</div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Quantity Selector */}
+          <div className="flex items-center justify-between mb-4 md:mb-2">
+            <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Quantity</span>
+            <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+              <button
+                type="button"
+                disabled={outOfStock}
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
+              >−</button>
+              <span className="w-8 text-center font-bold text-gray-900 text-[13px] select-none">{quantity}</span>
+              <button
+                type="button"
+                disabled={outOfStock}
+                onClick={() => setQuantity(q => q + 1)}
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
+              >+</button>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <button
+              disabled={outOfStock}
+              onClick={guardedAction(() => {
+                addToCart(product, quantity, selectedPackage);
+                navigate('/cart');
+              }, 'add-to-cart')}
+              className={`w-full font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 text-[13px] transition-all ${
+                outOfStock
+                  ? 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed shadow-none'
+                  : 'bg-[#FFD200] text-gray-900 shadow-lg shadow-[#FFD200]/10 hover:bg-[#e1ba00]'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+              Add to Cart
+            </button>
+            <button
+              disabled={outOfStock || (pData.prescription === 'Required' && prescriptionStatus !== 'approved')}
+              onClick={guardedAction(() => navigate('/checkout', { state: { product, selectedPackage, quantity } }), 'buy-now')}
+              className={`w-full font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[13px] ${
+                outOfStock
+                  ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60 shadow-none'
+                  : pData.prescription === 'Required' && prescriptionStatus !== 'approved'
+                  ? 'bg-white border-2 border-gray-100 text-gray-900 opacity-50 cursor-not-allowed'
+                  : 'bg-white border-2 border-gray-100 text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              Buy Now
+            </button>
+            {!outOfStock && pData.prescription === 'Required' && prescriptionStatus === 'none' && (
+              <p className="text-center text-[11px] font-bold text-[#d97706] bg-[#FFF8E7] border border-[#FFD200]/30 py-1.5 px-3 rounded-lg mt-1">Upload a prescription above to enable Buy Now</p>
+            )}
+            {!outOfStock && pData.prescription === 'Required' && prescriptionStatus === 'pending' && (
+              <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
+                <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <p className="text-[11px] text-amber-700 font-medium">Your prescription is under review. Buy Now will be enabled once a pharmacist approves it.</p>
               </div>
-              {pkg.popular && (
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#FFF8E7] border border-[#FFD200]/30 px-2 py-0.5 rounded-full text-[7px] md:text-[8px] font-bold text-[#FBB03B] shadow-sm z-10">
-                  Best Value
+            )}
+            {!outOfStock && pData.prescription === 'Required' && prescriptionStatus === 'rejected' && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
+                <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <p className="text-[11px] text-red-700 font-medium">Your prescription was rejected. Please upload a new valid prescription.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Prominent Alternatives list inside the pricing box if out of stock */}
+        {outOfStock && recommended.length > 0 && (
+          <div className="mt-5 pt-4 border-t border-gray-100">
+            <h4 className="text-[11px] font-black text-gray-800 uppercase tracking-wider mb-2">Recommended Alternatives</h4>
+            <div className="space-y-2">
+              {recommended.slice(0, 3).map((alt) => (
+                <div
+                  key={alt._id}
+                  onClick={() => navigate(`/product/${alt._id}`, { state: { product: alt } })}
+                  className="flex items-center gap-3 p-2 bg-gray-50 border border-gray-100 rounded-xl hover:border-[#006D6D]/30 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 bg-white rounded-lg p-1 border border-gray-100 shrink-0 flex items-center justify-center">
+                    <img src={alt.image || productImg} className="max-w-full max-h-full object-contain" alt={alt.name} />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-[12px] font-extrabold text-gray-900 truncate leading-tight">{alt.name}</p>
+                    <p className="text-[11px] text-gray-400 font-semibold truncate leading-none mt-0.5">{alt.genericName}</p>
+                    <p className="text-[12px] font-black text-[#006D6D] mt-1">${alt.price}</p>
+                  </div>
                 </div>
-              )}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Quantity Selector */}
-      <div className="flex items-center justify-between mb-4 md:mb-2">
-        <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">Quantity</span>
-        <div className="flex items-center border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50">
-          <button
-            type="button"
-            onClick={() => setQuantity(q => Math.max(1, q - 1))}
-            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
-          >−</button>
-          <span className="w-8 text-center font-bold text-gray-900 text-[13px] select-none">{quantity}</span>
-          <button
-            type="button"
-            onClick={() => setQuantity(q => q + 1)}
-            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
-          >+</button>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="space-y-2">
-        <button
-          onClick={guardedAction(() => {
-            addToCart(product, quantity, selectedPackage);
-            navigate('/cart');
-          }, 'add-to-cart')}
-          className="w-full bg-[#FFD200] text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#FFD200]/10 text-[13px]"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          Add to Cart
-        </button>
-        <button
-          disabled={pData.prescription === 'Required' && prescriptionStatus !== 'approved'}
-          onClick={guardedAction(() => navigate('/checkout', { state: { product, selectedPackage, quantity } }), 'buy-now')}
-          className={`w-full bg-white border-2 border-gray-100 text-gray-900 font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-[13px] ${pData.prescription === 'Required' && prescriptionStatus !== 'approved' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
-        >
-          <svg className="w-4 h-4 text-[#006D6D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-          Buy Now
-        </button>
-        {pData.prescription === 'Required' && prescriptionStatus === 'none' && (
-          <p className="text-center text-[11px] font-bold text-[#d97706] bg-[#FFF8E7] border border-[#FFD200]/30 py-1.5 px-3 rounded-lg mt-1">Upload a prescription above to enable Buy Now</p>
-        )}
-        {pData.prescription === 'Required' && prescriptionStatus === 'pending' && (
-          <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
-            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <p className="text-[11px] text-amber-700 font-medium">Your prescription is under review. Buy Now will be enabled once a pharmacist approves it.</p>
-          </div>
-        )}
-        {pData.prescription === 'Required' && prescriptionStatus === 'rejected' && (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
-            <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <p className="text-[11px] text-red-700 font-medium">Your prescription was rejected. Please upload a new valid prescription.</p>
+              ))}
+            </div>
           </div>
         )}
       </div>
-    </div>
-  )
+    );
+  };
 
   return (
     <div className="bg-white min-h-screen pb-10 md:pb-20">
@@ -854,7 +907,7 @@ function ProductDetail({ onBack }) {
               <div className="flex flex-col justify-between flex-1">
                 <h3 className="text-[13px] font-bold text-gray-800 line-clamp-1">{item.name}</h3>
                 <div className="flex items-center justify-between gap-2 mt-2">
-                  <span className="text-[15px] font-bold text-gray-900">₹{item.price}</span>
+                  <span className="text-[15px] font-bold text-gray-900">${item.price}</span>
                   <button className="bg-[#006D6D] text-white px-3 py-1 rounded-lg text-[11px] font-bold shrink-0">Add</button>
                 </div>
               </div>

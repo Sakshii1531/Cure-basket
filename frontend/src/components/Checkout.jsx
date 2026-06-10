@@ -51,6 +51,8 @@ const Checkout = () => {
   const [orderError, setOrderError] = useState('')
   const [addrLoading, setAddrLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [stockErrors, setStockErrors] = useState({})
+  const [validationLoading, setValidationLoading] = useState(false)
 
   // Custom visual preferences states matching screenshot
   const [activeTab, setActiveTab] = useState('shipping')
@@ -340,6 +342,40 @@ const Checkout = () => {
   const discountAmount = appliedCoupon ? appliedCoupon.discount : 0
   const total = Math.max(0, subtotal - discountAmount + shippingCost)
 
+  const validateStock = async () => {
+    if (items.length === 0) return true
+    setValidationLoading(true)
+    try {
+      const payload = {
+        items: items.map(item => ({
+          medicine: item._id || item.id,
+          quantity: item.qty
+        }))
+      }
+      const res = await api.post('/medicines/validate-stock', payload)
+      if (res.data.success) {
+        setStockErrors({})
+        setOrderError(prev => prev.includes('no longer') || prev.includes('available') ? '' : prev)
+        return true
+      }
+      return false
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.errors) {
+        setStockErrors(err.response.data.errors)
+        setOrderError('Sorry, this medicine is no longer available. Please update your cart.')
+      } else {
+        setOrderError('Sorry, this medicine is no longer available. Please update your cart.')
+      }
+      return false
+    } finally {
+      setValidationLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    validateStock()
+  }, [])
+
   // Load addresses from DB on mount
   useEffect(() => {
     if (!isLoggedIn) return
@@ -424,7 +460,7 @@ const Checkout = () => {
     }
   }
 
-  const handleContinueToPayment = () => {
+  const handleContinueToPayment = async () => {
     if (items.length === 0) return
     if (!selectedAddress) {
       setOrderError('Shipping Address is required.')
@@ -435,6 +471,12 @@ const Checkout = () => {
       setOrderError('Selected address not found.')
       return
     }
+
+    const isStockValid = await validateStock()
+    if (!isStockValid) {
+      return
+    }
+
     navigate('/payment', {
       state: {
         orderItems: items.map(i => ({
@@ -465,6 +507,16 @@ const Checkout = () => {
 
       {/* Main Content Layout */}
       <div className="max-w-[1250px] mx-auto px-4 py-4">
+        {orderError && (
+          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6 flex gap-3 animate-fade-in">
+            <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-[14px] font-bold text-red-800">{orderError}</p>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column (Checkout Tabs and Forms) */}
@@ -1044,7 +1096,12 @@ const Checkout = () => {
                   </button>
                   <button
                     onClick={handleContinueToPayment}
-                    className="bg-[#006D6D] hover:bg-[#005a5a] text-white font-bold px-12 py-3.5 rounded-full text-[14px] uppercase tracking-wider transition-all shadow-md active:scale-95"
+                    disabled={Object.keys(stockErrors).length > 0 || validationLoading}
+                    className={`font-bold px-12 py-3.5 rounded-full text-[14px] uppercase tracking-wider transition-all shadow-md active:scale-95 ${
+                      Object.keys(stockErrors).length > 0 || validationLoading
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none opacity-80'
+                        : 'bg-[#006D6D] hover:bg-[#005a5a] text-white'
+                    }`}
                   >
                     Continue to Payment
                   </button>
@@ -1066,30 +1123,38 @@ const Checkout = () => {
 
             {/* Cart Items Loop */}
             <div className="py-4 space-y-4 max-h-[250px] overflow-y-auto pr-1">
-              {items.map(item => (
-                <div key={item.itemKey || item._id} className="flex gap-4 items-center">
-                  {/* Product Image */}
-                  <div className="w-[64px] h-[64px] border border-gray-200 rounded-[12px] p-1.5 bg-white flex items-center justify-center shrink-0">
-                    <img
-                      src={item.image || 'https://via.placeholder.com/150'}
-                      alt={item.name}
-                      className="max-w-full max-h-full object-contain"
-                      onError={e => { e.target.src = 'https://via.placeholder.com/150' }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-[13px] font-extrabold text-gray-800 truncate leading-tight">
-                      {item.name}
-                    </h4>
-                    <div className="text-[11px] text-gray-400 mt-1 font-bold">
-                      Pack Size
+              {items.map(item => {
+                const isItemUnavailable = !!stockErrors[item._id]
+                return (
+                  <div key={item.itemKey || item._id} className={`flex gap-4 items-center transition-all ${isItemUnavailable ? 'opacity-70 bg-red-50/20 p-2 rounded-lg border border-red-100' : ''}`}>
+                    {/* Product Image */}
+                    <div className="w-[64px] h-[64px] border border-gray-200 rounded-[12px] p-1.5 bg-white flex items-center justify-center shrink-0">
+                      <img
+                        src={item.image || 'https://via.placeholder.com/150'}
+                        alt={item.name}
+                        className="max-w-full max-h-full object-contain"
+                        onError={e => { e.target.src = 'https://via.placeholder.com/150' }}
+                      />
                     </div>
-                    <div className="text-[11.5px] text-gray-600 font-bold leading-tight mt-0.5">
-                      30 Tablet/s X {item.qty}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[13px] font-extrabold text-gray-800 truncate leading-tight">
+                        {item.name}
+                      </h4>
+                      <div className="text-[11px] text-gray-400 mt-1 font-bold">
+                        Pack Size
+                      </div>
+                      <div className="text-[11.5px] text-gray-600 font-bold leading-tight mt-0.5">
+                        30 Tablet/s X {item.qty}
+                      </div>
+                      {isItemUnavailable && (
+                        <div className="text-[10px] text-red-600 font-bold mt-1">
+                          Unavailable
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="border-t border-gray-150 pt-4 pb-3">
