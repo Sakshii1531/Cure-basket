@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
+import { isOutOfStock } from '../utils/stockUtils'
 import api from '../utils/api'
 import productImg from '../assets/product.png'
 
@@ -136,18 +137,25 @@ const CategoryProductList = () => {
           {products.map((product) => {
             const badge = product.isBestSeller ? 'Best Seller' : discountBadge(product.price, product.mrp)
             const isAccentBadge = product.isBestSeller
+            const outOfStock = isOutOfStock(product)
             return (
               <div
                 key={product._id}
                 onClick={() => handleProductClick(product)}
-                className="bg-white rounded-[20px] md:rounded-3xl border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow active:scale-[0.98]"
+                className={`bg-white rounded-[20px] md:rounded-3xl border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md transition-all active:scale-[0.98] ${
+                  outOfStock ? 'bg-gray-50 opacity-60 cursor-not-allowed' : ''
+                }`}
               >
                 {/* Badge */}
-                {badge && (
+                {outOfStock ? (
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm z-10 bg-red-600 text-white">
+                    Out of Stock
+                  </div>
+                ) : badge ? (
                   <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm z-10 ${isAccentBadge ? 'bg-accent text-gray-900' : 'bg-primary text-white'}`}>
                     {badge}
                   </div>
-                )}
+                ) : null}
 
                 {/* Image */}
                 <div className="w-full h-20 md:h-32.5 flex items-center justify-center mt-1">
@@ -176,19 +184,26 @@ const CategoryProductList = () => {
                   <div className="flex flex-col justify-end">
                     {product.mrp && product.mrp > product.price && (
                       <span className="text-[10px] md:text-[12px] text-gray-400 line-through font-medium leading-none mb-0.5">
-                        ₹{product.mrp}
+                        ${product.mrp}
                       </span>
                     )}
                     <span className="text-[16px] md:text-[20px] font-black text-gray-900 leading-none">
-                      ₹{product.price}
+                      ${product.price}
                     </span>
                   </div>
                   <button
+                    disabled={outOfStock}
                     onClick={(e) => {
                       e.stopPropagation()
-                      guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                      if (!outOfStock) {
+                        guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                      }
                     }}
-                    className="w-7 h-7 md:w-10 md:h-10 bg-accent rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform"
+                    className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform ${
+                      outOfStock
+                        ? 'bg-gray-300 opacity-60 cursor-not-allowed text-gray-500'
+                        : 'bg-accent text-gray-900 hover:bg-accent/90'
+                    }`}
                   >
                     <svg className="w-3.5 h-3.5 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

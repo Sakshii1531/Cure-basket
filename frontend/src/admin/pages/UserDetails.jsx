@@ -203,7 +203,7 @@ function UserDetails() {
                           {new Date(ord.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-3 font-bold text-gray-900">
-                          ₹{ord.totalAmount}
+                          ${ord.totalAmount}
                         </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${

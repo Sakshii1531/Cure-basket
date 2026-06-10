@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import api from '../utils/api'
 import { useCart } from '../context/CartContext'
 import { useAuthGate } from '../hooks/useAuthGate'
+import { isOutOfStock } from '../utils/stockUtils'
 import productImg from '../assets/product.png'
 import pharm1 from '../assets/pharm-1.png'
 import pharm2 from '../assets/pharm-2.png'
@@ -136,11 +137,12 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                           const genericSub = product.genericName
                             ? (product.genericName.toLowerCase().startsWith('generic') ? product.genericName : `Generic ${product.genericName}`)
                             : '';
+                          const outOfStock = isOutOfStock(product)
                           return (
                             <div
                               key={product._id}
                               onClick={() => handleClick(product)}
-                              className={`flex items-center gap-4 py-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${!isLast ? 'border-b border-dotted border-gray-300' : ''}`}
+                              className={`flex items-center gap-4 py-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${!isLast ? 'border-b border-dotted border-gray-300' : ''} ${outOfStock ? 'opacity-60 bg-gray-50/50 cursor-not-allowed' : ''}`}
                             >
                               <div className="w-16 h-16 flex items-center justify-center shrink-0">
                                 <img
@@ -151,7 +153,10 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                                 />
                               </div>
                               <div className="flex-grow text-left">
-                                <h4 className="font-black text-[18px] text-gray-900 tracking-tight leading-tight">{product.name}</h4>
+                                <h4 className="font-black text-[18px] text-gray-900 tracking-tight leading-tight flex items-center gap-2">
+                                  {product.name}
+                                  {outOfStock && <span className="bg-red-50 text-red-600 border border-red-200 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase shrink-0">OOS</span>}
+                                </h4>
                                 {genericSub && (
                                   <p className="text-[12px] text-gray-500 font-bold leading-normal">
                                     {genericSub}
@@ -160,7 +165,7 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                               </div>
                               <div className="text-right flex flex-col items-end">
                                 <div className="font-black text-[22px] text-gray-900 flex items-baseline gap-1 leading-none">
-                                  {product.priceLabel === 'USD' ? '$' : '₹'}{product.price}
+                                  ${product.price}
                                   <span className="text-[13px] text-gray-600 font-black">/ mo.</span>
                                   <span className="text-gray-300 font-normal text-[24px] ml-1">→</span>
                                 </div>
