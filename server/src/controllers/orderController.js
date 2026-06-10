@@ -149,6 +149,14 @@ exports.createOrder = async (req, res) => {
 
     await clearCache('/api/orders');
 
+    // Link any submitted prescriptions to this order — fire-and-forget
+    if (rxRequired.length > 0) {
+      Prescription.updateMany(
+        { user: req.user.id, status: { $in: ['Pending', 'Reviewed', 'Dispensed'] }, order: null },
+        { $set: { order: order._id } }
+      ).catch(() => {});
+    }
+
     // Send order confirmation email — fire-and-forget
     User.findById(req.user.id).select('name email').then((user) => {
       if (!user?.email) return;

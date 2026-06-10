@@ -98,6 +98,7 @@ exports.getPrescriptions = async (req, res, next) => {
       Prescription.find(filter)
         .populate('user', 'name email')
         .populate('medicine', 'name image')
+        .populate('order', '_id status totalAmount createdAt')
         .sort('-createdAt')
         .skip(skip)
         .limit(limit),
