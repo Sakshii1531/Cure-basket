@@ -726,8 +726,21 @@ function ProductDetail({ onBack }) {
               <div>
                 <h1 className="text-[20px] md:text-[28px] font-bold text-gray-900 leading-tight mb-2">{product.title || product.name}</h1>
                 <div className="space-y-1">
-                  <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{pData.genericName}</span></div>
-                  <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span className="text-[#006D6D] font-bold cursor-pointer hover:underline">{product.category?.name || product.category || 'Medicine'}</span></div>
+                  <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Generic Name:</span> <span
+                    className="text-[#006D6D] font-bold cursor-pointer hover:underline"
+                    onClick={() => {
+                      if (pData.genericName && pData.genericName !== 'N/A') {
+                        navigate(`/medicines?q=${encodeURIComponent(pData.genericName)}`);
+                      }
+                    }}
+                  >{pData.genericName}</span></div>
+                  <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span
+                    className="text-[#006D6D] font-bold cursor-pointer hover:underline"
+                    onClick={() => {
+                      const catName = product.category?.name || product.category;
+                      if (catName) navigate(`/category/${encodeURIComponent(catName)}`);
+                    }}
+                  >{product.category?.name || product.category || 'Medicine'}</span></div>
                 </div>
               </div>
 

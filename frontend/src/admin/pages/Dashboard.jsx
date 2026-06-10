@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import DashboardChat from '../components/DashboardChat';
 
 function StatCard({ name, value, loading }) {
   return (
@@ -159,6 +160,9 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Live chat conversations */}
+      <DashboardChat />
     </div>
   );
 }

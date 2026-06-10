@@ -4,6 +4,22 @@ const sanitizeError = require('../utils/sanitizeError');
 const fs = require('fs');
 const path = require('path');
 
+// Helper: delete a Cloudinary asset by URL
+async function deleteCloudinaryAsset(url) {
+  try {
+    if (!url || !url.includes('cloudinary.com')) return;
+    // Dynamically import cloudinary only when needed
+    const { v2: cloudinary } = require('cloudinary');
+    // Extract public_id from the URL  (path between /upload/[version/] and the extension)
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
+    if (!match) return;
+    const publicId = match[1];
+    // Try both 'image' and 'raw' resource types (PDFs are stored as raw)
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'image' }).catch(() => {});
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'raw'  }).catch(() => {});
+  } catch (_) {}
+}
+
 // @desc    Upload prescription
 // @route   POST /api/prescriptions
 // @access  Private
@@ -133,6 +149,36 @@ exports.updatePrescriptionStatus = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, data: prescription });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+// @desc    Delete a prescription (admin)
+// @route   DELETE /api/prescriptions/:id
+// @access  Private/Admin
+exports.deletePrescription = async (req, res, next) => {
+  try {
+    const prescription = await Prescription.findById(req.params.id);
+    if (!prescription) {
+      return res.status(404).json({ success: false, error: 'Prescription not found' });
+    }
+
+    // Clean up the stored file
+    if (prescription.image) {
+      if (prescription.image.includes('cloudinary.com')) {
+        deleteCloudinaryAsset(prescription.image); // fire-and-forget
+      } else {
+        // Local fallback storage
+        const localPath = path.join(__dirname, '../../', prescription.image);
+        if (fs.existsSync(localPath)) {
+          try { fs.unlinkSync(localPath); } catch (_) {}
+        }
+      }
+    }
+
+    await prescription.deleteOne();
+    res.status(200).json({ success: true, data: {} });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });
   }
