@@ -112,6 +112,51 @@ describe('GET /api/auth/me', () => {
   });
 });
 
+describe('PUT /api/auth/me', () => {
+  it('returns 401 without cookie', async () => {
+    const res = await request(app).put('/api/auth/me').send({ name: 'New Name' });
+    expect(res.status).toBe(401);
+  });
+
+  it('updates the logged-in user\'s name, phone and gender', async () => {
+    const reg = await request(app).post('/api/auth/register').send(VALID_USER);
+    const cookie = reg.headers['set-cookie'];
+
+    const res = await request(app)
+      .put('/api/auth/me')
+      .set('Cookie', cookie)
+      .send({ name: 'Raunak Khanam', phone: '+910000000000', gender: 'Female' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.name).toBe('Raunak Khanam');
+    expect(res.body.user.phone).toBe('+910000000000');
+    expect(res.body.user.gender).toBe('Female');
+  });
+
+  it('rejects an empty name', async () => {
+    const reg = await request(app).post('/api/auth/register').send(VALID_USER);
+    const cookie = reg.headers['set-cookie'];
+
+    const res = await request(app)
+      .put('/api/auth/me')
+      .set('Cookie', cookie)
+      .send({ name: '   ' });
+    expect(res.status).toBe(400);
+  });
+
+  it('does not allow changing role via the profile endpoint', async () => {
+    const reg = await request(app).post('/api/auth/register').send(VALID_USER);
+    const cookie = reg.headers['set-cookie'];
+
+    const res = await request(app)
+      .put('/api/auth/me')
+      .set('Cookie', cookie)
+      .send({ name: 'Still User', role: 'superadmin' });
+    expect(res.status).toBe(200);
+    expect(res.body.user.role).toBe('user');
+  });
+});
+
 describe('POST /api/auth/logout', () => {
   it('clears the auth cookie', async () => {
     const loginRes = await request(app)

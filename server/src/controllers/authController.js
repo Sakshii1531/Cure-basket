@@ -318,6 +318,35 @@ exports.getMe = async (req, res) => {
   }
 };
 
+// @desc    Update the logged-in user's own profile
+// @route   PUT /api/auth/me
+// @access  Private
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, phone, dob, gender } = req.body;
+
+    if (name !== undefined && !String(name).trim()) {
+      return res.status(400).json({ success: false, error: 'Name cannot be empty' });
+    }
+
+    // Only allow these self-editable fields (never role/email/password here).
+    const updates = {};
+    if (name !== undefined) updates.name = String(name).trim();
+    if (phone !== undefined) updates.phone = phone;
+    if (dob !== undefined) updates.dob = dob;
+    if (gender !== undefined) updates.gender = gender;
+
+    const user = await User.findByIdAndUpdate(req.user.id, updates, {
+      new: true,
+      runValidators: true,
+    }).populate('customRole');
+
+    res.status(200).json({ success: true, user });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
 // @desc    Add a new shipping address
 // @route   POST /api/auth/me/addresses
 // @access  Private

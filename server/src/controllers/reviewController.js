@@ -74,6 +74,18 @@ exports.getMedicineReviews = async (req, res) => {
   }
 };
 
+exports.getMyReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({ user: req.user.id })
+      .populate('medicine', 'name image')
+      .sort('-createdAt');
+
+    res.status(200).json({ success: true, count: reviews.length, data: reviews });
+  } catch (err) {
+    res.status(500).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
 exports.createReview = async (req, res) => {
   try {
     const { medicine, rating, comment } = req.body;
