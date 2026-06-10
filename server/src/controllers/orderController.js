@@ -11,32 +11,61 @@ const sendEmail = require('../utils/sendEmail');
 // @route   POST /api/orders
 // @access  Private
 exports.createOrder = async (req, res) => {
+  const { isStockUnavailable, isQuantityInsufficient } = require('../utils/stockUtils');
+
+  let session = null;
+  let useTransaction = false;
+  try {
+    const topoType = mongoose.connection.client?.topology?.description?.type;
+    const hasReplicaSet = topoType && (topoType.includes('ReplicaSet') || topoType === 'Sharded');
+    if (hasReplicaSet) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+      useTransaction = true;
+    }
+  } catch (sessionErr) {
+    session = null;
+    useTransaction = false;
+  }
+
   try {
     const { items, shippingAddress, paymentStatus } = req.body;
 
     if (!items || items.length === 0) {
-      return res.status(400).json({ success: false, error: 'No items in order' });
+      if (useTransaction) await session.abortTransaction();
+      return res.status(400).json({ success: false, error: 'No items in order', message: 'No items in order' });
     }
 
-    // Fetch all medicines in one query to recalculate the total server-side
     const medicineIds = items.map((i) => i.medicine);
-    const medicines = await Medicine.find({ _id: { $in: medicineIds } }).select('price stock name prescription');
+    const queryOpts = {};
+    if (session) queryOpts.session = session;
 
+    const medicines = await Medicine.find({ _id: { $in: medicineIds } }, null, queryOpts).select('price stock name prescription');
     const medicineMap = Object.fromEntries(medicines.map((m) => [m._id.toString(), m]));
 
-    // Validate stock and compute server-authoritative total
     const orderItems = [];
     let totalAmount = 0;
 
     for (const item of items) {
       const med = medicineMap[item.medicine?.toString()];
       if (!med) {
-        return res.status(400).json({ success: false, error: `Medicine not found: ${item.medicine}` });
+        if (useTransaction) await session.abortTransaction();
+        return res.status(400).json({ success: false, error: `Medicine not found: ${item.medicine}`, message: `Medicine not found: ${item.medicine}` });
       }
-      if (med.stock < item.quantity) {
+      if (isStockUnavailable(med)) {
+        if (useTransaction) await session.abortTransaction();
         return res.status(400).json({
           success: false,
-          error: `Insufficient stock for "${med.name}" (available: ${med.stock})`,
+          message: 'Medicine is out of stock',
+          error: 'Medicine is out of stock',
+        });
+      }
+      if (isQuantityInsufficient(med, item.quantity)) {
+        if (useTransaction) await session.abortTransaction();
+        return res.status(400).json({
+          success: false,
+          message: `Only ${med.stock} units available`,
+          error: `Only ${med.stock} units available`,
         });
       }
       orderItems.push({ medicine: med._id, name: med.name, price: med.price, quantity: item.quantity });
@@ -51,11 +80,12 @@ exports.createOrder = async (req, res) => {
         user: req.user.id,
         medicine: { $in: rxRequired.map(m => m._id) },
         status: { $in: ['Reviewed', 'Dispensed'] },
-      }).select('medicine');
+      }, null, queryOpts).select('medicine');
 
       const approvedMedIds = new Set(approvedRx.map(p => p.medicine.toString()));
       for (const med of rxRequired) {
         if (!approvedMedIds.has(med._id.toString())) {
+          if (useTransaction) await session.abortTransaction();
           return res.status(403).json({
             success: false,
             error: `A valid approved prescription is required for "${med.name}". Please upload a prescription and wait for pharmacist approval.`,
@@ -66,26 +96,58 @@ exports.createOrder = async (req, res) => {
 
     // Atomic per-item stock decrement — condition and update in one operation,
     // preventing the race window between the earlier stock check and the write.
+    const decrementedItems = [];
     for (const item of orderItems) {
+      const updateOpts = { new: true };
+      if (session) updateOpts.session = session;
+
       const updated = await Medicine.findOneAndUpdate(
         { _id: item.medicine, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity } }
+        { $inc: { stock: -item.quantity } },
+        updateOpts
       );
+
       if (!updated) {
-        return res.status(400).json({
-          success: false,
-          error: `"${item.name}" went out of stock during checkout. Please refresh and try again.`,
-        });
+        if (!useTransaction) {
+          for (const dec of decrementedItems) {
+            await Medicine.updateOne({ _id: dec.medicine }, { $inc: { stock: dec.quantity } });
+          }
+        } else {
+          await session.abortTransaction();
+        }
+
+        const currentMed = await Medicine.findById(item.medicine);
+        if (!currentMed || isStockUnavailable(currentMed)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Medicine is out of stock',
+            error: 'Medicine is out of stock',
+          });
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: `Only ${currentMed.stock} units available`,
+            error: `Only ${currentMed.stock} units available`,
+          });
+        }
       }
+      decrementedItems.push(item);
     }
 
-    const order = await Order.create({
+    const createOpts = {};
+    if (session) createOpts.session = session;
+
+    const [order] = await Order.create([{
       user: req.user.id,
       items: orderItems,
       totalAmount,
       shippingAddress,
       paymentStatus: paymentStatus || 'Pending',
-    });
+    }], createOpts);
+
+    if (useTransaction) {
+      await session.commitTransaction();
+    }
 
     await clearCache('/api/orders');
 
@@ -149,7 +211,16 @@ exports.createOrder = async (req, res) => {
 
     res.status(201).json({ success: true, data: order });
   } catch (err) {
+    if (useTransaction) {
+      try {
+        await session.abortTransaction();
+      } catch (abortErr) {}
+    }
     res.status(400).json({ success: false, error: sanitizeError(err) });
+  } finally {
+    if (session) {
+      session.endSession();
+    }
   }
 };
 

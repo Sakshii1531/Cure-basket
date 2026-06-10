@@ -93,7 +93,7 @@ const OrdersPage = () => {
                       </svg>
                     </button>
                   </div>
-                  <span className="text-[20px] font-black text-gray-900">₹{order.totalAmount}</span>
+                  <span className="text-[20px] font-black text-gray-900">${order.totalAmount}</span>
                 </div>
               </div>
             )

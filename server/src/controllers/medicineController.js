@@ -145,6 +145,68 @@ exports.getMedicine = async (req, res, next) => {
   }
 };
 
+// @desc    Validate stock of medicines in cart
+// @route   POST /api/medicines/validate-stock
+// @access  Public
+exports.validateStock = async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, error: 'No items to validate' });
+    }
+
+    const { isStockUnavailable, isQuantityInsufficient } = require('../utils/stockUtils');
+
+    const medicineIds = items.map(item => item.medicine);
+    const medicines = await Medicine.find({ _id: { $in: medicineIds } });
+    const medicineMap = Object.fromEntries(medicines.map(m => [m._id.toString(), m]));
+
+    const errors = {};
+    let globalMessage = '';
+
+    for (const item of items) {
+      const medId = item.medicine?.toString();
+      const med = medicineMap[medId];
+
+      if (!med || isStockUnavailable(med)) {
+        errors[medId] = {
+          status: 'out_of_stock',
+          message: 'This medicine is currently out of stock.',
+          available: 0
+        };
+        if (!globalMessage) {
+          globalMessage = 'Medicine is out of stock';
+        }
+      } else if (isQuantityInsufficient(med, item.quantity)) {
+        errors[medId] = {
+          status: 'insufficient',
+          message: `Only ${med.stock} units available`,
+          available: med.stock
+        };
+        if (!globalMessage) {
+          globalMessage = `Only ${med.stock} units available`;
+        }
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: globalMessage,
+        error: globalMessage,
+        errors
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'All items are in stock'
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
 // @desc    Create new medicine
 // @route   POST /api/medicines
 // @access  Private/Admin

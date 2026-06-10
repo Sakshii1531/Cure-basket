@@ -52,7 +52,7 @@ function Dashboard() {
   const stats = summary ? [
     { name: 'Total Orders', value: summary.orders.total.toLocaleString() },
     { name: 'Orders This Month', value: summary.orders.thisMonth.toLocaleString() },
-    { name: 'Revenue This Month', value: `₹${summary.revenue.thisMonth.toLocaleString()}` },
+    { name: 'Revenue This Month', value: `$${summary.revenue.thisMonth.toLocaleString()}` },
     { name: 'Total Users', value: summary.users.total.toLocaleString() },
     { name: 'Total Medicines', value: summary.medicines.total.toLocaleString() },
     { name: 'Pending Prescriptions', value: summary.prescriptions.pending.toLocaleString() },
@@ -105,7 +105,7 @@ function Dashboard() {
                           {order.status}
                         </span>
                       </td>
-                      <td className="py-4 font-bold text-gray-900">₹{order.totalAmount}</td>
+                      <td className="py-4 font-bold text-gray-900">${order.totalAmount}</td>
                       <td className="py-4 text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}

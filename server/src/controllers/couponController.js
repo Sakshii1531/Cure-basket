@@ -75,7 +75,7 @@ exports.validateCoupon = async (req, res) => {
     if (orderTotal < coupon.minOrder) {
       return res.status(400).json({
         success: false,
-        error: `Minimum order amount of ₹${coupon.minOrder} required`,
+        error: `Minimum order amount of $${coupon.minOrder} required`,
       });
     }
 

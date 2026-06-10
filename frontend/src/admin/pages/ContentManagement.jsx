@@ -146,7 +146,7 @@ const DEFAULT_BANNERS = {
     title2: 'CureBasket Plus',
     description: 'Save up to 25% on every order. Free delivery. Priority support. Premium health perks.',
     buttonText: 'Start Free Trial',
-    badge: 'Only ₹199/month after!',
+    badge: 'Only $199/month after!',
   },
   expressDelivery: {
     title1: 'Express',
@@ -160,7 +160,7 @@ const DEFAULT_BANNERS = {
     title2: 'Health Checkups',
     description: 'Home sample collection. NABL certified labs. Accurate results in 24 hours.',
     buttonText: 'Book a Test',
-    badge: 'Starting from just ₹499!',
+    badge: 'Starting from just $499!',
   },
   qualityCare: {
     title1: 'Quality care,',

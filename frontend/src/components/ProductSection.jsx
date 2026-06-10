@@ -22,7 +22,7 @@ function ProductCard({ product, onClick }) {
           <h3 className="text-[20px] md:text-[22px] font-bold text-[#1a1a1a] leading-tight mb-1">{product.name}</h3>
           <p className="text-[12px] text-gray-500 font-semibold mb-3">({product.genericName})</p>
           <div className="flex items-baseline gap-1 mb-4">
-            <span className="text-[14px] font-bold text-black">₹</span>
+            <span className="text-[14px] font-bold text-black">$</span>
             <span className="text-[26px] md:text-[28px] font-black text-black leading-none">{product.price}</span>
           </div>
         </div>

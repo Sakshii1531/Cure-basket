@@ -11,7 +11,7 @@ const OrderSuccess = () => {
   }, [])
 
   const orderId = order ? order._id.slice(-6).toUpperCase() : '------'
-  const total = order ? `₹${order.totalAmount.toFixed(2)}` : '—'
+  const total = order ? `$${order.totalAmount.toFixed(2)}` : '—'
   const addr = order?.shippingAddress
   const addrStr = addr
     ? [addr.street, addr.city, addr.phone].filter(Boolean).join(', ')
