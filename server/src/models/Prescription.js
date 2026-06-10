@@ -29,6 +29,11 @@ const prescriptionSchema = new mongoose.Schema({
   notes: {
     type: String
   },
+  order: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Order',
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -38,5 +43,6 @@ const prescriptionSchema = new mongoose.Schema({
 // ── Indexes ─────────────────────────────────────────────────────────────────
 prescriptionSchema.index({ user: 1, createdAt: -1 });   // getMyPrescriptions
 prescriptionSchema.index({ status: 1, createdAt: -1 }); // admin queue filter
+prescriptionSchema.index({ order: 1 });                 // order linkage lookup
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);
