@@ -32,7 +32,7 @@ const getImageUrl = (path) => {
 };
 
 /* ─── Order Detail Side Panel ───────────────────────────────────────────── */
-function OrderDetailPanel({ order, onClose, onStatusChange }) {
+export function OrderDetailPanel({ order, onClose, onStatusChange }) {
   const [prescriptions, setPrescriptions] = useState([]);
   const [rxLoading, setRxLoading] = useState(false);
   const [lightboxImg, setLightboxImg] = useState(null);

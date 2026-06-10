@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../../utils/api';
+import { OrderDetailPanel } from './Orders';
 
 const STATUS_COLORS = {
   Delivered: 'bg-emerald-50 text-emerald-600',
@@ -18,6 +19,7 @@ function UserDetails() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -42,6 +44,18 @@ function UserDetails() {
       })
       .finally(() => setOrdersLoading(false));
   }, [id]);
+
+  const handleOrderStatusChange = async (orderId, status) => {
+    try {
+      const res = await api.put(`/orders/${orderId}/status`, { status });
+      const updated = res.data.data;
+      setOrders(prev => prev.map(o => o._id === orderId ? updated : o));
+      if (selectedOrder?._id === orderId) setSelectedOrder(updated);
+      toast.success('Order status updated');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update status');
+    }
+  };
 
   if (loading) {
     return (
@@ -195,7 +209,11 @@ function UserDetails() {
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
                     {orders.map((ord) => (
-                      <tr key={ord._id} className="hover:bg-gray-50 transition-colors">
+                      <tr
+                        key={ord._id}
+                        onClick={() => setSelectedOrder(ord)}
+                        className={`cursor-pointer hover:bg-gray-50 transition-colors ${selectedOrder?._id === ord._id ? 'bg-primary/5' : ''}`}
+                      >
                         <td className="px-4 py-3 font-bold text-primary font-mono text-xs">
                           {ord._id.slice(-8).toUpperCase()}
                         </td>
@@ -232,6 +250,15 @@ function UserDetails() {
           </div>
         </div>
       </div>
+
+      {/* Order Detail Side Panel */}
+      {selectedOrder && (
+        <OrderDetailPanel
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          onStatusChange={handleOrderStatusChange}
+        />
+      )}
     </div>
   );
 }
