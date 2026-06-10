@@ -29,7 +29,7 @@ exports.createOrder = async (req, res) => {
   }
 
   try {
-    const { items, shippingAddress, paymentStatus } = req.body;
+    const { items, shippingAddress, paymentStatus, prescriptionId } = req.body;
 
     if (!items || items.length === 0) {
       if (useTransaction) await session.abortTransaction();
@@ -149,13 +149,29 @@ exports.createOrder = async (req, res) => {
 
     await clearCache('/api/orders');
 
-    // Link any submitted prescriptions to this order — fire-and-forget
-    if (rxRequired.length > 0) {
-      Prescription.updateMany(
-        { user: req.user.id, status: { $in: ['Pending', 'Reviewed', 'Dispensed'] }, order: null },
-        { $set: { order: order._id } }
-      ).catch(() => {});
-    }
+    // Link the prescription to this order — fire-and-forget.
+    // Prefer the specific prescription uploaded during this checkout
+    // (prescriptionId sent by the client); otherwise, when the order actually
+    // requires one, fall back to the user's most recent unlinked submitted
+    // prescription. Scoped to the user with order:null so we never hijack a
+    // prescription that's already tied to another order or belongs elsewhere.
+    (async () => {
+      if (prescriptionId) {
+        await Prescription.updateOne(
+          { _id: prescriptionId, user: req.user.id, order: null },
+          { $set: { order: order._id } }
+        );
+      } else if (rxRequired.length > 0) {
+        const latestRx = await Prescription.findOne({
+          user: req.user.id,
+          status: { $in: ['Pending', 'Reviewed', 'Dispensed'] },
+          order: null,
+        }).sort('-createdAt').select('_id');
+        if (latestRx) {
+          await Prescription.updateOne({ _id: latestRx._id }, { $set: { order: order._id } });
+        }
+      }
+    })().catch(() => {});
 
     // Send order confirmation email — fire-and-forget
     User.findById(req.user.id).select('name email').then((user) => {
