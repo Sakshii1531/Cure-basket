@@ -8,6 +8,34 @@ const emptyForm = { name: '', street: '', city: '', phone: '' }
 
 const addrId = (addr) => addr._id?.toString() || addr.id?.toString()
 
+const countryStates = {
+  'United States': [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida',
+    'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine',
+    'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska',
+    'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas',
+    'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+  ],
+  'India': [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana',
+    'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi'
+  ],
+  'United Kingdom': [
+    'England', 'Scotland', 'Wales', 'Northern Ireland'
+  ],
+  'Canada': [
+    'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador',
+    'Nova Scotia', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan'
+  ],
+  'Australia': [
+    'New South Wales', 'Queensland', 'South Australia', 'Tasmania', 'Victoria', 'Western Australia',
+    'Australian Capital Territory', 'Northern Territory'
+  ]
+}
+
 const Checkout = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -126,20 +154,37 @@ const Checkout = () => {
     const cityParts = cField.split(',')
     if (cityParts.length >= 3) {
       cField = cityParts[0] ? cityParts[0].trim() : ''
-      const stateZip = cityParts[1] ? cityParts[1].trim().split(' ') : []
-      stField = stateZip[0] || 'Alabama'
-      zCode = stateZip.slice(1).join(' ') || ''
+      const stateZipStr = cityParts[1] ? cityParts[1].trim() : ''
+      const zipIndex = stateZipStr.lastIndexOf(' ')
+      if (zipIndex !== -1) {
+        stField = stateZipStr.substring(0, zipIndex).trim()
+        zCode = stateZipStr.substring(zipIndex + 1).trim()
+      } else {
+        stField = stateZipStr
+        zCode = ''
+      }
       cntry = cityParts.slice(2).join(',').trim() || 'United States'
     } else if (cityParts.length === 2) {
       cField = cityParts[0] ? cityParts[0].trim() : ''
-      const stateZip = cityParts[1] ? cityParts[1].trim().split(' ') : []
-      stField = stateZip[0] || 'Alabama'
-      zCode = stateZip.slice(1).join(' ') || ''
+      const stateZipStr = cityParts[1] ? cityParts[1].trim() : ''
+      const zipIndex = stateZipStr.lastIndexOf(' ')
+      if (zipIndex !== -1) {
+        stField = stateZipStr.substring(0, zipIndex).trim()
+        zCode = stateZipStr.substring(zipIndex + 1).trim()
+      } else {
+        stField = stateZipStr
+        zCode = ''
+      }
     }
+
+    const validCountry = countryStates[cntry] ? cntry : 'United States'
+    const statesForCountry = countryStates[validCountry]
+    const validState = statesForCountry.includes(stField) ? stField : (statesForCountry[0] || '')
+
     setCityField(cField)
-    setStateField(stField)
+    setStateField(validState)
     setZipCode(zCode)
-    setCountry(cntry)
+    setCountry(validCountry)
     setFormErrors({})
     setShowInlineForm(true)
   }
@@ -148,10 +193,39 @@ const Checkout = () => {
     const errs = {}
     if (!firstName.trim()) errs.firstName = 'First Name is required'
     if (!lastName.trim()) errs.lastName = 'Last Name is required'
-    if (!mobileNo.trim()) errs.mobileNo = 'Mobile No is required'
+    
+    const phoneRegex = /^\+?[0-9\s-]{10,15}$/
+    if (!mobileNo.trim()) {
+      errs.mobileNo = 'Mobile No is required'
+    } else if (!phoneRegex.test(mobileNo.trim())) {
+      errs.mobileNo = 'Mobile number must be 10-15 digits (e.g. 9876567890)'
+    }
+
+    if (company.trim() && (company.trim().length < 2 || company.trim().length > 50)) {
+      errs.company = 'Company name must be between 2 and 50 characters'
+    }
+
     if (!street1.trim()) errs.street1 = 'Street Address 1 is required'
-    if (!zipCode.trim()) errs.zipCode = 'Zip Code is required'
+
+    const zipTrimmed = zipCode.trim()
+    if (!zipTrimmed) {
+      errs.zipCode = 'Zip Code is required'
+    } else {
+      if (country === 'India' && !/^\d{6}$/.test(zipTrimmed)) {
+        errs.zipCode = 'Zip code must be 6 digits for India (e.g. 110001)'
+      } else if (country === 'United States' && !/^\d{5}(-\d{4})?$/.test(zipTrimmed)) {
+        errs.zipCode = 'Zip code must be 5 digits for United States (e.g. 90210)'
+      } else if (country === 'United Kingdom' && !/^[A-Z]{1,2}[0-9R][0-9A-Z]?\s?[0-9][A-Z]{2}$/i.test(zipTrimmed)) {
+        errs.zipCode = 'Invalid UK postcode format (e.g. SW1A 1AA)'
+      } else if (country === 'Canada' && !/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i.test(zipTrimmed)) {
+        errs.zipCode = 'Invalid Canada postal code format (e.g. K1A 0B1)'
+      } else if (country === 'Australia' && !/^\d{4}$/.test(zipTrimmed)) {
+        errs.zipCode = 'Zip code must be 4 digits for Australia (e.g. 2000)'
+      }
+    }
+
     if (!cityField.trim()) errs.cityField = 'City is required'
+
     if (Object.keys(errs).length > 0) {
       setFormErrors(errs)
       return
@@ -450,7 +524,7 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="First Name"
+                          placeholder="e.g. Prashant"
                           value={firstName}
                           onChange={e => {
                             setFirstName(e.target.value)
@@ -468,7 +542,7 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="Last Name"
+                          placeholder="e.g. Dahiya"
                           value={lastName}
                           onChange={e => {
                             setLastName(e.target.value)
@@ -486,7 +560,7 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="Mobile No"
+                          placeholder="e.g. 9876567890 or +91 98765 67890"
                           value={mobileNo}
                           onChange={e => {
                             setMobileNo(e.target.value)
@@ -504,11 +578,15 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="Company"
+                          placeholder="e.g. Acme Corp (Optional)"
                           value={company}
-                          onChange={e => setCompany(e.target.value)}
-                          className="w-full border border-gray-300 rounded-[6px] px-3.5 py-2.5 text-[13.5px] text-gray-800 outline-none focus:border-[#006D6D]"
+                          onChange={e => {
+                            setCompany(e.target.value)
+                            if (formErrors.company) setFormErrors(prev => ({ ...prev, company: '' }))
+                          }}
+                          className={`w-full border rounded-[6px] px-3.5 py-2.5 text-[13.5px] text-gray-800 outline-none focus:border-[#006D6D] ${formErrors.company ? 'border-red-400' : 'border-gray-300'}`}
                         />
+                        {formErrors.company && <p className="text-[10px] text-red-500 mt-0.5 ml-1">{formErrors.company}</p>}
                       </div>
 
                       {/* Street Address 1 */}
@@ -518,7 +596,7 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="Street Address 1"
+                          placeholder="e.g. House No. 123, Sector 4"
                           value={street1}
                           onChange={e => {
                             setStreet1(e.target.value)
@@ -536,7 +614,7 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="Street Address 2"
+                          placeholder="e.g. Apartment, Suite, Unit, etc. (Optional)"
                           value={street2}
                           onChange={e => setStreet2(e.target.value)}
                           className="w-full border border-gray-300 rounded-[6px] px-3.5 py-2.5 text-[13.5px] text-gray-800 outline-none focus:border-[#006D6D]"
@@ -550,7 +628,7 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="Zip"
+                          placeholder="e.g. 110001 (India) or 90210 (US)"
                           value={zipCode}
                           onChange={e => {
                             setZipCode(e.target.value)
@@ -569,10 +647,15 @@ const Checkout = () => {
                         <div className="relative flex items-center">
                           <select
                             value={country}
-                            onChange={e => setCountry(e.target.value)}
+                            onChange={e => {
+                              const selectedCountry = e.target.value
+                              setCountry(selectedCountry)
+                              const states = countryStates[selectedCountry] || []
+                              setStateField(states[0] || '')
+                            }}
                             className="w-full border border-gray-300 rounded-[6px] px-3.5 py-2.5 text-[13.5px] font-bold text-gray-800 bg-white outline-none focus:border-[#006D6D] appearance-none cursor-pointer"
                           >
-                            {['United States', 'India', 'United Kingdom', 'Canada', 'Australia'].map(c => (
+                            {Object.keys(countryStates).map(c => (
                               <option key={c} value={c}>{c}</option>
                             ))}
                           </select>
@@ -591,7 +674,7 @@ const Checkout = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="City"
+                          placeholder="e.g. New Delhi"
                           value={cityField}
                           onChange={e => {
                             setCityField(e.target.value)
@@ -613,7 +696,7 @@ const Checkout = () => {
                             onChange={e => setStateField(e.target.value)}
                             className="w-full border border-gray-300 rounded-[6px] px-3.5 py-2.5 text-[13.5px] font-bold text-gray-800 bg-white outline-none focus:border-[#006D6D] appearance-none cursor-pointer"
                           >
-                            {['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'].map(s => (
+                            {(countryStates[country] || []).map(s => (
                               <option key={s} value={s}>{s}</option>
                             ))}
                           </select>
