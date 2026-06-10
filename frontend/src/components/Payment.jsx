@@ -26,7 +26,7 @@ const Payment = () => {
     )
   }
 
-  const { orderItems, totalAmount, shippingAddress, shippingMethod } = orderData
+  const { orderItems, totalAmount, shippingAddress, shippingMethod, prescriptionId } = orderData
 
   const placeOrder = async (paymentStatus) => {
     setProcessing(true)
@@ -37,6 +37,7 @@ const Payment = () => {
         totalAmount,
         shippingAddress,
         paymentStatus,
+        ...(prescriptionId ? { prescriptionId } : {}),
       })
       clearCart()
       navigate('/order-success', { state: { order: res.data.data, shippingMethod } })
