@@ -73,24 +73,22 @@ exports.createOrder = async (req, res) => {
     }
 
     // Enforce prescription requirement: any medicine with prescription === 'Required'
-    // must have an admin-approved (Reviewed/Dispensed) prescription from this user.
+    // must have at least a submitted (Pending/Reviewed/Dispensed) prescription from this user.
+    // Admin will review the prescription after the order is placed.
     const rxRequired = medicines.filter(m => m.prescription === 'Required');
     if (rxRequired.length > 0) {
-      const approvedRx = await Prescription.find({
+      // Accept any prescription that has been submitted (not Rejected)
+      const submittedRx = await Prescription.find({
         user: req.user.id,
-        medicine: { $in: rxRequired.map(m => m._id) },
-        status: { $in: ['Reviewed', 'Dispensed'] },
-      }, null, queryOpts).select('medicine');
+        status: { $in: ['Pending', 'Reviewed', 'Dispensed'] },
+      }, null, queryOpts).select('_id');
 
-      const approvedMedIds = new Set(approvedRx.map(p => p.medicine.toString()));
-      for (const med of rxRequired) {
-        if (!approvedMedIds.has(med._id.toString())) {
-          if (useTransaction) await session.abortTransaction();
-          return res.status(403).json({
-            success: false,
-            error: `A valid approved prescription is required for "${med.name}". Please upload a prescription and wait for pharmacist approval.`,
-          });
-        }
+      if (submittedRx.length === 0) {
+        if (useTransaction) await session.abortTransaction();
+        return res.status(403).json({
+          success: false,
+          error: `A prescription is required for one or more medicines in your order. Please upload your prescription to proceed.`,
+        });
       }
     }
 

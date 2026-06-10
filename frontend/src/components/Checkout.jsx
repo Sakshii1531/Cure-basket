@@ -81,6 +81,7 @@ const Checkout = () => {
   const [rxError, setRxError] = useState('')
   const [uploadedRxId, setUploadedRxId] = useState(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [rxUploadError, setRxUploadError] = useState('')
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0]
@@ -289,6 +290,7 @@ const Checkout = () => {
         price: buyNow.selectedPackage?.price ?? (Number(buyNow.product.pricePerUnit) || Number(buyNow.product.price) || 0),
         qty: buyNow.quantity || 1,
         image: buyNow.product.image || null,
+        prescription: buyNow.product.prescription || null,
       }]
     : cartItems
 
@@ -488,6 +490,7 @@ const Checkout = () => {
         totalAmount: total,
         shippingAddress: { name: addr.name, street: addr.street, city: addr.city, phone: addr.phone },
         shippingMethod,
+        prescriptionId: uploadedRxId || null,
       },
     })
   }
@@ -970,12 +973,29 @@ const Checkout = () => {
             )}
 
             {/* Tab 2: Medical Conditions */}
-            {activeTab === 'medical' && (
+            {activeTab === 'medical' && (() => {
+              const rxRequired = items.some(i => i.prescription === 'Required')
+              return (
               <div className="space-y-6">
                 <h3 className="text-[13px] font-black text-gray-800 uppercase tracking-wider">Medical Conditions</h3>
                 <p className="text-[13px] text-gray-500 leading-relaxed">
                   We care about your health. Please share any medical conditions or upload prescriptions if you are ordering restricted medication.
                 </p>
+
+                {rxRequired && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-[10px] p-4 flex gap-3">
+                    <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <h4 className="text-[13px] font-bold text-amber-800">Prescription Required</h4>
+                      <p className="text-[12px] text-amber-600 mt-0.5">
+                        One or more items in your order require a doctor's prescription. Please upload it below to continue.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Existing Conditions / Allergies (Optional)</label>
@@ -985,15 +1005,31 @@ const Checkout = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold text-gray-700 mb-1.5">Doctor's Prescription (Optional / Required for Prescription Medicines)</label>
+                    <label className="block text-[12px] font-bold text-gray-700 mb-1.5">
+                      Doctor's Prescription
+                      {rxRequired
+                        ? <span className="text-red-500 ml-1">* Required</span>
+                        : <span className="text-gray-400 ml-1">(Optional)</span>
+                      }
+                    </label>
                     <div
-                      onClick={() => !uploadingRx && !uploadSuccess && fileInputRef.current.click()}
-                      className={`border-2 border-dashed rounded-[12px] p-6 text-center bg-gray-50 transition-colors ${uploadSuccess ? 'border-green-400 bg-green-50/10' : 'border-gray-200 hover:bg-gray-100/50 cursor-pointer'}`}
+                      onClick={() => {
+                        setRxUploadError('')
+                        if (!uploadingRx && !uploadSuccess) fileInputRef.current.click()
+                      }}
+                      className={`border-2 border-dashed rounded-[12px] p-6 text-center bg-gray-50 transition-colors ${
+                        rxUploadError ? 'border-red-400 bg-red-50/10' :
+                        uploadSuccess ? 'border-green-400 bg-green-50/10' :
+                        'border-gray-200 hover:bg-gray-100/50 cursor-pointer'
+                      }`}
                     >
                       <input
                         type="file"
                         ref={fileInputRef}
-                        onChange={handleFileChange}
+                        onChange={e => {
+                          setRxUploadError('')
+                          handleFileChange(e)
+                        }}
                         accept="image/*,.pdf"
                         className="hidden"
                       />
@@ -1040,6 +1076,7 @@ const Checkout = () => {
                       )}
                     </div>
                     {rxError && <p className="text-[11px] text-red-500 font-bold mt-1.5">{rxError}</p>}
+                    {rxUploadError && <p className="text-[11px] text-red-500 font-bold mt-1.5">{rxUploadError}</p>}
                   </div>
                 </div>
                 
@@ -1051,14 +1088,22 @@ const Checkout = () => {
                     Back
                   </button>
                   <button
-                    onClick={() => setActiveTab('payment')}
+                    onClick={() => {
+                      if (rxRequired && !uploadSuccess) {
+                        setRxUploadError('Please upload your prescription to continue.')
+                        return
+                      }
+                      setRxUploadError('')
+                      setActiveTab('payment')
+                    }}
                     className="bg-[#006D6D] hover:bg-[#005a5a] text-white font-bold px-12 py-3.5 rounded-full text-[14px] uppercase tracking-wider transition-all shadow-md"
                   >
                     Continue
                   </button>
                 </div>
               </div>
-            )}
+              )
+            })()}
 
             {/* Tab 3: Payment Method */}
             {activeTab === 'payment' && (
