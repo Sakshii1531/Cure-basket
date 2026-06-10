@@ -104,6 +104,44 @@ describe('GET /api/orders/my-orders', () => {
   });
 });
 
+describe('GET /api/orders/:id', () => {
+  it('looks up an order by its full id', async () => {
+    const orderRes = await request(app)
+      .post('/api/orders')
+      .set('Cookie', authCookie)
+      .send(validOrder());
+    const orderId = orderRes.body.data._id;
+
+    const res = await request(app)
+      .get(`/api/orders/${orderId}`)
+      .set('Cookie', authCookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data._id).toBe(orderId);
+  });
+
+  it('looks up an order by the short code shown in the UI', async () => {
+    const orderRes = await request(app)
+      .post('/api/orders')
+      .set('Cookie', authCookie)
+      .send(validOrder());
+    const orderId = orderRes.body.data._id;
+    const shortCode = orderId.slice(-6).toUpperCase(); // e.g. "E7F9D6"
+
+    const res = await request(app)
+      .get(`/api/orders/${shortCode}`)
+      .set('Cookie', authCookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data._id).toBe(orderId);
+  });
+
+  it('returns 404 for an unknown short code', async () => {
+    const res = await request(app)
+      .get('/api/orders/abcdef')
+      .set('Cookie', authCookie);
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('PUT /api/orders/:id/status', () => {
   it('returns 403 for non-admin user', async () => {
     const orderRes = await request(app)

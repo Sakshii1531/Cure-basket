@@ -67,7 +67,7 @@ function StatusTracker({ status }) {
   )
 }
 
-function OrderDetailDrawer({ order, onClose }) {
+export function OrderDetailDrawer({ order, onClose }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }

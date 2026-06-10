@@ -36,7 +36,9 @@ const TrackOrder = () => {
   const [error, setError] = useState('')
 
   const handleTrack = async () => {
-    const id = inputId.trim()
+    // Accept the short code shown on orders (e.g. "E7F9D6" or "CB-E7F9D6") as
+    // well as the full order id — the backend resolves either.
+    const id = inputId.trim().replace(/^#/, '').replace(/^cb-/i, '')
     if (!id) return
     setLoading(true)
     setError('')
@@ -94,7 +96,7 @@ const TrackOrder = () => {
               value={inputId}
               onChange={e => { setInputId(e.target.value); setOrder(null); setError('') }}
               onKeyDown={e => e.key === 'Enter' && handleTrack()}
-              placeholder="e.g. 6847a1c3f0d2e..."
+              placeholder="e.g. E7F9D6 or full order ID"
               className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-100 text-[14px] text-gray-900 placeholder-gray-300 outline-none focus:border-[#006D6D] transition-all font-mono"
             />
             <button

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
+import { OrderDetailDrawer } from './OrdersPage'
 
 const AccountPage = () => {
   const navigate = useNavigate()
@@ -12,6 +13,7 @@ const AccountPage = () => {
   
   const [addresses, setAddresses] = useState([])
   const [wishlistItems, setWishlistItems] = useState([])
+  const [selectedOrder, setSelectedOrder] = useState(null)
 
   useEffect(() => {
     if (activeTab === 'Wishlist') {
@@ -221,6 +223,15 @@ const AccountPage = () => {
                     <div className="flex items-center gap-6 self-stretch md:self-auto justify-between md:justify-end font-sans">
                       <span className="text-[14px] text-gray-500 font-semibold">{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
                       <span className="text-[18px] font-bold text-gray-850">${order.totalAmount}</span>
+                      <button
+                        onClick={() => setSelectedOrder(order)}
+                        className="flex items-center gap-1.5 text-[#006D6D] text-[13px] font-bold border border-[#006D6D]/30 bg-[#006D6D]/5 hover:bg-[#006D6D]/10 px-3.5 py-2 rounded-xl transition-colors shrink-0"
+                      >
+                        View Details
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 )
@@ -728,6 +739,14 @@ const AccountPage = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Order Detail Drawer */}
+      {selectedOrder && (
+        <OrderDetailDrawer
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+        />
       )}
     </div>
   )
