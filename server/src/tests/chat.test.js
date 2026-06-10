@@ -184,6 +184,14 @@ describe('AI assistant (generateBotReply)', () => {
     expect(r.escalate).toBe(false);
   });
 
+  it('explains the ordering flow step by step without escalating', async () => {
+    const r = await generateBotReply('I want to order from your website');
+    expect(r.escalate).toBe(false);
+    expect(r.text).toMatch(/Add to Cart/i);
+    expect(r.text).toMatch(/Checkout/i);
+    expect(r.text).toMatch(/1️⃣/);
+  });
+
   it('answers product availability from the live catalog', async () => {
     const cat = await Category.create({ name: 'Pain Relief' });
     await Medicine.create({ title: 'Paracetamol 500mg', category: cat._id, pricePerUnit: 2, totalPrice: 20, status: 'Active' });

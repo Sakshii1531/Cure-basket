@@ -34,20 +34,107 @@ const MEDICAL_ADVICE =
 const AVAILABILITY =
   /(do you (have|sell|stock|carry)|is\s+.+\s+available|in stock|available\??$|price of|cost of|how much (is|for)|looking for|want to buy|can i (get|buy)|sell|link of|link for|details? of|info on|inquiry about|tell me about|find|search for|buy\b)/i;
 
+// "How do I order?" — explain the website's ordering flow. Keyed on order/
+// checkout (not "buy"), so product queries like "want to buy X" still route to
+// the catalog search above.
+const HOW_TO_ORDER =
+  /how (do|can|to|does|should|would).{0,25}(order|place an order|checkout|check out)|(want|wish|like|need|how|trying) to (order|checkout|place an order)|place (an|my|the|your) order|order (from|on|through|via|at) (your |the )?(website|site|app|store|page)|order(ing)? (online|here|now)|ordering (process|work|works|flow|steps?|procedure)|how (does|do) (the )?(order|ordering)/i;
+
+const ORDER_FLOW_REPLY =
+  'Ordering on CureBasket is easy! Here’s how it works:\n\n' +
+  '1️⃣ Search or browse for your medicine and tap “Add to Cart” (adjust the quantity as needed).\n' +
+  '2️⃣ Open your Cart and tap “Checkout”. If any item needs a prescription, upload your doctor’s slip (photo or PDF) when prompted.\n' +
+  '3️⃣ Enter your shipping address and choose a payment method to place the order securely.\n' +
+  '4️⃣ Our pharmacists review and pack your order, then dispatch it.\n' +
+  '5️⃣ You’ll get a tracking number to follow your delivery right to your doorstep.\n\n' +
+  'Just tell me what you’re looking for and I’ll help you find it. 🙂';
+
+// FAQ rules are matched top-to-bottom; first match wins, so keep more specific
+// patterns above broader ones.
 const FAQ = [
+  // ── Account & login ───────────────────────────────────────────────────────
+  { test: /(sign ?up|create.*account|register|registration|make an account|new account|how.*account)/i,
+    answer: 'To create an account, tap “Sign Up”, enter your details, and you’re set. Already registered? Just tap “Login”. You’ll need an account to check out, upload prescriptions and track orders.' },
+  { test: /(forgot|reset|lost|change).*(password)|password.*(forgot|reset|help|change)|can.?t (log ?in|sign ?in)|locked out/i,
+    answer: 'No problem — tap “Login”, then “Forgot Password”, and we’ll email you a reset link. Follow it to set a new password and sign back in.' },
+  { test: /(how.*(log ?in|sign ?in)|^log ?in|^sign ?in)/i,
+    answer: 'Tap “Login” at the top, then enter your registered email and password. Forgotten it? Use “Forgot Password” to reset.' },
+
+  // ── Prescriptions ─────────────────────────────────────────────────────────
   { test: /(upload|submit|send).*(prescription|rx)|how.*prescription/i,
     answer: 'To upload a prescription, tap “Upload Rx” in the header. Our pharmacists review it and prepare your order shortly. You’ll need to be logged in.' },
+  { test: /(need|require|required|necessary|mandatory|do i need|have to have).*(prescription|rx)|prescription.*(need|require|required|necessary|mandatory|must)/i,
+    answer: 'Some medicines need a valid doctor’s prescription. If an item in your cart requires one, you’ll be asked to upload it (photo or PDF) at checkout, and our pharmacist verifies it before dispatch.' },
+
+  // ── Orders: track / history / modify / cancel ─────────────────────────────
   { test: /(track|where.?s?|status).*(order|delivery|parcel|package)/i,
     answer: 'You can track an order from “Track Order” in the menu, or under “My Orders” in your account.' },
-  { test: /(delivery|shipping).*(time|charge|cost|fee|how long)|how long.*(deliver|ship|arrive)/i,
+  { test: /(my orders|order history|past orders|previous orders|view.*orders|see.*orders|where.*(my )?orders)/i,
+    answer: 'Your past and current orders live under “My Orders” in your account. Open any order to see its items, status and tracking.' },
+  { test: /(change|modify|edit|update|wrong|cancel).*(order)|cancel my order|change.*(delivery )?address.*order|edit.*address/i,
+    answer: 'You can cancel an order before it ships, from “My Orders”. To change items or the delivery address on a placed order, message us here and our team will sort it out right away.' },
+
+  // ── Delivery & shipping ───────────────────────────────────────────────────
+  { test: /(delivery|shipping).*(time|charge|cost|fee|how long)|how long.*(deliver|ship|arrive)|when.*(arrive|delivered)/i,
     answer: 'Orders usually arrive within a few days. Any delivery charge is shown at checkout based on your address.' },
-  { test: /(refund|return|cancel)/i,
-    answer: 'Cancellations are possible before an order ships, and refunds go back to your original payment method (typically 5–7 business days). See our Refund Policy for details.' },
-  { test: /(payment|pay\b|card|upi|cod|cash on delivery)/i,
-    answer: 'We support the payment methods shown at checkout. If a payment fails it’s usually a bank-side issue — please retry or use another method.' },
-  { test: /(contact|phone number|email you|reach you|support hours|customer care)/i,
+  { test: /(deliver|ship).*(to|in|my (area|city|pin ?code|zip|location|country|town))|do you deliver|delivery (area|location|available)|international (delivery|shipping)|where do you (deliver|ship)/i,
+    answer: 'We deliver to the locations supported at checkout. Enter your shipping address at checkout to see availability and any delivery charge for your area.' },
+
+  // ── Refund / return / cancellation policy ─────────────────────────────────
+  { test: /(refund|return|replace|replacement|cancel)/i,
+    answer: 'Cancellations are possible before an order ships, and refunds go back to your original payment method (typically 5–7 business days). See our Refund and Cancellation Policy pages for details.' },
+
+  // ── Payment ───────────────────────────────────────────────────────────────
+  { test: /(payment|pay\b|card|upi|cod|cash on delivery|net ?banking|emi|wallet)/i,
+    answer: 'We support the payment methods shown at checkout (including Cash on Delivery where available). If a payment fails it’s usually a bank-side issue — please retry or use another method.' },
+
+  // ── Coupons / offers ──────────────────────────────────────────────────────
+  { test: /(coupon|promo|discount|offer|voucher|deal\b|cashback|apply.*code|code.*work)/i,
+    answer: 'Have a coupon code? Enter it in the “Apply Coupon” box at checkout to get your discount. Keep an eye on the homepage for the latest offers too.' },
+
+  // ── Referral ──────────────────────────────────────────────────────────────
+  { test: /(referr?al|refer a friend|invite.*friend|refer.*earn)/i,
+    answer: 'You can refer friends from the “Referral” page and share your link. Check that page for the current referral rewards.' },
+
+  // ── Authenticity / trust ──────────────────────────────────────────────────
+  { test: /(genuine|authentic|original|fake|counterfeit|real medicine|safe to (buy|order)|is (this|your) (site|website|store) (safe|legit|legitimate|trusted|reliable)|trust ?(worthy)?|licen[cs]ed)/i,
+    answer: 'Yes — we’re a licensed pharmacy and dispense only genuine, sealed products. Prescription items are verified by our qualified pharmacists before dispatch.' },
+
+  // ── Insurance ─────────────────────────────────────────────────────────────
+  { test: /(insurance|mediclaim|claim my|covered by insurance|insurance cover)/i,
+    answer: 'See our “Insurance Coverage” page for how insurance works with your order. For a specific claim, our team can guide you — just ask here.' },
+
+  // ── Newsletter / subscription ─────────────────────────────────────────────
+  { test: /(subscribe|newsletter|unsubscribe|mailing list|email updates|stop emails)/i,
+    answer: 'Subscribe to our newsletter from the footer for offers and updates. To stop emails, use the “Unsubscribe” link in any newsletter.' },
+
+  // ── Browse / categories / brands ──────────────────────────────────────────
+  { test: /(what (categor|brand)|browse|product range|catalog\b|list.*(categor|brand|product)|show.*(categor|brand)|all (categories|brands)|what.*you sell)/i,
+    answer: 'Browse everything from the menu — explore “Categories”, “Brands” or “Best Sellers”, or use the search bar to find a specific medicine.' },
+
+  // ── Contact / hours ───────────────────────────────────────────────────────
+  { test: /(contact|phone number|email you|reach you|support hours|opening hours|business hours|customer care|helpline|address of)/i,
     answer: 'You can reach our team right here in chat, or via the details on our Contact page.' },
 ];
+
+// "What can you do?" — describe the assistant's capabilities.
+const CAPABILITIES =
+  /(what can you (do|help( me)?( with)?)|how can you help|what (do|can) you (do|assist)|who are you|what are you|are you (a |an )?(bot|human|robot|ai|real person)|^help$|^menu$|^options$|^start$)/i;
+
+const CAPABILITIES_REPLY =
+  'I’m CureBasket’s assistant 🤖. I can help you:\n' +
+  '• Find medicines and check prices & availability\n' +
+  '• Explain how to order, pay, and track deliveries\n' +
+  '• Help with prescriptions, accounts, coupons, refunds and returns\n\n' +
+  'Just ask — e.g. “do you have paracetamol?”, “how do I order?”, or “where is my order?”. ' +
+  'Want a person instead? Say “talk to a human”.';
+
+// Politeness — acknowledge thanks / goodbyes without escalating.
+const THANKS = /^(thanks|thank you|thankyou|thx|tysm|ty|appreciate|got it|perfect|awesome|brilliant)\b/i;
+const THANKS_REPLY = 'You’re welcome! 😊 Is there anything else I can help you with?';
+
+const BYE = /^(bye|goodbye|see ya|see you|cya|good ?night|gtg|that.?s all|nothing else|no thanks|that.?ll be all|that will be all)\b/i;
+const BYE_REPLY = 'Take care! 👋 Come back anytime you need help with your medicines or orders.';
 
 // Strip question/stop words to isolate the product the visitor is asking about.
 const extractQuery = (text) =>
@@ -163,9 +250,22 @@ const generateBotReply = async (raw) => {
   if (GREETING.test(text) && text.length < 40) {
     return { text: 'Hi! 👋 I’m CureBasket’s assistant. Ask me about product availability, prescriptions, delivery or your orders.', escalate: false };
   }
+  if (CAPABILITIES.test(text)) {
+    return { text: CAPABILITIES_REPLY, escalate: false };
+  }
+  if (THANKS.test(text)) {
+    return { text: THANKS_REPLY, escalate: false };
+  }
+  if (BYE.test(text)) {
+    return { text: BYE_REPLY, escalate: false };
+  }
 
   for (const f of FAQ) {
     if (f.test.test(text)) return { text: f.answer, escalate: false };
+  }
+
+  if (HOW_TO_ORDER.test(text)) {
+    return { text: ORDER_FLOW_REPLY, escalate: false };
   }
 
   if (AVAILABILITY.test(text)) {
