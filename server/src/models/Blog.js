@@ -14,6 +14,7 @@ const blogSchema = new mongoose.Schema({
   tags: [{ type: String, trim: true }],
   isPublished: { type: Boolean, default: false },
   publishedAt: { type: Date },
+  notificationSent: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 

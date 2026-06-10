@@ -29,6 +29,7 @@ export default defineConfig(({ mode }) => {
       setupFiles: './src/tests/setup.js',
       exclude: ['node_modules', 'dist', '.idea', '.git', '.cache', 'e2e'],
       css: false,
+      exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
     },
   };
 })

@@ -51,6 +51,84 @@ describe('GET /api/medicines', () => {
     const res = await request(app).get('/api/medicines?page=1&limit=5');
     expect(res.status).toBe(200);
   });
+
+  it('filters by search query q (fuzzy matching)', async () => {
+    const Medicine = require('../models/Medicine');
+    await Medicine.create({
+      title: 'Aspirin 100mg',
+      genericFor: 'Aspirin',
+      pricePerUnit: 10,
+      totalPrice: 10,
+      packSize: '10 Tablets',
+      quantityOptions: [1],
+      category: categoryId,
+    });
+    await Medicine.create({
+      title: 'Ibuprofen 200mg',
+      genericFor: 'Ibuprofen',
+      pricePerUnit: 12,
+      totalPrice: 12,
+      packSize: '10 Tablets',
+      quantityOptions: [1],
+      category: categoryId,
+    });
+
+    // Test case 1: spacing variation (100mg query on "Aspirin 100mg" or searching "100 mg")
+    const resSpacing = await request(app).get('/api/medicines?q=100%20mg');
+    expect(resSpacing.status).toBe(200);
+    expect(resSpacing.body.data.length).toBe(1);
+    expect(resSpacing.body.data[0].title).toBe('Aspirin 100mg');
+
+    // Test case 2: order-independent multi-token search
+    const resOrder = await request(app).get('/api/medicines?q=100mg%20Aspirin');
+    expect(resOrder.status).toBe(200);
+    expect(resOrder.body.data.length).toBe(1);
+    expect(resOrder.body.data[0].title).toBe('Aspirin 100mg');
+  });
+
+  it('filters by search query name[regex]', async () => {
+    const Medicine = require('../models/Medicine');
+    await Medicine.create({
+      title: 'Aspirin 100mg',
+      genericFor: 'Aspirin',
+      pricePerUnit: 10,
+      totalPrice: 10,
+      packSize: '10 Tablets',
+      quantityOptions: [1],
+      category: categoryId,
+    });
+
+    const res = await request(app).get('/api/medicines?name[regex]=Aspirin');
+    expect(res.status).toBe(200);
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.data[0].title).toBe('Aspirin 100mg');
+  });
+
+  it('tracks search query when search parameter is provided', async () => {
+    const SearchQuery = require('../models/SearchQuery');
+    
+    // Perform search
+    await request(app).get('/api/medicines?q=Aspirin');
+    
+    // Wait slightly for async findOneAndUpdate or check the db
+    const queryDoc = await SearchQuery.findOne({ query: 'aspirin' });
+    expect(queryDoc).not.toBeNull();
+    expect(queryDoc.count).toBe(1);
+    expect(queryDoc.originalQuery).toBe('Aspirin');
+  });
+});
+
+describe('GET /api/medicines/popular-searches', () => {
+  it('returns list of popular searches', async () => {
+    const SearchQuery = require('../models/SearchQuery');
+    await SearchQuery.create({ query: 'paracetamol', originalQuery: 'Paracetamol', count: 15 });
+    await SearchQuery.create({ query: 'wegovy', originalQuery: 'Wegovy', count: 25 });
+
+    const res = await request(app).get('/api/medicines/popular-searches');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toEqual(['Wegovy', 'Paracetamol']);
+  });
 });
 
 describe('POST /api/medicines', () => {

@@ -64,7 +64,7 @@ describe('SignupPage Password & Confirm Password Fields', () => {
     // Fill name, email, phone
     fireEvent.change(screen.getByPlaceholderText('John Doe'), { target: { value: 'Test User' } });
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByPlaceholderText('+1 800 000 0000'), { target: { value: '1234567890' } });
+    fireEvent.change(screen.getByPlaceholderText('800 000 0000'), { target: { value: '1234567890' } });
     
     const inputs = screen.getAllByPlaceholderText('••••••••');
     fireEvent.change(inputs[0], { target: { value: 'password123' } });
@@ -104,7 +104,7 @@ describe('SignupPage Password & Confirm Password Fields', () => {
     });
 
     // Enter invalid phone number
-    fireEvent.change(screen.getByPlaceholderText('+1 800 000 0000'), { target: { value: '123' } });
+    fireEvent.change(screen.getByPlaceholderText('800 000 0000'), { target: { value: '123' } });
     fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
     await waitFor(() => {

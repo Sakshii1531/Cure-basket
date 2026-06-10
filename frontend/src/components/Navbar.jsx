@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import curebasketLogo from '../assets/logo1.png'
+import curebasketLogo from '../assets/favicon.svg'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 
@@ -417,8 +417,8 @@ function Navbar({ openSupport }) {
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => openLoginModal('signup')}
+                  <button
+                    onClick={() => navigate('/login')}
                     className="bg-[#006D6D] text-white px-6 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#005a5a] transition-all shadow-md"
                   >
                     Start Saving

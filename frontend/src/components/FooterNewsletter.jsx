@@ -1,16 +1,38 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
+import api from '../utils/api'
 import medico from '../assets/medico.png'
 
 function FooterNewsletter() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error('Please enter your email address.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.post('/subscribers', { email });
+      toast.success(res.data.message || 'Subscribed successfully!');
+      setEmail('');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to subscribe. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const cureBasketLinks = [
     { name: 'About Us', path: '/about-us' },
     { name: 'Site Map', path: '/site-map' },
     { name: 'Terms And Conditions', path: '/terms-conditions' },
     { name: 'Privacy Policy', path: '/privacy-policy' },
     { name: 'Disclaimer', path: '/disclaimer' },
-    { name: 'Blog', path: '/blogs' },
-    { name: 'Articles', path: '/articles' },
-    { name: 'Referral Program', path: '/referral' }
+    { name: 'Blog', path: '/blogs' }
   ];
 
   const categoriesLinks = [
@@ -90,21 +112,29 @@ function FooterNewsletter() {
                 Sign up for our newsletter for tips and discounts.
               </p>
               <div className="flex flex-col gap-2 md:gap-5">
-                <div className="space-y-2 md:space-y-4">
+                <form onSubmit={handleSubscribe} className="space-y-2 md:space-y-4">
                   <input
                     type="email"
                     placeholder="Email address"
-                    className="w-full h-[34px] md:h-[54px] px-3.5 md:px-5 rounded-lg md:rounded-xl border border-gray-200 focus:outline-none focus:border-[#006D6D] text-gray-700 text-[11px] md:text-[16px] bg-white transition-all shadow-sm"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                    className="w-full h-[34px] md:h-[54px] px-3.5 md:px-5 rounded-lg md:rounded-xl border border-gray-200 focus:outline-none focus:border-[#006D6D] text-gray-700 text-[11px] md:text-[16px] bg-white transition-all shadow-sm disabled:opacity-60"
+                    required
                   />
                   
                   <p className="text-[9.5px] md:text-[12px] leading-relaxed text-gray-500 font-medium">
                     By providing your email, you consent to receive marketing communications from <span className="font-bold text-gray-700">CureBasket</span>. You can unsubscribe at any time. Read our <Link to="/terms-conditions" className="underline hover:text-[#006D6D]">Terms</Link> and <Link to="/privacy-policy" className="underline hover:text-[#006D6D]">Privacy Policy</Link>.
                   </p>
  
-                  <button className="w-full h-[34px] md:h-[54px] bg-[#006D6D] text-white rounded-lg md:rounded-xl font-bold text-[11.5px] md:text-[16px] hover:bg-[#005a5a] transition-all shadow-lg shadow-[#006D6D]/10">
-                    Subscribe
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-[34px] md:h-[54px] bg-[#006D6D] text-white rounded-lg md:rounded-xl font-bold text-[11.5px] md:text-[16px] hover:bg-[#005a5a] transition-all shadow-lg shadow-[#006D6D]/10 disabled:opacity-60"
+                  >
+                    {loading ? 'Subscribing...' : 'Subscribe'}
                   </button>
-                </div>
+                </form>
  
                 {/* Social Media Icons */}
                 <div className="mt-2 md:mt-4 pr-16 md:pr-0">

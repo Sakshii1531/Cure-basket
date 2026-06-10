@@ -29,6 +29,7 @@ function MedicinesPage({ onProductClick }) {
 
   const [medicines, setMedicines] = useState([])
   const [loading, setLoading] = useState(true)
+  const [inputValue, setInputValue] = useState(urlQuery)
   const [search, setSearch] = useState(urlQuery)
   const [sort, setSort] = useState('popularity')
   const [total, setTotal] = useState(0)
@@ -36,7 +37,7 @@ function MedicinesPage({ onProductClick }) {
   const fetchMedicines = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams({ limit: 100 })
-    if (search.trim()) params.set('name[regex]', search.trim())
+    if (search.trim()) params.set('q', search.trim())
     if (brandFilter) params.set('brand', brandFilter)
     api.get(`/medicines?${params}`)
       .then(res => {
@@ -54,14 +55,22 @@ function MedicinesPage({ onProductClick }) {
     window.scrollTo(0, 0)
   }, [])
 
+  // Debounce input value changes to search state (300ms)
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setSearch(inputValue)
+    }, 300)
+    return () => clearTimeout(delay)
+  }, [inputValue])
+
   // Sync search box when navigated here from a search bar with ?q=
   useEffect(() => {
+    setInputValue(urlQuery)
     setSearch(urlQuery)
   }, [urlQuery])
 
   useEffect(() => {
-    const delay = setTimeout(fetchMedicines, 300)
-    return () => clearTimeout(delay)
+    fetchMedicines()
   }, [fetchMedicines])
 
   return (
@@ -109,8 +118,8 @@ function MedicinesPage({ onProductClick }) {
             <input
               type="text"
               placeholder="Search medicines..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D] focus:border-transparent"
             />
           </div>
