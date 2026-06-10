@@ -6,11 +6,8 @@ const {
   updateMedicine,
   deleteMedicine,
   bulkUploadMedicines,
-<<<<<<< HEAD
   validateStock,
-=======
   getPopularSearches,
->>>>>>> 0350737e648078008a879f1820218848c1d3d41f
 } = require('../controllers/medicineController');
 
 const router = express.Router();
