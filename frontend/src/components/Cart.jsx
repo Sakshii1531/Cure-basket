@@ -13,6 +13,8 @@ const Cart = () => {
   const [globalStockError, setGlobalStockError] = useState('')
   const [validationLoading, setValidationLoading] = useState(false)
 
+  const requiresPrescription = items.some(item => item.prescription === 'Required')
+
   useEffect(() => {
     if (items.length === 0) {
       setStockErrors({})
@@ -101,6 +103,20 @@ const Cart = () => {
                 </div>
               )}
 
+              {requiresPrescription && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <h4 className="text-[14px] font-bold text-amber-800">Prescription Required</h4>
+                    <p className="text-[12px] text-amber-600 mt-1">
+                      One or more medicines in your cart require a doctor's prescription. You will need to upload your prescription in the next step (checkout) to complete your purchase.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
                 {items.map((item) => {
                   const hasStockError = !!stockErrors[item._id]
@@ -123,6 +139,14 @@ const Cart = () => {
                           <div>
                             <h3 className="text-[14px] md:text-[15px] font-semibold text-gray-900 leading-tight">{item.name}</h3>
                             {item.generic && <p className="text-[12px] text-gray-500 mt-1">{item.generic}</p>}
+                            {item.prescription === 'Required' && (
+                              <div className="flex items-center gap-1.5 text-[#d97706] mt-2 text-[11px] font-bold bg-[#FFF8E7] px-2.5 py-1 rounded-md w-fit border border-[#FFD200]/30">
+                                <svg className="w-3.5 h-3.5 text-[#FBB03B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span>Prescription Required</span>
+                              </div>
+                            )}
                             {hasStockError && (
                               <div className="flex items-center gap-1.5 text-red-600 mt-2 text-[12px] font-semibold bg-red-50 px-2.5 py-1 rounded-md w-fit border border-red-100">
                                 <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -636,10 +636,22 @@ function ProductDetail({ onBack }) {
         <nav className="flex items-center gap-2 text-[12px] font-medium text-gray-500">
           <span className="cursor-pointer hover:text-[#006D6D]" onClick={() => navigate('/')}>Home</span>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <span className="cursor-pointer hover:text-[#006D6D]">All Medicines</span>
+          <span className="cursor-pointer hover:text-[#006D6D]" onClick={() => navigate('/medicines')}>All Medicines</span>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <span className="cursor-pointer hover:text-[#006D6D]">Anti Infectives</span>
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          {product.category && (
+            <>
+              <span 
+                className="cursor-pointer hover:text-[#006D6D]" 
+                onClick={() => {
+                  const catName = product.category?.name || product.category;
+                  navigate(`/category/${encodeURIComponent(catName)}`);
+                }}
+              >
+                {product.category?.name || product.category}
+              </span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </>
+          )}
           <span className="text-gray-900">{product.title || product.name}</span>
         </nav>
       </div>
@@ -648,7 +660,7 @@ function ProductDetail({ onBack }) {
         
         {/* Left Column: Product Visuals & Info */}
         <div className="space-y-6 md:space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 md:gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-[1.1fr_1fr] gap-6 md:gap-8 items-start">
             {/* Gallery Section */}
             <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-6 px-6 pb-8 md:pt-8 md:px-8 md:pb-12 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative">
               <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
@@ -696,15 +708,17 @@ function ProductDetail({ onBack }) {
               )}
 
               {/* Prescription Required Label */}
-              <div className="mt-5 pt-5 border-t border-gray-100 flex items-center gap-3 md:gap-4">
-                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              {pData.prescription === 'Required' && (
+                <div className="mt-5 pt-5 border-t border-gray-100 flex items-center gap-3 md:gap-4">
+                  <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  </div>
+                  <div>
+                    <div className="text-[12px] md:text-[13px] font-bold text-gray-900 leading-tight">Prescription Required</div>
+                    <div className="text-[10px] md:text-[11px] text-gray-500 mt-0.5">This is a prescription medicine</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[12px] md:text-[13px] font-bold text-gray-900">Prescription Required</div>
-                  <div className="text-[10px] md:text-[11px] text-gray-500">This is a prescription medicine</div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Info Section */}
