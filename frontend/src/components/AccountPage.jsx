@@ -6,7 +6,7 @@ import { OrderDetailDrawer } from './OrdersPage'
 
 const AccountPage = () => {
   const navigate = useNavigate()
-  const { isLoggedIn, user, logout } = useAuth()
+  const { isLoggedIn, user, setUser, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('My Orders')
   const [orders, setOrders] = useState([])
   const [loadingOrders, setLoadingOrders] = useState(true)
@@ -14,6 +14,8 @@ const AccountPage = () => {
   const [addresses, setAddresses] = useState([])
   const [wishlistItems, setWishlistItems] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [myReviews, setMyReviews] = useState([])
+  const [loadingReviews, setLoadingReviews] = useState(true)
 
   useEffect(() => {
     if (activeTab === 'Wishlist') {
@@ -57,13 +59,13 @@ const AccountPage = () => {
   }, [isLoggedIn])
 
   const [profileForm, setProfileForm] = useState({
-    firstName: 'Sakshi',
-    lastName: 'Dwivedi',
-    email: 'sakshidwivedi406@gmail.com',
+    firstName: '',
+    lastName: '',
+    email: '',
     dob: '',
-    gender: 'Female',
+    gender: '',
     changePassword: false,
-    contactNumber: '7389961407',
+    contactNumber: '',
     callForOffers: 'No',
     findUs: '',
     timeFrom: '',
@@ -71,30 +73,48 @@ const AccountPage = () => {
     timezone: 'CST'
   })
   const [profileSaved, setProfileSaved] = useState(false)
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileError, setProfileError] = useState('')
 
   useEffect(() => {
     if (user) {
-      setProfileForm({
-        firstName: user.name?.split(' ')[0] || 'Sakshi',
-        lastName: user.name?.split(' ').slice(1).join(' ') || 'Dwivedi',
-        email: user.email || 'sakshidwivedi406@gmail.com',
+      const parts = (user.name || '').trim().split(' ')
+      setProfileForm(prev => ({
+        ...prev,
+        firstName: parts[0] || '',
+        lastName: parts.slice(1).join(' ') || '',
+        email: user.email || '',
         dob: user.dob || '',
-        gender: user.gender || 'Female',
-        changePassword: false,
-        contactNumber: user.phone || '7389961407',
-        callForOffers: user.callForOffers || 'No',
-        findUs: user.findUs || '',
-        timeFrom: user.timeFrom || '',
-        timeTo: user.timeTo || '',
-        timezone: user.timezone || 'CST'
-      })
+        gender: user.gender || '',
+        contactNumber: user.phone || '',
+      }))
     }
   }, [user])
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault()
-    setProfileSaved(true)
-    setTimeout(() => setProfileSaved(false), 3000)
+    if (!profileForm.firstName.trim()) {
+      setProfileError('First name is required.')
+      return
+    }
+    setProfileSaving(true)
+    setProfileError('')
+    try {
+      const fullName = `${profileForm.firstName.trim()} ${profileForm.lastName.trim()}`.trim()
+      const res = await api.put('/auth/me', {
+        name: fullName,
+        phone: profileForm.contactNumber,
+        dob: profileForm.dob,
+        gender: profileForm.gender,
+      })
+      if (res.data.user) setUser(res.data.user)
+      setProfileSaved(true)
+      setTimeout(() => setProfileSaved(false), 3000)
+    } catch (err) {
+      setProfileError(err.response?.data?.error || 'Failed to save profile. Please try again.')
+    } finally {
+      setProfileSaving(false)
+    }
   }
 
   useEffect(() => {
@@ -104,6 +124,12 @@ const AccountPage = () => {
         .then(res => setOrders(res.data.data || []))
         .catch(err => console.error(err))
         .finally(() => setLoadingOrders(false))
+
+      setLoadingReviews(true)
+      api.get('/reviews/my-reviews')
+        .then(res => setMyReviews(res.data.data || []))
+        .catch(err => console.error(err))
+        .finally(() => setLoadingReviews(false))
     }
   }, [isLoggedIn])
 
@@ -299,15 +325,61 @@ const AccountPage = () => {
             </div>
           </div>
         )
-      case 'Product Reviews':
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] font-sans">
-            <div className="bg-[#fffdf8] border border-[#fbf2e3] rounded p-4 text-[#7d5b24] text-[14.5px] flex items-center gap-2.5">
-              <span className="text-[18px] shrink-0">⚠️</span>
-              <span className="font-semibold">You have not submitted any product reviews.</span>
+      case 'Product Reviews': {
+        if (loadingReviews) {
+          return (
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] flex items-center justify-center text-gray-400 text-[15px] font-sans">
+              Loading your reviews...
             </div>
+          )
+        }
+        if (myReviews.length === 0) {
+          return (
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] font-sans">
+              <div className="bg-[#fffdf8] border border-[#fbf2e3] rounded p-4 text-[#7d5b24] text-[14.5px] flex items-center gap-2.5">
+                <span className="text-[18px] shrink-0">⚠️</span>
+                <span className="font-semibold">You have not submitted any product reviews.</span>
+              </div>
+            </div>
+          )
+        }
+        const reviewStatusBadge = {
+          approved: 'bg-[#e6f2f2] text-[#006D6D]',
+          pending:  'bg-[#fff8e7] text-[#b7791f]',
+          rejected: 'bg-red-50 text-red-500',
+        }
+        return (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm min-h-[300px] space-y-4 font-sans">
+            <h3 className="text-[17px] font-bold text-gray-800 border-b border-gray-100 pb-2 mb-4">Your Product Reviews</h3>
+            {myReviews.map((review) => (
+              <div key={review._id} className="border border-gray-100 rounded-xl p-4 bg-gray-50/50">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="min-w-0">
+                    <h4 className="text-[15px] font-semibold text-gray-800 truncate">{review.medicine?.name || 'Product'}</h4>
+                    <div className="flex items-center gap-0.5 mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <svg key={star} className={`w-4 h-4 ${star <= review.rating ? 'text-[#FFB800]' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.965a1 1 0 00.95.69h4.17c.969 0 1.371 1.24.588 1.81l-3.376 2.453a1 1 0 00-.364 1.118l1.287 3.966c.3.92-.755 1.688-1.54 1.118l-3.375-2.453a1 1 0 00-1.176 0l-3.375 2.453c-.784.57-1.838-.197-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.22 9.392c-.783-.57-.38-1.81.588-1.81h4.17a1 1 0 00.95-.69l1.286-3.965z" />
+                        </svg>
+                      ))}
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-[12px] font-bold capitalize shrink-0 ${reviewStatusBadge[review.status] || 'bg-gray-100 text-gray-500'}`}>
+                    {review.status}
+                  </span>
+                </div>
+                {review.comment && (
+                  <p className="text-[13.5px] text-gray-600 mt-2.5 leading-relaxed">{review.comment}</p>
+                )}
+                <p className="text-[12px] text-gray-400 mt-2">{new Date(review.createdAt).toLocaleDateString()}</p>
+                {review.status === 'pending' && (
+                  <p className="text-[12px] text-[#b7791f] mt-1">Awaiting approval — it will appear on the product page once our team reviews it.</p>
+                )}
+              </div>
+            ))}
           </div>
         )
+      }
 
       case 'Your Addresses':
         return (
@@ -512,14 +584,18 @@ const AccountPage = () => {
 
               {/* SAVE Actions Row */}
               <div className="flex items-center gap-4 pt-3 font-sans">
-                <button 
+                <button
                   onClick={handleSaveProfile}
-                  className="bg-[#006D6D] hover:bg-[#005a5a] text-white font-semibold px-6 py-2 rounded text-[13.5px] uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-sm font-sans"
+                  disabled={profileSaving}
+                  className="bg-[#006D6D] hover:bg-[#005a5a] text-white font-semibold px-6 py-2 rounded text-[13.5px] uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-sm font-sans disabled:opacity-60"
                 >
-                  SAVE
+                  {profileSaving ? 'SAVING…' : 'SAVE'}
                 </button>
                 {profileSaved && (
                   <span className="text-green-600 font-semibold text-[13.5px] animate-pulse font-sans">✓ Profile updated successfully!</span>
+                )}
+                {profileError && (
+                  <span className="text-red-500 font-semibold text-[13.5px] font-sans">{profileError}</span>
                 )}
               </div>
 

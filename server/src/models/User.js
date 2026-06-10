@@ -25,6 +25,14 @@ const userSchema = new mongoose.Schema({
   phone: {
     type: String,
   },
+  dob: {
+    type: String, // stored as YYYY-MM-DD from the date input
+  },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Non-binary', ''],
+    default: '',
+  },
   // 'user' = customer, 'admin' = staff with a custom Role, 'superadmin' = full access
   role: {
     type: String,

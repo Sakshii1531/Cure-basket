@@ -113,6 +113,31 @@ describe('GET /api/reviews/medicine/:medicineId', () => {
   });
 });
 
+describe('GET /api/reviews/my-reviews', () => {
+  it('returns the logged-in user\'s reviews including pending ones', async () => {
+    // Submit a review (created as pending) — should NOT show on the public
+    // medicine endpoint, but SHOULD show here for the owner.
+    await request(app)
+      .post('/api/reviews')
+      .set('Cookie', authCookie)
+      .send({ medicine: medicineId, rating: 5, comment: 'Pending review' });
+
+    const res = await request(app)
+      .get('/api/reviews/my-reviews')
+      .set('Cookie', authCookie);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.data[0].status).toBe('pending');
+    expect(res.body.data[0].medicine).toHaveProperty('name');
+  });
+
+  it('returns 401 without auth', async () => {
+    const res = await request(app).get('/api/reviews/my-reviews');
+    expect(res.status).toBe(401);
+  });
+});
+
 describe('PUT /api/reviews/:id/status', () => {
   it('returns 403 for non-admin user', async () => {
     const createRes = await request(app)
