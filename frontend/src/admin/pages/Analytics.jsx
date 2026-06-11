@@ -51,7 +51,51 @@ function RevenueChart({ data, loading }) {
                   title={`$${d.revenue.toLocaleString()}`}
                 />
                 <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                  $${(d.revenue / 1000).toFixed(1)}k
+                  ${(d.revenue / 1000).toFixed(1)}k
+                </span>
+              </div>
+              <span className="text-[10px] text-gray-400">{MONTH_NAMES[(d._id.month - 1)]}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function UsersChart({ data, loading }) {
+  if (loading) {
+    return (
+      <div className="animate-pulse flex items-end gap-2 h-32 pt-4">
+        {[40,70,55,85,60,95].map((h, i) => (
+          <div key={i} className="flex-1 bg-gray-100 rounded-t" style={{ height: `${h}%` }} />
+        ))}
+      </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return <p className="text-sm text-gray-400 text-center py-8">No user signup data yet.</p>;
+  }
+  const max = Math.max(...data.map(d => d.newUsers), 1);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-end gap-1.5 h-36 pt-4">
+        {data.map((d, i) => {
+          const pct = Math.round((d.newUsers / max) * 100);
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+              <div className="relative w-full">
+                <div
+                  className="w-full rounded-t transition-all duration-500 cursor-default"
+                  style={{
+                    height: `${Math.max(pct, 4)}px`,
+                    minHeight: '4px',
+                    backgroundColor: '#0d9488',
+                  }}
+                  title={`${d.newUsers} new user${d.newUsers !== 1 ? 's' : ''}`}
+                />
+                <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                  {d.newUsers}
                 </span>
               </div>
               <span className="text-[10px] text-gray-400">{MONTH_NAMES[(d._id.month - 1)]}</span>
@@ -68,9 +112,15 @@ function Analytics() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
   const [revenue, setRevenue] = useState([]);
   const [revenueLoading, setRevenueLoading] = useState(false);
   const [revenueMonths, setRevenueMonths] = useState(6);
+
+  // User growth chart state
+  const [usersChart, setUsersChart] = useState([]);
+  const [usersChartLoading, setUsersChartLoading] = useState(false);
+  const [usersChartMonths, setUsersChartMonths] = useState(6);
 
   useEffect(() => {
     if (authLoading) return;
@@ -94,11 +144,26 @@ function Analytics() {
       .finally(() => setRevenueLoading(false));
   }, [authLoading, user, revenueMonths]);
 
+  useEffect(() => {
+    if (authLoading || !user) return;
+    setUsersChartLoading(true);
+    api.get(`/analytics/users?months=${usersChartMonths}`)
+      .then(res => setUsersChart(res.data.data || []))
+      .catch(() => setUsersChart([]))
+      .finally(() => setUsersChartLoading(false));
+  }, [authLoading, user, usersChartMonths]);
+
   const growthBadge = (pct) => {
     if (pct === null || pct === undefined) return null;
     const color = pct >= 0 ? 'text-emerald-600' : 'text-red-500';
     return <span className={`text-xs font-bold ${color}`}>{pct >= 0 ? '+' : ''}{pct}% vs last month</span>;
   };
+
+  // Derived totals for User Growth summary strip
+  const totalNewInPeriod = usersChart.reduce((sum, d) => sum + d.newUsers, 0);
+  const peakMonth = usersChart.length
+    ? usersChart.reduce((a, b) => (b.newUsers > a.newUsers ? b : a))
+    : null;
 
   return (
     <div className="space-y-6">
@@ -109,6 +174,7 @@ function Analytics() {
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
 
+      {/* Summary stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard label="Revenue This Month" value={summary ? `$${summary.revenue.thisMonth.toLocaleString()}` : '—'} sub={summary ? growthBadge(summary.revenue.growthPercent) : null} loading={loading} />
         <StatCard label="Orders This Month" value={summary ? summary.orders.thisMonth.toLocaleString() : '—'} sub={summary ? growthBadge(summary.orders.growthPercent) : null} loading={loading} />
@@ -118,6 +184,7 @@ function Analytics() {
         <StatCard label="Pending Prescriptions" value={summary ? summary.prescriptions.pending.toLocaleString() : '—'} loading={loading} />
       </div>
 
+      {/* Revenue Trend */}
       <div className="bg-white rounded-xl border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-900">Revenue Trend</h3>
@@ -134,6 +201,42 @@ function Analytics() {
         <RevenueChart data={revenue} loading={revenueLoading} />
       </div>
 
+      {/* User Growth Trend */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: '#0d9488' }} />
+            <h3 className="font-bold text-gray-900">User Growth</h3>
+          </div>
+          <select
+            value={usersChartMonths}
+            onChange={e => setUsersChartMonths(Number(e.target.value))}
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value={3}>Last 3 months</option>
+            <option value={6}>Last 6 months</option>
+            <option value={12}>Last 12 months</option>
+          </select>
+        </div>
+
+        {/* Summary strip */}
+        {!usersChartLoading && usersChart.length > 0 && (
+          <div className="flex flex-wrap gap-4 mt-2 mb-1">
+            <span className="text-xs text-gray-500">
+              <span className="font-bold text-gray-800">{totalNewInPeriod}</span> new registrations in period
+            </span>
+            {peakMonth && (
+              <span className="text-xs text-gray-500">
+                Peak: <span className="font-bold text-gray-800">{peakMonth.newUsers}</span> in {MONTH_NAMES[peakMonth._id.month - 1]} {peakMonth._id.year}
+              </span>
+            )}
+          </div>
+        )}
+
+        <UsersChart data={usersChart} loading={usersChartLoading} />
+      </div>
+
+      {/* Orders by Status + Revenue Comparison */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-4">Orders by Status</h3>
@@ -183,6 +286,7 @@ function Analytics() {
         </div>
       </div>
 
+      {/* Recent Orders table */}
       {summary?.recentOrders?.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-4">Recent Orders</h3>
