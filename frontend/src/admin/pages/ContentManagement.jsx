@@ -12,6 +12,25 @@ const DEFAULTS = {
       { value: "99.9%", label: "Safe Deliveries" },
       { value: "24/7", label: "Customer Support" }
     ],
+    intro1: "CureBasket.com is a leading digital platform committed to serving the healthcare needs of people from across the globe. We feel proud when we look back years ago from now to the day when we invented the idea of having an online pharmacy store from where customers can buy medicine online. Since then, we are providing online pharmacy services in the USA and other countries as well. It is close to 2 decades now, and we are happily serving humankind.",
+    intro2: "Being an Indian pharmacy, we believe that all individuals deserve a healthy life at affordable prices. CureBasket had set new standards in the market to buy medicine online years ago when people were hardly aware of online shopping terms. We are a one-stop destination for sourcing pharmaceutical, healthcare, and herbal products from the comfort of your home with complete privacy and payment security options.",
+    howItWorksTitle: "How does CureBasket works?",
+    howItWorksDesc: "CureBasket is one of those online chemists whose endeavor is to simplify your search for generic medicines. On our website, you can either search by Brand-Name or by Generic Name to source the medicine you intend to buy.",
+    ageNotice: "We expect our site visitors to be at least 21 years of age and we encourage our customers to keep themselves informed about their respective country's laws related to online pharmacies and import of generic drugs for personal use.",
+    benefitsTitle: "The Additional Benefits CureBasket Offers",
+    benefitsIntro: "The online medicine purchase from CureBasket ensures you to get the maximum benefits as best as possible.",
+    benefits: [
+      "Unparallel technology to source medicines and healthcare products",
+      "Wide range of brand and generic options",
+      "Product description to understand the benefits and consequences of medicine",
+      "User-friendly content on health, lifestyle, and fitness",
+      "Free shipping options with doorstep delivery",
+      "Great deals, discounts, and coupons on medicines to save money",
+      "Outstanding client support",
+      "Fair and transparent service policies to maintain a long-term relationship",
+      "Easy return, refund, and cancellation",
+      "Secure and fastest payment gateways"
+    ],
     values: [
       { title: "Quality Guaranteed", description: "We source medications exclusively from WHO-GMP certified suppliers and reputable manufacturers, ensuring absolute safety." },
       { title: "Absolute Privacy", description: "Your health records, order history, and personal details are encrypted and kept strictly confidential. Privacy is our top priority." },
@@ -383,8 +402,157 @@ function ContentManagement() {
                     ))}
                   </div>
                 </div>
+
+                {/* Intro Paragraphs */}
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <h4 className="text-sm font-bold text-[#006D6D]">Introduction Paragraphs</h4>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Paragraph 1 (Always Visible)</label>
+                    <textarea
+                      value={data.aboutUs?.intro1 || ''}
+                      onChange={e => updateField('aboutUs', 'intro1', e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      rows="4"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Paragraph 2 (Always Visible)</label>
+                    <textarea
+                      value={data.aboutUs?.intro2 || ''}
+                      onChange={e => updateField('aboutUs', 'intro2', e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      rows="4"
+                    />
+                  </div>
+                </div>
+
+                {/* How It Works */}
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <h4 className="text-sm font-bold text-[#006D6D]">How Does CureBasket Work? <span className="text-gray-400 font-normal text-xs ml-1">(shown on Read More expand)</span></h4>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Section Heading</label>
+                    <input
+                      type="text"
+                      value={data.aboutUs?.howItWorksTitle || ''}
+                      onChange={e => updateField('aboutUs', 'howItWorksTitle', e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Description</label>
+                    <textarea
+                      value={data.aboutUs?.howItWorksDesc || ''}
+                      onChange={e => updateField('aboutUs', 'howItWorksDesc', e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      rows="3"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Age / Legal Notice</label>
+                    <textarea
+                      value={data.aboutUs?.ageNotice || ''}
+                      onChange={e => updateField('aboutUs', 'ageNotice', e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      rows="2"
+                    />
+                  </div>
+                </div>
+
+                {/* Benefits List */}
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-bold text-[#006D6D]">Additional Benefits <span className="text-gray-400 font-normal text-xs ml-1">(shown on Read More expand)</span></h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const list = [...(data.aboutUs?.benefits || [])]
+                        list.push('New benefit point')
+                        setData(prev => ({ ...prev, aboutUs: { ...prev.aboutUs, benefits: list } }))
+                      }}
+                      className="px-3 py-1.5 bg-[#006D6D] text-white text-xs font-bold rounded-lg hover:bg-[#004D4D] transition-colors"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Section Heading</label>
+                    <input
+                      type="text"
+                      value={data.aboutUs?.benefitsTitle || ''}
+                      onChange={e => updateField('aboutUs', 'benefitsTitle', e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Intro Line</label>
+                    <textarea
+                      value={data.aboutUs?.benefitsIntro || ''}
+                      onChange={e => updateField('aboutUs', 'benefitsIntro', e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                      rows="2"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    {(data.aboutUs?.benefits || []).map((benefit, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-400 w-6 shrink-0">{String(i + 1).padStart(2, '0')}</span>
+                        <input
+                          type="text"
+                          value={benefit}
+                          onChange={e => {
+                            const list = [...(data.aboutUs?.benefits || [])]
+                            list[i] = e.target.value
+                            setData(prev => ({ ...prev, aboutUs: { ...prev.aboutUs, benefits: list } }))
+                          }}
+                          className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const list = (data.aboutUs?.benefits || []).filter((_, idx) => idx !== i)
+                            setData(prev => ({ ...prev, aboutUs: { ...prev.aboutUs, benefits: list } }))
+                          }}
+                          className="text-xs font-bold text-red-500 hover:text-red-700 shrink-0"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Core Values */}
+                <div className="space-y-4 pt-4">
+                  <h4 className="text-sm font-bold text-[#006D6D]">Our Core Values (3 Cards)</h4>
+                  <div className="space-y-4">
+                    {(data.aboutUs?.values || []).map((val, i) => (
+                      <div key={i} className="border border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-3">
+                        <span className="text-xs font-bold text-gray-400 uppercase">Value Card {i + 1}</span>
+                        <div>
+                          <label className="text-xs font-bold text-gray-700 block mb-1">Title</label>
+                          <input
+                            type="text"
+                            value={val.title}
+                            onChange={e => updateArrayField('aboutUs', 'values', i, 'title', e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-gray-700 block mb-1">Description</label>
+                          <textarea
+                            value={val.description}
+                            onChange={e => updateArrayField('aboutUs', 'values', i, 'description', e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6D]"
+                            rows="3"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
+
 
             {/* SUB-SECTION 2: SITEMAP */}
             {activeTab === 'sitemap' && (

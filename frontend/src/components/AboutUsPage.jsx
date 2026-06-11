@@ -12,6 +12,14 @@ const DEFAULTS = {
     { value: "99.9%", label: "Safe Deliveries" },
     { value: "24/7", label: "Customer Support" }
   ],
+  intro1: "",
+  intro2: "",
+  howItWorksTitle: "",
+  howItWorksDesc: "",
+  ageNotice: "",
+  benefitsTitle: "",
+  benefitsIntro: "",
+  benefits: [],
   values: [
     { title: "Quality Guaranteed", description: "We source medications exclusively from WHO-GMP certified suppliers and reputable manufacturers, ensuring absolute safety." },
     { title: "Absolute Privacy", description: "Your health records, order history, and personal details are encrypted and kept strictly confidential. Privacy is our top priority." },
@@ -82,9 +90,18 @@ function AboutUsPage() {
         </div>
       </div>
 
-      {/* Core Details (Re-using the customized home-page About Us layout, but rendered fully) */}
+      {/* Core Details */}
       <div className="pb-16 pt-4">
-        <AboutUs />
+        <AboutUs
+          intro1={content.intro1}
+          intro2={content.intro2}
+          howItWorksTitle={content.howItWorksTitle}
+          howItWorksDesc={content.howItWorksDesc}
+          ageNotice={content.ageNotice}
+          benefitsTitle={content.benefitsTitle}
+          benefitsIntro={content.benefitsIntro}
+          benefits={content.benefits}
+        />
       </div>
 
       {/* Additional Values section */}

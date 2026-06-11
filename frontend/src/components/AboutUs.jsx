@@ -1,20 +1,71 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import api from '../utils/api'
 
-function AboutUs() {
+const DEFAULT_INTRO1 = "CureBasket.com is a leading digital platform committed to serving the healthcare needs of people from across the globe. We feel proud when we look back years ago from now to the day when we invented the idea of having an online pharmacy store from where customers can buy medicine online. Since then, we are providing online pharmacy services in the USA and other countries as well. It is close to 2 decades now, and we are happily serving humankind."
+
+const DEFAULT_INTRO2 = "Being an Indian pharmacy, we believe that all individuals deserve a healthy life at affordable prices. CureBasket had set new standards in the market to buy medicine online years ago when people were hardly aware of online shopping terms. We are a one-stop destination for sourcing pharmaceutical, healthcare, and herbal products from the comfort of your home with complete privacy and payment security options."
+
+const DEFAULT_HOW_TITLE = "How does CureBasket works?"
+
+const DEFAULT_HOW_DESC = "CureBasket is one of those online chemists whose endeavor is to simplify your search for generic medicines. On our website, you can either search by Brand-Name or by Generic Name to source the medicine you intend to buy."
+
+const DEFAULT_AGE_NOTICE = "We expect our site visitors to be at least 21 years of age and we encourage our customers to keep themselves informed about their respective country's laws related to online pharmacies and import of generic drugs for personal use."
+
+const DEFAULT_BENEFITS_TITLE = "The Additional Benefits CureBasket Offers"
+
+const DEFAULT_BENEFITS_INTRO = "The online medicine purchase from CureBasket ensures you to get the maximum benefits as best as possible."
+
+const DEFAULT_BENEFITS = [
+  "Unparallel technology to source medicines and healthcare products",
+  "Wide range of brand and generic options",
+  "Product description to understand the benefits and consequences of medicine",
+  "User-friendly content on health, lifestyle, and fitness",
+  "Free shipping options with doorstep delivery",
+  "Great deals, discounts, and coupons on medicines to save money",
+  "Outstanding client support",
+  "Fair and transparent service policies to maintain a long-term relationship",
+  "Easy return, refund, and cancellation",
+  "Secure and fastest payment gateways"
+]
+
+function AboutUs({
+  intro1,
+  intro2,
+  howItWorksTitle,
+  howItWorksDesc,
+  ageNotice,
+  benefitsTitle,
+  benefitsIntro,
+  benefits
+}) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [cms, setCms] = useState({})
 
-  const benefits = [
-    "Unparallel technology to source medicines and healthcare products",
-    "Wide range of brand and generic options",
-    "Product description to understand the benefits and consequences of medicine",
-    "User-friendly content on health, lifestyle, and fitness",
-    "Free shipping options with doorstep delivery",
-    "Great deals, discounts, and coupons on medicines to save money",
-    "Outstanding client support",
-    "Fair and transparent service policies to maintain a long-term relationship",
-    "Easy return, refund, and cancellation",
-    "Secure and fastest payment gateways"
-  ]
+  useEffect(() => {
+    // Only fetch if no props are provided (e.g. homepage usage)
+    if (!intro1 && !intro2) {
+      api.get('/settings/public/cms')
+        .then(res => {
+          if (res.data?.data?.aboutUs) {
+            setCms(res.data.data.aboutUs)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [])
+
+  const resolvedIntro1        = intro1          || cms.intro1          || DEFAULT_INTRO1
+  const resolvedIntro2        = intro2          || cms.intro2          || DEFAULT_INTRO2
+  const resolvedHowTitle      = howItWorksTitle  || cms.howItWorksTitle || DEFAULT_HOW_TITLE
+  const resolvedHowDesc       = howItWorksDesc   || cms.howItWorksDesc  || DEFAULT_HOW_DESC
+  const resolvedAgeNotice     = ageNotice        || cms.ageNotice       || DEFAULT_AGE_NOTICE
+  const resolvedBenefitsTitle = benefitsTitle    || cms.benefitsTitle   || DEFAULT_BENEFITS_TITLE
+  const resolvedBenefitsIntro = benefitsIntro    || cms.benefitsIntro   || DEFAULT_BENEFITS_INTRO
+  const resolvedBenefits      = (benefits && benefits.length > 0)
+    ? benefits
+    : (cms.benefits && cms.benefits.length > 0)
+      ? cms.benefits
+      : DEFAULT_BENEFITS
 
   return (
     <section className="bg-[#fef6f6] pb-12 md:pb-20 pt-0 px-4 md:px-12 overflow-hidden">
@@ -25,30 +76,35 @@ function AboutUs() {
 
         <div className="space-y-2.5 md:space-y-4">
           <p className="text-[13px] md:text-[15px] leading-snug md:leading-relaxed font-medium text-gray-700 text-left md:text-justify">
-            <span className="font-bold text-[#004D4D]">CureBasket.com</span> is a leading digital platform committed to serving the healthcare needs of people from across the globe. We feel proud when we look back years ago from now to the day when we invented the idea of having an online pharmacy store from where customers can buy medicine online. Since then, we are providing online pharmacy services in the USA and other countries as well. It is close to 2 decades now, and we are happily serving humankind.
+            <span className="font-bold text-[#004D4D]">CureBasket.com</span>{' '}
+            {resolvedIntro1.replace(/^CureBasket\.com\s*/i, '')}
           </p>
           <p className="text-[13px] md:text-[15px] leading-snug md:leading-relaxed font-medium text-gray-700 text-left md:text-justify">
-            Being an Indian pharmacy, we believe that all individuals deserve a healthy life at affordable prices. CureBasket had set new standards in the market to <span className="font-bold text-[#004D4D]">buy medicine online</span> years ago when people were hardly aware of online shopping terms. We are a one-stop destination for sourcing pharmaceutical, healthcare, and herbal products from the comfort of your home with complete privacy and payment security options.
+            {resolvedIntro2}
           </p>
 
           {isExpanded && (
             <div className="pt-4 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500 border-t border-gray-200 mt-4">
               <div className="space-y-1.5 md:space-y-2">
-                <h3 className="text-[16px] md:text-[18px] font-bold text-[#004D4D] uppercase tracking-wide">How does CureBasket works?</h3>
+                <h3 className="text-[16px] md:text-[18px] font-bold text-[#004D4D] uppercase tracking-wide">
+                  {resolvedHowTitle}
+                </h3>
                 <p className="text-[13px] md:text-[15px] leading-snug md:leading-relaxed font-medium text-gray-700 text-left md:text-justify">
-                  CureBasket is one of those online chemists whose endeavor is to simplify your search for generic medicines. On our website, you can either search by Brand-Name or by Generic Name to source the medicine you intend to buy.
+                  {resolvedHowDesc}
                 </p>
                 <p className="text-[13px] md:text-[15px] leading-snug md:leading-relaxed font-medium text-gray-700 text-left md:text-justify">
-                  We expect our site visitors to be at least 21 years of age and we encourage our customers to keep themselves informed about their respective country's laws related to online pharmacies and import of generic drugs for personal use.
+                  {resolvedAgeNotice}
                 </p>
               </div>
               <div className="space-y-1.5 md:space-y-2">
-                <h3 className="text-[16px] md:text-[18px] font-bold text-[#004D4D] uppercase tracking-wide">The Additional Benefits CureBasket Offers</h3>
+                <h3 className="text-[16px] md:text-[18px] font-bold text-[#004D4D] uppercase tracking-wide">
+                  {resolvedBenefitsTitle}
+                </h3>
                 <p className="text-[13px] md:text-[15px] leading-snug md:leading-relaxed font-medium text-gray-700 text-left md:text-justify">
-                  The online medicine purchase from CureBasket ensures you to get the maximum benefits as best as possible.
+                  {resolvedBenefitsIntro}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-1 md:gap-y-2 gap-x-8 pt-1">
-                  {benefits.map((benefit, i) => (
+                  {resolvedBenefits.map((benefit, i) => (
                     <div key={i} className="flex items-start gap-2 md:gap-3 group">
                       <span className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 rounded-full bg-[#004D4D]/10 flex items-center justify-center text-[9px] md:text-[11px] font-bold text-[#004D4D]">
                         {String(i + 1).padStart(2, '0')}
