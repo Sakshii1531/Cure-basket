@@ -75,6 +75,63 @@ const AccountPage = () => {
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileError, setProfileError] = useState('')
 
+  // ── Change Password Modal ──────────────────────────────────────────────────
+  const [showPwModal, setShowPwModal] = useState(false)
+  const [pwTab, setPwTab] = useState('current') // 'current' | 'email'
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [pwLoading, setPwLoading] = useState(false)
+  const [pwError, setPwError] = useState('')
+  const [pwSuccess, setPwSuccess] = useState('')
+
+  const openPwModal = () => {
+    setPwTab('current')
+    setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    setPwError('')
+    setPwSuccess('')
+    setShowPwModal(true)
+  }
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault()
+    setPwError('')
+    setPwSuccess('')
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwError('New passwords do not match.')
+      return
+    }
+    if (pwForm.newPassword.length < 8) {
+      setPwError('New password must be at least 8 characters.')
+      return
+    }
+    setPwLoading(true)
+    try {
+      await api.put('/auth/me/password', {
+        currentPassword: pwForm.currentPassword,
+        newPassword: pwForm.newPassword,
+      })
+      setPwSuccess('Password updated successfully!')
+      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    } catch (err) {
+      setPwError(err.response?.data?.error || 'Failed to update password. Please try again.')
+    } finally {
+      setPwLoading(false)
+    }
+  }
+
+  const handleSendResetEmail = async () => {
+    setPwError('')
+    setPwSuccess('')
+    setPwLoading(true)
+    try {
+      await api.post('/auth/forgot-password', { email: user?.email })
+      setPwSuccess(`Reset link sent to ${user?.email}. Check your inbox!`)
+    } catch (err) {
+      setPwError(err.response?.data?.error || 'Failed to send reset email. Please try again.')
+    } finally {
+      setPwLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (user) {
       setProfileForm(prev => ({
@@ -467,16 +524,18 @@ const AccountPage = () => {
                 </div>
               </div>
 
-              {/* Change Password Checkbox */}
-              <div className="pt-1 flex items-center gap-2 select-none">
-                <input 
-                  type="checkbox" 
-                  id="changePassword" 
-                  checked={profileForm.changePassword}
-                  onChange={(e) => setProfileForm({...profileForm, changePassword: e.target.checked})}
-                  className="w-4.5 h-4.5 text-[#006D6D] border-gray-300 rounded focus:ring-[#006D6D] cursor-pointer font-sans"
-                />
-                <label htmlFor="changePassword" className="text-[13.5px] font-semibold text-gray-700 cursor-pointer font-sans">Change Password</label>
+              {/* Change Password Button */}
+              <div className="pt-1 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={openPwModal}
+                  className="flex items-center gap-2 bg-[#e6f2f2] hover:bg-[#cde8e8] border border-[#b3d9d9] text-[#006D6D] font-semibold px-4 py-2 rounded text-[13px] transition-all duration-200 select-none"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                  </svg>
+                  Change Password
+                </button>
               </div>
 
               {/* MORE INFORMATION Header Banner */}
@@ -811,6 +870,152 @@ const AccountPage = () => {
           onClose={() => setSelectedOrder(null)}
         />
       )}
+      {/* ══════════════ CHANGE PASSWORD MODAL ══════════════ */}
+      {showPwModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            onClick={() => setShowPwModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px] transition-opacity"
+          />
+
+          {/* Modal Card */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-gray-100 font-sans">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#006D6D] to-[#005a5a] px-6 py-4 flex items-center justify-between text-white">
+              <div className="flex items-center gap-2.5">
+                <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+                <h3 className="text-[16px] font-bold tracking-tight">Change Password</h3>
+              </div>
+              <button
+                onClick={() => setShowPwModal(false)}
+                className="text-white/70 hover:text-white text-[20px] leading-none transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Tab Switcher */}
+            <div className="flex border-b border-gray-100 bg-gray-50/50">
+              <button
+                onClick={() => { setPwTab('current'); setPwError(''); setPwSuccess('') }}
+                className={`flex-1 py-3 text-[13px] font-semibold transition-all ${pwTab === 'current' ? 'text-[#006D6D] border-b-2 border-[#006D6D] bg-white' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                🔑 Use Current Password
+              </button>
+              <button
+                onClick={() => { setPwTab('email'); setPwError(''); setPwSuccess('') }}
+                className={`flex-1 py-3 text-[13px] font-semibold transition-all ${pwTab === 'email' ? 'text-[#006D6D] border-b-2 border-[#006D6D] bg-white' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                ✉️ Reset via Email
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Feedback messages */}
+              {pwError && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-[13px] px-4 py-2.5 rounded-lg font-medium flex items-center gap-2">
+                  <span>⚠️</span> {pwError}
+                </div>
+              )}
+              {pwSuccess && (
+                <div className="mb-4 bg-green-50 border border-green-200 text-green-700 text-[13px] px-4 py-2.5 rounded-lg font-medium flex items-center gap-2">
+                  <span>✓</span> {pwSuccess}
+                </div>
+              )}
+
+              {/* TAB: Current Password */}
+              {pwTab === 'current' && (
+                <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+                  <p className="text-[12.5px] text-gray-500 mb-2">Enter your current password to set a new one.</p>
+                  <div>
+                    <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">Current Password <span className="text-red-500">*</span></label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Your current password"
+                      value={pwForm.currentPassword}
+                      onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
+                      className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">New Password <span className="text-red-500">*</span></label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Min. 8 characters"
+                      value={pwForm.newPassword}
+                      onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                      className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">Confirm New Password <span className="text-red-500">*</span></label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Repeat new password"
+                      value={pwForm.confirmPassword}
+                      onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                      className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
+                    />
+                  </div>
+                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowPwModal(false)}
+                      className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all text-[13px]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={pwLoading}
+                      className="px-5 py-2 bg-[#006D6D] text-white rounded-lg font-semibold hover:bg-[#005a5a] active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5 text-[13px]"
+                    >
+                      {pwLoading ? 'Updating...' : 'Update Password'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* TAB: Email Reset */}
+              {pwTab === 'email' && (
+                <div className="space-y-4">
+                  <div className="bg-[#f0fafa] border border-[#b3d9d9] rounded-xl p-4 text-[13px] text-[#006D6D]">
+                    <p className="font-semibold mb-1">Reset via Email</p>
+                    <p className="text-gray-600 text-[12.5px] leading-relaxed">
+                      We'll send a password reset link to your registered email address:
+                    </p>
+                    <p className="font-bold text-[#006D6D] mt-1.5 text-[13.5px]">{user?.email}</p>
+                  </div>
+                  <p className="text-[12px] text-gray-400">The link will be valid for 10 minutes.</p>
+                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowPwModal(false)}
+                      className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all text-[13px]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSendResetEmail}
+                      disabled={pwLoading || !!pwSuccess}
+                      className="px-5 py-2 bg-[#006D6D] text-white rounded-lg font-semibold hover:bg-[#005a5a] active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5 text-[13px]"
+                    >
+                      {pwLoading ? 'Sending...' : pwSuccess ? 'Link Sent ✓' : 'Send Reset Link'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
