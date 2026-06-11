@@ -114,3 +114,30 @@ exports.getRevenueChart = async (req, res) => {
     res.status(500).json({ success: false, error: sanitizeError(err) });
   }
 };
+
+// @desc    Monthly new-user signups chart
+// @route   GET /api/analytics/users?months=6
+// @access  Admin / Superadmin
+exports.getUsersChart = async (req, res) => {
+  try {
+    const months = parseInt(req.query.months) || 6;
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+
+    const data = await User.aggregate([
+      { $match: { role: 'user', createdAt: { $gte: startDate } } },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          newUsers: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]);
+
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
