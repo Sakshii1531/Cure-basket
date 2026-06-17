@@ -37,7 +37,7 @@ function SitemapPage() {
         { name: "Home Page", path: "/" },
         { name: "All Medicines", path: "/medicines" },
         { name: "All Products Catalog", path: "/all-products" },
-        { name: "Best Sellers", path: "/best-sellers" },
+        { name: "Customer Favourite", path: "/best-sellers" },
         { name: "All Brands", path: "/all-brands" },
         { name: "Shop by Category", path: "/categories" }
       ]

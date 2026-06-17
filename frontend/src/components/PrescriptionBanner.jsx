@@ -11,7 +11,7 @@ function PrescriptionBanner() {
 
   return (
     <section className="bg-white py-2 md:py-3 px-2 md:px-12">
-      <div className="max-w-[1250px] mx-auto bg-[#f0fafa] rounded-[24px] p-3.5 md:p-5 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
+      <div className="max-w-[1250px] mx-auto bg-[#f0fafa] rounded-[24px] p-3.5 md:p-5 flex flex-col md:flex-row items-center justify-between relative overflow-hidden group">
         {/* Left Side: Icon and Text */}
         <div className="flex items-center gap-4 md:gap-6 z-10 w-full md:w-auto">
           <div className="w-12 h-12 md:w-20 md:h-20 bg-white rounded-[16px] flex items-center justify-center shrink-0">
@@ -56,7 +56,7 @@ function PrescriptionBanner() {
           <img 
             src={uploadImg} 
             alt="Prescription Banner Decoration" 
-            className="absolute right-0 bottom-[-15px] h-full object-contain z-10" 
+            className="absolute right-0 bottom-[-15px] h-full object-contain z-10 transition-transform duration-700 ease-in-out group-hover:scale-105" 
           />
         </div>
       </div>

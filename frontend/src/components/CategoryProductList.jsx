@@ -135,7 +135,7 @@ const CategoryProductList = () => {
       {!loading && products.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 px-4 pb-6">
           {products.map((product) => {
-            const badge = product.isBestSeller ? 'Best Seller' : discountBadge(product.price, product.mrp)
+            const badge = product.isBestSeller ? 'Customer Favourite' : discountBadge(product.price, product.mrp)
             const isAccentBadge = product.isBestSeller
             const outOfStock = isOutOfStock(product)
             return (

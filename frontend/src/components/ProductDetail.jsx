@@ -664,7 +664,7 @@ function ProductDetail({ onBack }) {
             {/* Gallery Section */}
             <div className="bg-white rounded-[24px] md:rounded-[32px] border border-gray-100 pt-6 px-6 pb-8 md:pt-8 md:px-8 md:pb-12 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative">
               <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
-                <span className="bg-[#006D6D] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 md:px-3 py-1 rounded-full shadow-lg">BEST SELLER</span>
+                <span className="bg-[#006D6D] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 md:px-3 py-1 rounded-full shadow-lg">Customer Favourite</span>
               </div>
               <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20">
                 <button 

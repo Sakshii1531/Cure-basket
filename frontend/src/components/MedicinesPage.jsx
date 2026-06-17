@@ -12,7 +12,7 @@ const SORT_OPTIONS = [
 ]
 
 const badges = [
-  { badge: 'Best Seller', badgeBg: 'bg-[#FFD200]', badgeText: 'text-gray-900' },
+  { badge: 'Customer Favourite', badgeBg: 'bg-[#FFD200]', badgeText: 'text-gray-900' },
   { badge: 'Popular', badgeBg: 'bg-[#006D6D]', badgeText: 'text-white' },
   { badge: 'Top Rated', badgeBg: 'bg-[#FFD200]', badgeText: 'text-gray-900' },
   { badge: 'New', badgeBg: 'bg-[#006D6D]', badgeText: 'text-white' },
