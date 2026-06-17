@@ -149,7 +149,7 @@ function HomePage({ onProductClick }) {
   return (
     <>
       <SearchBar />
-      <NewAndNow title="New and best" onProductClick={onProductClick} />
+      <NewAndNow title="Now Available" onProductClick={onProductClick} />
       <FeatureIcons />
       <PrescriptionBanner />
       <MainBannerCarousel />

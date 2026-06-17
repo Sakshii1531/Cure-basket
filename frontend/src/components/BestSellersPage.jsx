@@ -56,11 +56,11 @@ function BestSellersPage({ onBack }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
           <span className="hidden md:inline">Back to Home</span>
-          <span className="md:hidden font-bold text-gray-900">Best Sellers</span>
+          <span className="md:hidden font-bold text-gray-900">Customer Favourite</span>
         </button>
 
         <div className="mb-8 md:mb-12">
-          <h1 className="hidden md:block text-[36px] md:text-[48px] font-bold text-gray-900 tracking-tight mb-4">Best Sellers</h1>
+          <h1 className="hidden md:block text-[36px] md:text-[48px] font-bold text-gray-900 tracking-tight mb-4">Customer Favourite</h1>
           <p className="text-gray-500 text-[14px] md:text-[18px] max-w-2xl leading-relaxed">
             Discover our most trusted and high-demand medications. Handpicked for quality, effectiveness, and value.
           </p>
@@ -77,7 +77,7 @@ function BestSellersPage({ onBack }) {
             Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
           ) : products.length === 0 ? (
             <div className="col-span-full py-16 text-center text-gray-400">
-              No best sellers configured yet. Check back soon!
+              No customer favourites configured yet. Check back soon!
             </div>
           ) : (
             products.map((product) => {
@@ -101,7 +101,7 @@ function BestSellersPage({ onBack }) {
                     </div>
                   ) : (
                     <div className="absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 bg-accent text-gray-900">
-                      Best Seller
+                      Customer Favourite
                     </div>
                   )}
 

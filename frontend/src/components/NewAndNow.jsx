@@ -57,9 +57,9 @@ function NewAndNow({ title = "New and now", onProductClick }) {
         {/* Header */}
         <div className="flex justify-between items-end mb-2 mx-auto px-2">
           <h2 className="text-[22px] md:text-[34px] font-semibold text-gray-900 tracking-tight">
-            {title === "New and best" ? (
+            {title === "New and best" || title === "NOW AVAILABLE" || title === " NOW AVAILABLE" || title === "Now Available" || title === "NowAvailable" ? (
               <>
-                <span className="text-[#006D6D]">New</span> and <span className="text-[#f39c12]">best</span>
+                <span className="text-[#006D6D]">Now</span> <span className="text-[#f39c12]">Available</span>
               </>
             ) : title}
           </h2>

@@ -63,8 +63,8 @@ function BestSellers({ onProductClick }) {
     <section className="bg-white pt-1 pb-1 md:pt-8 md:pb-12 px-4 md:px-12">
       <div className="max-w-312.5 mx-auto">
         <div className="flex justify-between items-center mb-3 md:mb-8 px-1">
-          <h2 className="text-[18px] md:text-[34px] font-bold text-gray-900 tracking-tight">
-            Best Sellers
+          <h2 className="text-[18px] md:text-[34px] font-semibold text-gray-900 tracking-tight">
+            Customer Favourite
           </h2>
           <button
             onClick={() => navigate('/best-sellers')}
@@ -101,7 +101,7 @@ function BestSellers({ onProductClick }) {
                     </div>
                   ) : (
                     <div className={`absolute top-2 right-2 md:top-1 md:right-4 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider shadow-sm z-10 ${badge ? 'bg-primary text-white' : 'bg-accent text-gray-900'}`}>
-                      {badge || 'Best Seller'}
+                      {badge || 'Customer Favourite'}
                     </div>
                   )}
 
