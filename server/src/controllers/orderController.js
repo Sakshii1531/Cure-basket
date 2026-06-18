@@ -29,7 +29,7 @@ exports.createOrder = async (req, res) => {
   }
 
   try {
-    const { items, shippingAddress, paymentStatus, prescriptionId } = req.body;
+    const { items, shippingAddress, paymentStatus, prescriptionId, medicalDetails } = req.body;
 
     if (!items || items.length === 0) {
       if (useTransaction) await session.abortTransaction();
@@ -145,6 +145,26 @@ exports.createOrder = async (req, res) => {
 
     if (useTransaction) {
       await session.commitTransaction();
+    }
+
+    // Update user's profile with medical details if supplied
+    if (medicalDetails) {
+      try {
+        const { physicianName, physicianPhone, drugAllergies, currentMedications, currentTreatments, smoke, drink, dob, gender } = medicalDetails;
+        await User.findByIdAndUpdate(req.user.id, {
+          dob,
+          gender,
+          physicianName,
+          physicianPhone,
+          drugAllergies,
+          currentMedications,
+          currentTreatments,
+          smoke,
+          drink
+        });
+      } catch (profileErr) {
+        console.error('Failed to update user profile with medical details:', profileErr);
+      }
     }
 
     await clearCache('/api/orders');

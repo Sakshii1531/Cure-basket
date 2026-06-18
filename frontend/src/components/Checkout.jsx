@@ -423,6 +423,28 @@ const Checkout = () => {
         const dbAddrs = res.data.user?.addresses || []
         setAddresses(dbAddrs)
         if (dbAddrs.length > 0) setSelectedAddress(addrId(dbAddrs[0]))
+
+        const user = res.data.user
+        if (user) {
+          if (user.physicianName) setPhysicianName(user.physicianName)
+          if (user.physicianPhone) setPhysicianPhone(user.physicianPhone)
+          if (user.drugAllergies) {
+            setDrugAllergies(user.drugAllergies === 'None' ? '' : user.drugAllergies)
+            setDrugAllergiesNone(user.drugAllergies === 'None')
+          }
+          if (user.currentMedications) {
+            setCurrentMedications(user.currentMedications === 'None' ? '' : user.currentMedications)
+            setCurrentMedicationsNone(user.currentMedications === 'None')
+          }
+          if (user.currentTreatments) {
+            setCurrentTreatments(user.currentTreatments === 'None' ? '' : user.currentTreatments)
+            setCurrentTreatmentsNone(user.currentTreatments === 'None')
+          }
+          if (user.smoke) setSmoke(user.smoke)
+          if (user.drink) setDrink(user.drink)
+          if (user.dob) setDob(user.dob)
+          if (user.gender) setGender(user.gender)
+        }
       })
       .catch(() => {})
       .finally(() => setAddrLoading(false))

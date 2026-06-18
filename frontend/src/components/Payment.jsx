@@ -38,6 +38,7 @@ const Payment = () => {
         shippingAddress,
         paymentStatus,
         ...(prescriptionId ? { prescriptionId } : {}),
+        medicalDetails: orderData.medicalDetails,
       })
       clearCart()
       navigate('/order-success', { state: { order: res.data.data, shippingMethod } })
@@ -58,6 +59,7 @@ const Payment = () => {
         totalAmount,
         shippingAddress,
         paymentStatus: 'Failed',
+        medicalDetails: orderData.medicalDetails,
       })
     } catch {
       // ignore — we still show the failure UI

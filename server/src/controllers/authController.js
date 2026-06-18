@@ -357,7 +357,7 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phone, dob, gender } = req.body;
+    const { name, phone, dob, gender, physicianName, physicianPhone, drugAllergies, currentMedications, currentTreatments, smoke, drink } = req.body;
 
     if (name !== undefined && !String(name).trim()) {
       return res.status(400).json({ success: false, error: 'Name cannot be empty' });
@@ -369,6 +369,13 @@ exports.updateProfile = async (req, res) => {
     if (phone !== undefined) updates.phone = phone;
     if (dob !== undefined) updates.dob = dob;
     if (gender !== undefined) updates.gender = gender;
+    if (physicianName !== undefined) updates.physicianName = physicianName;
+    if (physicianPhone !== undefined) updates.physicianPhone = physicianPhone;
+    if (drugAllergies !== undefined) updates.drugAllergies = drugAllergies;
+    if (currentMedications !== undefined) updates.currentMedications = currentMedications;
+    if (currentTreatments !== undefined) updates.currentTreatments = currentTreatments;
+    if (smoke !== undefined) updates.smoke = smoke;
+    if (drink !== undefined) updates.drink = drink;
 
     const user = await User.findByIdAndUpdate(req.user.id, updates, {
       new: true,
