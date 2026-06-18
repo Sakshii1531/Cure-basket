@@ -56,7 +56,7 @@ function PrescriptionBanner() {
           <img 
             src={uploadImg} 
             alt="Prescription Banner Decoration" 
-            className="absolute right-0 bottom-[-15px] h-full object-contain z-10 transition-transform duration-700 ease-in-out group-hover:scale-105" 
+            className="absolute right-0 bottom-[-15px] h-full object-contain z-10 transition-transform duration-700 ease-in-out" 
           />
         </div>
       </div>
