@@ -108,51 +108,87 @@ function UserDetails() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Core Profile Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6 shadow-sm">
-          <div className="text-center pb-4 border-b border-gray-100">
-            <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-2xl uppercase mx-auto mb-3 border border-primary/20">
-              {user.name ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
-            </div>
-            <h3 className="text-lg font-bold text-gray-900">{user.name}</h3>
-            <p className="text-sm text-gray-500">{user.email}</p>
-            <div className="mt-3 flex justify-center gap-2">
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                user.role === 'superadmin' ? 'bg-purple-50 text-purple-600' :
-                user.role === 'admin' ? 'bg-blue-50 text-blue-600' :
-                'bg-gray-50 text-gray-600'
-              }`}>
-                {user.role}
-              </span>
-              {user.customRole?.name && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600">
-                  {user.customRole.name}
+        {/* Left Column: Core Profile + Medical Profile */}
+        <div className="space-y-6">
+          {/* Core Profile Card */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6 shadow-sm">
+            <div className="text-center pb-4 border-b border-gray-100">
+              <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-2xl uppercase mx-auto mb-3 border border-primary/20">
+                {user.name ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">{user.name}</h3>
+              <p className="text-sm text-gray-500">{user.email}</p>
+              <div className="mt-3 flex justify-center gap-2">
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                  user.role === 'superadmin' ? 'bg-purple-50 text-purple-600' :
+                  user.role === 'admin' ? 'bg-blue-50 text-blue-600' :
+                  'bg-gray-50 text-gray-600'
+                }`}>
+                  {user.role}
                 </span>
-              )}
+                {user.customRole?.name && (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600">
+                    {user.customRole.name}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Info</h4>
+              <div className="grid grid-cols-2 gap-y-3 text-sm">
+                <span className="text-gray-500 font-medium">Phone:</span>
+                <span className="text-gray-900 font-semibold">{user.phone || '—'}</span>
+                <span className="text-gray-500 font-medium">Legacy Address:</span>
+                <span className="text-gray-900 font-semibold">{user.address || '—'}</span>
+                <span className="text-gray-500 font-medium">Joined:</span>
+                <span className="text-gray-900 font-semibold">{new Date(user.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-gray-100">
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Security State</h4>
+              <div className="grid grid-cols-2 gap-y-3 text-sm">
+                <span className="text-gray-500 font-medium">Failed Attempts:</span>
+                <span className="text-gray-900 font-semibold">{user.loginAttempts ?? 0}</span>
+                <span className="text-gray-500 font-medium">Lockout Status:</span>
+                <span className={`font-semibold ${isLocked ? 'text-red-600' : 'text-emerald-600'}`}>
+                  {isLocked ? `Locked until ${new Date(user.lockUntil).toLocaleTimeString()}` : 'Unlocked / Active'}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Info</h4>
+          {/* Medical Profile Card */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-sm">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">Medical Conditions</h4>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
-              <span className="text-gray-500 font-medium">Phone:</span>
-              <span className="text-gray-900 font-semibold">{user.phone || '—'}</span>
-              <span className="text-gray-500 font-medium">Legacy Address:</span>
-              <span className="text-gray-900 font-semibold">{user.address || '—'}</span>
-              <span className="text-gray-500 font-medium">Joined:</span>
-              <span className="text-gray-900 font-semibold">{new Date(user.createdAt).toLocaleDateString()}</span>
-            </div>
-          </div>
+              <span className="text-gray-500 font-medium font-sans">Date of Birth:</span>
+              <span className="text-gray-900 font-semibold">{user.dob || '—'}</span>
 
-          <div className="space-y-4 pt-4 border-t border-gray-100">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Security State</h4>
-            <div className="grid grid-cols-2 gap-y-3 text-sm">
-              <span className="text-gray-500 font-medium">Failed Attempts:</span>
-              <span className="text-gray-900 font-semibold">{user.loginAttempts ?? 0}</span>
-              <span className="text-gray-500 font-medium">Lockout Status:</span>
-              <span className={`font-semibold ${isLocked ? 'text-red-600' : 'text-emerald-600'}`}>
-                {isLocked ? `Locked until ${new Date(user.lockUntil).toLocaleTimeString()}` : 'Unlocked / Active'}
-              </span>
+              <span className="text-gray-500 font-medium font-sans">Gender:</span>
+              <span className="text-gray-900 font-semibold">{user.gender || '—'}</span>
+
+              <span className="text-gray-500 font-medium font-sans">Physician:</span>
+              <span className="text-gray-900 font-semibold">{user.physicianName || '—'}</span>
+
+              <span className="text-gray-500 font-medium font-sans">Physician Phone:</span>
+              <span className="text-gray-900 font-semibold">{user.physicianPhone || '—'}</span>
+
+              <span className="text-gray-500 font-medium font-sans">Drug Allergies:</span>
+              <span className={`font-semibold ${user.drugAllergies && user.drugAllergies !== 'None' ? 'text-red-600 font-black' : 'text-gray-900'}`}>{user.drugAllergies || '—'}</span>
+
+              <span className="text-gray-500 font-medium font-sans">Medications:</span>
+              <span className="text-gray-900 font-semibold">{user.currentMedications || '—'}</span>
+
+              <span className="text-gray-500 font-medium font-sans">Treatments:</span>
+              <span className="text-gray-900 font-semibold">{user.currentTreatments || '—'}</span>
+
+              <span className="text-gray-500 font-medium font-sans">Smokes:</span>
+              <span className="text-gray-900 font-semibold">{user.smoke || '—'}</span>
+
+              <span className="text-gray-500 font-medium font-sans">Drinks:</span>
+              <span className="text-gray-900 font-semibold">{user.drink || '—'}</span>
             </div>
           </div>
         </div>

@@ -33,6 +33,34 @@ const userSchema = new mongoose.Schema({
     enum: ['Male', 'Female', 'Non-binary', ''],
     default: '',
   },
+  physicianName: {
+    type: String,
+    default: '',
+  },
+  physicianPhone: {
+    type: String,
+    default: '',
+  },
+  drugAllergies: {
+    type: String,
+    default: '',
+  },
+  currentMedications: {
+    type: String,
+    default: '',
+  },
+  currentTreatments: {
+    type: String,
+    default: '',
+  },
+  smoke: {
+    type: String,
+    default: '',
+  },
+  drink: {
+    type: String,
+    default: '',
+  },
   // 'user' = customer, 'admin' = staff with a custom Role, 'superadmin' = full access
   role: {
     type: String,
