@@ -16,22 +16,27 @@ const isSupportOnline = async () => {
   return s?.data?.online === true;
 };
 
-// An anonymous visitor proves ownership of a conversation by presenting the same
-// sessionId (a UUID held only in their browser). Logged-in users match by id.
+// Ownership rules. A conversation that has been claimed by an account is private
+// to THAT account — matched by user id only. An unclaimed (guest) conversation
+// is matched by the browser's sessionId. The sessionId is NOT accepted for a
+// claimed conversation, otherwise a different account logging in on the same
+// browser (same sessionId) would inherit the previous user's chats.
 const ownsConversation = (conv, req) => {
-  const sessionId = req.body?.sessionId || req.query?.sessionId;
-  if (sessionId && conv.customer.sessionId === sessionId) return true;
   if (req.user && conv.customer.user && conv.customer.user.equals(req.user._id)) return true;
+  const sessionId = req.body?.sessionId || req.query?.sessionId;
+  if (!conv.customer.user && sessionId && conv.customer.sessionId === sessionId) return true;
   return false;
 };
 
-// All conversations belonging to a visitor identity (logged-in user across
-// devices, or an anonymous browser's sessionId). Used to resume the active
-// thread and to assemble the full, continuous chat history.
+// All conversations belonging to a visitor identity. A logged-in user owns their
+// chats by account id ONLY (history follows the account across devices, and is
+// never shared with another account on the same browser). An anonymous visitor
+// owns only their UNCLAIMED conversations on this browser's sessionId — once a
+// conversation is claimed by an account, the sessionId no longer matches it.
 const identityFinder = (req, sessionId) =>
   req.user
-    ? { $or: [{ 'customer.user': req.user._id }, { 'customer.sessionId': sessionId }] }
-    : { 'customer.sessionId': sessionId };
+    ? { 'customer.user': req.user._id }
+    : { 'customer.sessionId': sessionId, 'customer.user': null };
 
 // A friendly opening line tailored to whether we've seen this visitor before.
 // Returned to the client (not persisted) so a brand-new conversation still
@@ -272,8 +277,8 @@ exports.getAdminConversation = async (req, res) => {
     // conversations — logged-in across devices, or the same guest sessionId),
     // not just this one thread, so prior context is always visible.
     const identity = conversation.customer.user
-      ? { $or: [{ 'customer.user': conversation.customer.user }, { 'customer.sessionId': conversation.customer.sessionId }] }
-      : { 'customer.sessionId': conversation.customer.sessionId };
+      ? { 'customer.user': conversation.customer.user }
+      : { 'customer.sessionId': conversation.customer.sessionId, 'customer.user': null };
     const convIds = (await Conversation.find(identity).select('_id')).map((c) => c._id);
     const messages = await Message.find({ conversation: { $in: convIds } }).sort('createdAt');
 

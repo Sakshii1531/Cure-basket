@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import api from '../utils/api'
 
 // Country dial codes for the phone field. `code` (ISO) is the unique option
 // value since several countries share a dial code (e.g. +1 US/CA).
@@ -42,6 +43,7 @@ const SignupPage = () => {
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [subscribeNewsletter, setSubscribeNewsletter] = useState(true)
 
   const dialCode = (COUNTRY_CODES.find((c) => c.code === country) || COUNTRY_CODES[0]).dial
 
@@ -76,6 +78,11 @@ const SignupPage = () => {
     try {
       const fullPhone = `${dialCode}${form.phone.replace(/\D/g, '')}`
       await register(form.name, form.email, form.password, fullPhone)
+      // Opt the user into the newsletter if they left the box checked.
+      // Fire-and-forget: a subscribe failure must not block account creation.
+      if (subscribeNewsletter) {
+        api.post('/subscribers', { email: form.email }).catch(() => {})
+      }
       const from = typeof location.state?.from === 'string'
         ? location.state.from
         : (location.state?.from?.pathname || '/')
@@ -208,6 +215,19 @@ const SignupPage = () => {
             />
             <label htmlFor="show-passwords" className="text-[12px] font-bold text-gray-600 cursor-pointer select-none">
               Show Password
+            </label>
+          </div>
+
+          <div className="flex items-start gap-2 mt-1">
+            <input
+              type="checkbox"
+              id="subscribe-newsletter"
+              checked={subscribeNewsletter}
+              onChange={(e) => setSubscribeNewsletter(e.target.checked)}
+              className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+            />
+            <label htmlFor="subscribe-newsletter" className="text-[12px] font-medium text-gray-600 cursor-pointer select-none leading-snug">
+              Subscribe to our newsletter for health tips, exclusive discounts &amp; new product updates.
             </label>
           </div>
 

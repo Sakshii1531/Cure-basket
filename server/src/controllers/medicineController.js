@@ -213,6 +213,7 @@ exports.validateStock = async (req, res) => {
 exports.createMedicine = async (req, res, next) => {
   try {
     const medicine = await Medicine.create(req.body);
+    await medicine.populate('category brand');
     await clearCache('/api/medicines');
     res.status(201).json({ success: true, data: medicine });
   } catch (err) {
@@ -228,7 +229,7 @@ exports.updateMedicine = async (req, res, next) => {
     const medicine = await Medicine.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    });
+    }).populate('category brand');
     if (!medicine) return res.status(404).json({ success: false, error: 'Medicine not found' });
     await clearCache('/api/medicines');
     res.status(200).json({ success: true, data: medicine });
