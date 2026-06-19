@@ -103,6 +103,14 @@ export function AuthProvider({ children }) {
 
   const clearIntent = () => setPendingIntent(null);
 
+  const can = (module, action) => {
+    if (!user) return false;
+    if (user.role === 'superadmin') return true;
+    if (user.role !== 'admin' || !user.customRole) return false;
+    const perm = user.customRole.permissions?.find((p) => p.module === module);
+    return perm ? perm.actions.includes(action) : false;
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -124,6 +132,7 @@ export function AuthProvider({ children }) {
       setRedirectTo,
       isRxPromptOpen,
       setIsRxPromptOpen,
+      can,
     }}>
       {children}
     </AuthContext.Provider>

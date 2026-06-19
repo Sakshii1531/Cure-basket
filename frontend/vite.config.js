@@ -21,6 +21,13 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        // Live-chat WebSocket — proxy the Socket.IO endpoint to the backend.
+        '/socket.io': {
+          target: apiBaseUrl,
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+        },
       },
     },
     test: {

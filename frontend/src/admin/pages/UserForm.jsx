@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 function UserForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, can } = useAuth();
   
   const isEditMode = !!id;
 
@@ -27,8 +27,8 @@ function UserForm() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    // Fetch custom roles if the current admin is superadmin
-    if (currentUser?.role === 'superadmin') {
+    // Fetch custom roles if the current admin is superadmin or has roles/users access
+    if (currentUser?.role === 'superadmin' || can('roles', 'read') || can('users', 'write')) {
       api.get('/roles')
         .then(res => {
           setRoles(res.data.data);
@@ -229,7 +229,7 @@ function UserForm() {
             </select>
           </div>
 
-          {form.role === 'admin' && currentUser?.role === 'superadmin' && (
+          {form.role === 'admin' && (currentUser?.role === 'superadmin' || can('roles', 'read') || can('users', 'write')) && (
             <div>
               <label className="text-sm font-semibold text-gray-700 block mb-1">Custom Role</label>
               <select

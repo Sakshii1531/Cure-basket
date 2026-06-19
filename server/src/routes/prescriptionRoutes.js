@@ -8,22 +8,22 @@ const {
 } = require('../controllers/prescriptionController');
 
 const router = express.Router();
-const { protect, authorize } = require('../middlewares/authMiddleware');
+const { protect, authorize, can } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/upload');
 
 router
   .route('/')
-  .get(protect, authorize('admin', 'superadmin'), getPrescriptions)
+  .get(protect, authorize('admin', 'superadmin'), can('prescriptions', 'read'), getPrescriptions)
   .post(protect, upload.single('prescription'), uploadPrescription);
 
 router.get('/my-prescriptions', protect, getMyPrescriptions);
 
 router
   .route('/:id')
-  .put(protect, authorize('admin', 'superadmin'), updatePrescriptionStatus)
-  .delete(protect, authorize('admin', 'superadmin'), deletePrescription);
+  .put(protect, authorize('admin', 'superadmin'), can('prescriptions', 'write'), updatePrescriptionStatus)
+  .delete(protect, authorize('admin', 'superadmin'), can('prescriptions', 'delete'), deletePrescription);
 
 // Keep backward-compat alias for older clients using PUT /:id/status
-router.put('/:id/status', protect, authorize('admin', 'superadmin'), updatePrescriptionStatus);
+router.put('/:id/status', protect, authorize('admin', 'superadmin'), can('prescriptions', 'write'), updatePrescriptionStatus);
 
 module.exports = router;

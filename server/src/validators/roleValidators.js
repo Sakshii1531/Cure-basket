@@ -1,6 +1,6 @@
 const { body } = require('express-validator');
 
-const MODULES = ['medicines', 'orders', 'users', 'categories', 'brands', 'blogs', 'banners', 'reviews', 'coupons', 'prescriptions', 'settings', 'analytics', 'roles'];
+const MODULES = ['medicines', 'orders', 'users', 'categories', 'brands', 'blogs', 'banners', 'reviews', 'coupons', 'prescriptions', 'settings', 'analytics', 'roles', 'chat'];
 const ACTIONS = ['read', 'write', 'delete'];
 
 exports.createRoleRules = [
@@ -8,6 +8,15 @@ exports.createRoleRules = [
     .trim()
     .notEmpty().withMessage('Role name is required')
     .isLength({ max: 100 }).withMessage('Role name must be at most 100 characters'),
+
+  body('email')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isEmail().withMessage('Please provide a valid email'),
+
+  body('password')
+    .optional({ checkFalsy: true })
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
 
   body('permissions')
     .optional()
@@ -32,6 +41,15 @@ exports.updateRoleRules = [
     .trim()
     .notEmpty().withMessage('Role name cannot be empty')
     .isLength({ max: 100 }).withMessage('Role name must be at most 100 characters'),
+
+  body('email')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isEmail().withMessage('Please provide a valid email'),
+
+  body('password')
+    .optional({ checkFalsy: true })
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
 
   body('permissions')
     .optional()

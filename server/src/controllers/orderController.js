@@ -325,7 +325,7 @@ exports.getOrderById = async (req, res) => {
   // or "#"). The short code is resolved by matching the end of the ObjectId
   // within the requester's own orders (admins may match across all orders).
   const rawId = (req.params.id || '').trim().replace(/^#/, '').replace(/^cb-/i, '');
-  const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+  const isAdmin = req.user.role === 'superadmin' || (req.user.role === 'admin' && req.user.can('orders', 'read'));
 
   try {
     let order = null;

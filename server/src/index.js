@@ -58,16 +58,19 @@ const allowedOrigins = process.env.FRONTEND_ORIGIN
   ? process.env.FRONTEND_ORIGIN.split(',').map((o) => o.trim())
   : ['http://localhost:5173'];
 
+// Shared origin check — reused for both Express CORS and the Socket.IO handshake.
+const corsOrigin = (origin, callback) => {
+  // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+  if (!origin) return callback(null, true);
+  // Allow explicitly listed origins
+  if (allowedOrigins.includes(origin)) return callback(null, true);
+  // Allow any Vercel deployment URL (production + preview branches)
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
+  return callback(null, false);
+};
+
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
-    if (!origin) return callback(null, true);
-    // Allow explicitly listed origins
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Allow any Vercel deployment URL (production + preview branches)
-    if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
-    return callback(null, false);
-  },
+  origin: corsOrigin,
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 }));
@@ -173,7 +176,18 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5001;
 
-const server = app.listen(PORT, () =>
+// Wrap Express in an http server so Socket.IO can share the same port, then
+// attach the live-chat socket layer (reusing the same CORS policy).
+const http = require('http');
+const { initSocket } = require('./socket');
+
+const server = http.createServer(app);
+initSocket(server, {
+  origin: corsOrigin,
+  credentials: true,
+});
+
+server.listen(PORT, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
 

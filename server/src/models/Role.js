@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const MODULES = [
   'medicines', 'categories', 'brands', 'orders', 'prescriptions',
   'users', 'blogs', 'reviews', 'coupons', 'banners',
-  'analytics', 'settings', 'roles',
+  'analytics', 'settings', 'roles', 'chat',
 ];
 
 const ACTIONS = ['read', 'write', 'delete'];
@@ -19,6 +19,14 @@ const roleSchema = new mongoose.Schema({
     required: [true, 'Please add a role name'],
     unique: true,
     trim: true,
+  },
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true,
+  },
+  password: {
+    type: String,
   },
   permissions: [permissionSchema],
   createdAt: { type: Date, default: Date.now },
