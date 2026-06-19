@@ -385,7 +385,9 @@ function Medicines() {
                       <div>
                         <p className="font-bold text-gray-900">{med.title || med.name}</p>
                         <p className="text-xs text-gray-500">
-                          {med.packSize || ''}
+                          {med.packages?.length > 0
+                            ? `${med.packages.length} pack${med.packages.length > 1 ? 's' : ''}`
+                            : (med.packSize || '')}
                           {med.genericFor || med.genericName ? ` · ${med.genericFor || med.genericName}` : ''}
                         </p>
                       </div>

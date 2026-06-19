@@ -44,13 +44,16 @@ const userFromToken = async (token) => {
   }
 };
 
-// Same ownership rule as chatController.ownsConversation, for socket clients.
+// Same ownership rule as chatController.ownsConversation, for socket clients: a
+// claimed conversation is matched by account id only; an unclaimed (guest) one
+// by the browser sessionId. This stops another account on the same browser from
+// joining a previous user's conversation room.
 const canAccessConversation = (conv, socket) => {
   if (!conv) return false;
   if (isChatAdmin(socket.user)) return true;
-  const sessionId = socket.handshake?.auth?.sessionId;
-  if (sessionId && conv.customer.sessionId === sessionId) return true;
   if (socket.user && conv.customer.user && conv.customer.user.equals(socket.user._id)) return true;
+  const sessionId = socket.handshake?.auth?.sessionId;
+  if (!conv.customer.user && sessionId && conv.customer.sessionId === sessionId) return true;
   return false;
 };
 

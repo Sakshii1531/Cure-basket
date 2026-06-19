@@ -30,6 +30,7 @@ export function ChatSocketProvider({ children }) {
   const conversationId = useRef(localStorage.getItem('cb_chat_conversation') || null);
   const initedRef = useRef(false);
   const isOpenRef = useRef(false);
+  const prevUserIdRef = useRef(undefined); // tracks account changes (login/logout/switch)
 
   useEffect(() => { isOpenRef.current = isOpen; }, [isOpen]);
 
@@ -130,20 +131,40 @@ export function ChatSocketProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdminRoute]);
 
-  // On login, link any guest chat history to the account, then reconnect with
-  // the fresh token and reload history into the open thread.
+  // React to account changes (login / logout / switching accounts on the same
+  // browser). Chat history is strictly per-account, so on any switch we forget
+  // the previous conversation entirely before loading the new identity's thread.
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket || isAdminRoute) return;
-    if (isLoggedIn && user) {
-      api.post('/chat/link', { sessionId: sessionId.current }).catch(() => {});
-    }
-    if (initedRef.current) {
+
+    const prev = prevUserIdRef.current;
+    const currentId = user?._id || null;
+    prevUserIdRef.current = currentId;
+    const firstRun = prev === undefined;
+
+    (async () => {
+      // Claim any pre-login guest history for this account FIRST, so the reload
+      // below finds it by account id (avoids creating a duplicate thread).
+      if (isLoggedIn && user) {
+        await api.post('/chat/link', { sessionId: sessionId.current }).catch(() => {});
+      }
+      if (firstRun) return; // initial socket connection is handled on mount
+
+      // Account switched: drop the previous account's conversation + messages so
+      // nothing leaks across accounts on this browser.
+      conversationId.current = null;
+      localStorage.removeItem('cb_chat_conversation');
       initedRef.current = false;
+      setMessages([]);
+      setNeedsGuestForm(false);
+      setUnreadCount(0);
+
+      // Reconnect so the handshake carries the new token, then reload (if open).
       socket.disconnect();
       socket.connect();
-      initConversation();
-    }
+      if (isOpenRef.current) initConversation();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, user?._id]);
 

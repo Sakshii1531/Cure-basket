@@ -1,4 +1,6 @@
 const Prescription = require('../models/Prescription');
+const Settings = require('../models/Settings');
+const sendEmail = require('../utils/sendEmail');
 const { uploadBuffer } = require('./uploadController');
 const sanitizeError = require('../utils/sanitizeError');
 const fs = require('fs');
@@ -142,17 +144,55 @@ exports.updatePrescriptionStatus = async (req, res, next) => {
       req.params.id,
       { status: req.body.status, notes: req.body.notes },
       { new: true, runValidators: true }
-    );
+    ).populate('user', 'name email');
 
     if (!prescription) {
       return res.status(404).json({ success: false, error: 'Prescription not found' });
     }
+
+    // Fire the configured dispense email when the new status matches the template.
+    // Fire-and-forget: an email failure must not fail the status update.
+    sendDispenseEmail(prescription).catch((err) =>
+      console.error('Failed to send dispense email:', err.message)
+    );
 
     res.status(200).json({ success: true, data: prescription });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });
   }
 };
+
+// Sends the admin-configured "Dispense" email template to the patient, but only
+// when the prescription's new status matches the template's configured status.
+async function sendDispenseEmail(prescription) {
+  const settings = await Settings.findOne({ type: 'dispense' });
+  const tpl = settings && settings.data;
+  if (!tpl || !tpl.status || !tpl.emailContent) return;
+
+  // Only send when the template status matches the prescription's new status.
+  if (String(tpl.status).toLowerCase() !== String(prescription.status).toLowerCase()) return;
+
+  const toEmail = prescription.user && prescription.user.email;
+  if (!toEmail) return;
+
+  const tokens = {
+    prescription_number: String(prescription._id),
+    patient_name: (prescription.user && prescription.user.name) || 'Customer',
+    status: prescription.status,
+  };
+
+  // Replace <token> placeholders case-insensitively (e.g. <Patient_name> or <patient_name>)
+  const fill = (text) =>
+    Object.entries(tokens).reduce(
+      (out, [key, val]) => out.replace(new RegExp(`<${key}>`, 'gi'), val),
+      String(text || '')
+    );
+
+  const subject = fill(tpl.emailSubject || 'Prescription Update');
+  const html = fill(tpl.emailContent).replace(/\n/g, '<br>');
+
+  await sendEmail({ to: toEmail, subject, html });
+}
 
 // @desc    Delete a prescription (admin)
 // @route   DELETE /api/prescriptions/:id
