@@ -59,20 +59,27 @@ export function ChatSocketProvider({ children }) {
         ? { sessionId: sessionId.current, name: user.name, email: user.email }
         : { sessionId: sessionId.current };
       const res = await api.post('/chat/conversations', payload);
-      const { conversation, messages: history, supportOnline: online, isReturning: returning, greeting } = res.data.data;
+      const { conversation, messages: history, supportOnline: online, isReturning: returning, greeting, needsForm } = res.data.data;
+
+      setSupportOnline(online);
+
+      // Unidentified guest → no conversation yet; show the one-time pre-chat
+      // form. The conversation is created when they submit (submitGuestDetails).
+      if (needsForm || !conversation) {
+        setNeedsGuestForm(true);
+        setMessages([{ _id: 'greeting', sender: 'system', text: greeting, createdAt: new Date().toISOString() }]);
+        return;
+      }
 
       conversationId.current = conversation._id;
       localStorage.setItem('cb_chat_conversation', conversation._id);
-      setSupportOnline(online);
       setIsReturning(!!returning);
+      setNeedsGuestForm(false);
 
       // Show prior history; otherwise an ephemeral greeting line (not persisted).
       setMessages(history.length
         ? history
         : [{ _id: 'greeting', sender: 'system', text: greeting, createdAt: new Date().toISOString() }]);
-
-      // A guest with no name on record must fill the one-time pre-chat form.
-      setNeedsGuestForm(!isLoggedIn && !conversation.customer?.name);
 
       socketRef.current?.emit('conversation:join', { conversationId: conversation._id });
     } catch {
@@ -197,12 +204,19 @@ export function ChatSocketProvider({ children }) {
     }
   }, [initConversation]);
 
-  // Guest submits their one-time details; conversation is enriched server-side.
+  // Guest submits their one-time details; this creates (or resumes) the
+  // conversation server-side with their name/email, then opens the chat.
   const submitGuestDetails = useCallback(async ({ name, email, subject }) => {
     const res = await api.post('/chat/conversations', { sessionId: sessionId.current, name, email, subject });
-    const conv = res.data.data.conversation;
+    const { conversation: conv, messages: history, greeting, isReturning: returning, supportOnline: online } = res.data.data;
     conversationId.current = conv._id;
     localStorage.setItem('cb_chat_conversation', conv._id);
+    initedRef.current = true;
+    setSupportOnline(online);
+    setIsReturning(!!returning);
+    setMessages(history.length
+      ? history
+      : [{ _id: 'greeting', sender: 'system', text: greeting, createdAt: new Date().toISOString() }]);
     setNeedsGuestForm(false);
     socketRef.current?.emit('conversation:join', { conversationId: conv._id });
   }, []);
