@@ -27,40 +27,57 @@ async function deleteCloudinaryAsset(url) {
 // @access  Private
 exports.uploadPrescription = async (req, res, next) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: 'Please upload a prescription image or PDF' });
-    }
+    let { notes, medicine, packageLabel, quantity, submissionMethod, faxNumber, senderEmail } = req.body;
 
-    // Upload to Cloudinary so prescriptions never depend on the local disk
-    // (survives redeploys and works across multiple app instances). PDFs are
-    // uploaded as 'raw' so Cloudinary delivers them without the PDF/ZIP image-
-    // delivery restriction that otherwise returns 401. Falls back to local
-    // storage only if Cloudinary is unreachable.
-    const isPdf = req.file.originalname.toLowerCase().endsWith('.pdf') || req.file.mimetype === 'application/pdf';
+    // Normalize the chosen submission method (defaults to file upload).
+    submissionMethod = ['upload', 'fax', 'email'].includes(submissionMethod) ? submissionMethod : 'upload';
+
     let image;
+    faxNumber = typeof faxNumber === 'string' ? faxNumber.trim() : '';
+    senderEmail = typeof senderEmail === 'string' ? senderEmail.trim() : '';
 
-    try {
-      const result = await uploadBuffer(
-        req.file.buffer,
-        'cure-basket/prescriptions',
-        isPdf ? { resource_type: 'raw' } : {}
-      );
-      image = result.secure_url;
-    } catch (cloudinaryError) {
-      console.warn('Cloudinary prescription upload failed, falling back to local storage:', cloudinaryError.message);
-
-      const uploadDir = path.join(__dirname, '../../uploads');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+    if (submissionMethod === 'fax') {
+      if (!faxNumber) {
+        return res.status(400).json({ success: false, error: 'Please enter the fax number you sent the prescription from' });
+      }
+    } else if (submissionMethod === 'email') {
+      if (!senderEmail || !/^\S+@\S+\.\S+$/.test(senderEmail)) {
+        return res.status(400).json({ success: false, error: 'Please enter the email address you sent the prescription from' });
+      }
+    } else {
+      // submissionMethod === 'upload'
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: 'Please upload a prescription image or PDF' });
       }
 
-      const ext = isPdf ? '.pdf' : (path.extname(req.file.originalname) || '.png');
-      const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-      fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
-      image = `/uploads/${filename}`;
-    }
+      // Upload to Cloudinary so prescriptions never depend on the local disk
+      // (survives redeploys and works across multiple app instances). PDFs are
+      // uploaded as 'raw' so Cloudinary delivers them without the PDF/ZIP image-
+      // delivery restriction that otherwise returns 401. Falls back to local
+      // storage only if Cloudinary is unreachable.
+      const isPdf = req.file.originalname.toLowerCase().endsWith('.pdf') || req.file.mimetype === 'application/pdf';
 
-    let { notes, medicine, packageLabel, quantity } = req.body;
+      try {
+        const result = await uploadBuffer(
+          req.file.buffer,
+          'cure-basket/prescriptions',
+          isPdf ? { resource_type: 'raw' } : {}
+        );
+        image = result.secure_url;
+      } catch (cloudinaryError) {
+        console.warn('Cloudinary prescription upload failed, falling back to local storage:', cloudinaryError.message);
+
+        const uploadDir = path.join(__dirname, '../../uploads');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const ext = isPdf ? '.pdf' : (path.extname(req.file.originalname) || '.png');
+        const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+        fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+        image = `/uploads/${filename}`;
+      }
+    }
 
     // Sanitize stringified values from FormData
     if (medicine === 'undefined' || medicine === 'null' || !medicine) {
@@ -79,6 +96,9 @@ exports.uploadPrescription = async (req, res, next) => {
       packageLabel,
       quantity,
       image,
+      submissionMethod,
+      faxNumber: submissionMethod === 'fax' ? faxNumber : undefined,
+      senderEmail: submissionMethod === 'email' ? senderEmail : undefined,
       notes
     });
 

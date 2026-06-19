@@ -2,6 +2,8 @@ import { toast } from 'sonner'
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
+import { useAuth } from '../context/AuthContext'
+import RxMethodSelector from './RxMethodSelector'
 import { useCart } from '../context/CartContext'
 import { isOutOfStock } from '../utils/stockUtils'
 import productImg from '../assets/product.png'
@@ -13,6 +15,7 @@ function ProductDetail({ onBack }) {
   const navigate = useNavigate()
   const { id: urlId } = useParams()
   const { guardedAction, isLoggedIn } = useAuthGate()
+  const { user } = useAuth()
   const { addToCart } = useCart()
   const [product, setProduct] = useState(location.state?.product || null)
   const [productLoading, setProductLoading] = useState(!location.state?.product)
@@ -106,6 +109,11 @@ function ProductDetail({ onBack }) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [rxMethod, setRxMethod] = useState('upload')
+  const [rxFaxNumber, setRxFaxNumber] = useState('')
+  const [rxSenderEmail, setRxSenderEmail] = useState('')
+  const [pharmacyFax, setPharmacyFax] = useState('')
+  const [pharmacyEmail, setPharmacyEmail] = useState('')
   const [reviews, setReviews] = useState([])
 
   // Persist quantity in sessionStorage whenever it changes for the current product
@@ -204,6 +212,19 @@ function ProductDetail({ onBack }) {
       })
       .catch(() => setPrescriptionStatus('none'))
   }, [product?._id, isLoggedIn])
+
+  // Load admin-configured fax/email destinations when the upload modal opens,
+  // and prefill the sender email with the logged-in user's address (editable).
+  useEffect(() => {
+    if (!showUploadModal) return
+    setRxSenderEmail(prev => prev || user?.email || '')
+    api.get('/settings/public/bank_contact')
+      .then(res => {
+        setPharmacyFax(res.data?.data?.prescriptionFax || '')
+        setPharmacyEmail(res.data?.data?.prescriptionEmail || '')
+      })
+      .catch(() => {})
+  }, [showUploadModal, user?.email])
 
   const submitReview = async () => {
     if (reviewForm.rating === 0) { setReviewError('Please select a star rating.'); return }
@@ -980,8 +1001,18 @@ function ProductDetail({ onBack }) {
             <div className="p-8">
               {!uploadSuccess ? (
                 <div className="space-y-6">
+                  <RxMethodSelector
+                    method={rxMethod}
+                    onMethodChange={setRxMethod}
+                    faxNumber={rxFaxNumber}
+                    onFaxNumberChange={setRxFaxNumber}
+                    senderEmail={rxSenderEmail}
+                    onSenderEmailChange={setRxSenderEmail}
+                    pharmacyFax={pharmacyFax}
+                    pharmacyEmail={pharmacyEmail}
+                  >
                   {/* Upload Area */}
-                  <div 
+                  <div
                     onClick={() => document.getElementById('fileInput').click()}
                     className={`relative border-2 border-dashed rounded-[24px] p-10 flex flex-col items-center justify-center cursor-pointer transition-all ${selectedFile ? 'border-[#006D6D] bg-[#E6F7F7]/10' : 'border-gray-200 hover:border-[#006D6D] hover:bg-[#E6F7F7]/5'}`}
                   >
@@ -1021,26 +1052,40 @@ function ProductDetail({ onBack }) {
                       Make sure the <span className="font-bold text-gray-700">Doctor's Name, Patient Name</span> and <span className="font-bold text-gray-700">Medicines</span> are clearly visible in the image.
                     </p>
                   </div>
+                  </RxMethodSelector>
 
                   {/* Actions */}
                   <div className="flex gap-3">
-                    <button 
+                    <button
                       onClick={() => { setShowUploadModal(false); setSelectedFile(null); }}
                       className="flex-1 py-4 rounded-xl border-2 border-gray-100 text-gray-500 font-bold text-[14px] hover:bg-gray-50 transition-all"
                     >
                       Cancel
                     </button>
-                    <button 
-                      disabled={!selectedFile || isUploading}
+                    {(() => {
+                      const rxCanSubmit =
+                        rxMethod === 'upload' ? !!selectedFile :
+                        rxMethod === 'fax' ? rxFaxNumber.trim().length > 0 :
+                        rxSenderEmail.trim().length > 0;
+                      return (
+                    <button
+                      disabled={!rxCanSubmit || isUploading}
                       onClick={guardedAction(async () => {
                         setIsUploading(true);
                         try {
                           const formData = new FormData();
-                          formData.append('prescription', selectedFile);
+                          formData.append('submissionMethod', rxMethod);
+                          if (rxMethod === 'upload') {
+                            formData.append('prescription', selectedFile);
+                          } else if (rxMethod === 'fax') {
+                            formData.append('faxNumber', rxFaxNumber.trim());
+                          } else {
+                            formData.append('senderEmail', rxSenderEmail.trim());
+                          }
                           formData.append('medicine', product._id);
                           formData.append('packageLabel', selectedPackage.label);
                           formData.append('quantity', quantity);
-                          formData.append('notes', 'Uploaded from product page');
+                          formData.append('notes', 'Submitted from product page');
 
                           await api.post('/prescriptions', formData, {
                             headers: { 'Content-Type': 'multipart/form-data' }
@@ -1052,18 +1097,20 @@ function ProductDetail({ onBack }) {
                           setTimeout(() => setShowUploadModal(false), 2000);
                         } catch (err) {
                           setIsUploading(false);
-                          toast.error(err.response?.data?.error || 'Failed to upload prescription');
+                          toast.error(err.response?.data?.error || 'Failed to submit prescription');
                         }
                       }, 'upload-prescription')}
-                      className={`flex-1 py-4 rounded-xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
+                      className={`flex-1 py-4 rounded-xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!rxCanSubmit ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
                     >
                       {isUploading ? (
                         <>
                           <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                          Uploading...
+                          {rxMethod === 'upload' ? 'Uploading...' : 'Submitting...'}
                         </>
-                      ) : 'Attach Prescription'}
+                      ) : (rxMethod === 'upload' ? 'Attach Prescription' : 'Submit Prescription')}
                     </button>
+                      );
+                    })()}
                   </div>
                 </div>
               ) : (
@@ -1071,8 +1118,16 @@ function ProductDetail({ onBack }) {
                   <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-500/20">
                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </div>
-                  <h3 className="text-[20px] font-bold text-gray-900 mb-2">Prescription Attached!</h3>
-                  <p className="text-[13px] text-gray-500">Your prescription has been successfully added to this order.</p>
+                  <h3 className="text-[20px] font-bold text-gray-900 mb-2">
+                    {rxMethod === 'upload' ? 'Prescription Attached!' : 'Request Submitted!'}
+                  </h3>
+                  <p className="text-[13px] text-gray-500">
+                    {rxMethod === 'upload'
+                      ? 'Your prescription has been successfully added to this order.'
+                      : rxMethod === 'fax'
+                        ? "We've recorded your fax number. Make sure you've sent the fax — our pharmacist will match and review it."
+                        : "We've recorded your email. Make sure you've sent the email — our pharmacist will find and review it."}
+                  </p>
                 </div>
               )}
             </div>

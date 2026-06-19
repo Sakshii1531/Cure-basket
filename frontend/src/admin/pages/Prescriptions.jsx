@@ -138,10 +138,28 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
-          {/* Prescription image / PDF preview */}
+          {/* Prescription document — image/PDF for uploads, contact info for fax/email */}
           <section>
             <SLabel>Prescription Document</SLabel>
-            {imgUrl ? (
+            {rx.submissionMethod === 'fax' ? (
+              <div className="border border-gray-100 rounded-2xl bg-gray-50 px-5 py-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-600 border border-purple-200">Sent via Fax</span>
+                </div>
+                <p className="text-xs text-gray-400 mb-0.5">Customer's fax number</p>
+                <p className="text-lg font-black text-gray-900 font-mono">{rx.faxNumber || '—'}</p>
+                <p className="text-xs text-gray-400 mt-2">Check your fax machine for a prescription sent from this number.</p>
+              </div>
+            ) : rx.submissionMethod === 'email' ? (
+              <div className="border border-gray-100 rounded-2xl bg-gray-50 px-5 py-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-600 border border-blue-200">Sent via Email</span>
+                </div>
+                <p className="text-xs text-gray-400 mb-0.5">Customer's sender email</p>
+                <p className="text-base font-black text-gray-900 break-all">{rx.senderEmail || '—'}</p>
+                <p className="text-xs text-gray-400 mt-2">Search your inbox for a prescription sent from this address.</p>
+              </div>
+            ) : imgUrl ? (
               <div
                 className="relative border border-gray-100 rounded-2xl overflow-hidden bg-gray-50 cursor-pointer group"
                 onClick={() => setLightbox(true)}
@@ -185,6 +203,10 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
                 rx.status === 'Reviewed'  ? 'text-blue-600'    :
                 rx.status === 'Rejected'  ? 'text-red-600'     : 'text-amber-600'
               }/>
+              <InfoCard label="Method" value={
+                rx.submissionMethod === 'fax' ? 'Fax' :
+                rx.submissionMethod === 'email' ? 'Email' : 'Upload'
+              } />
               <InfoCard label="Medicine" value={rx.medicine?.name || 'N/A'} />
               <InfoCard label="Package" value={rx.packageLabel} />
               <InfoCard label="Quantity" value={rx.quantity?.toString()} />
@@ -566,9 +588,17 @@ function Prescriptions() {
                               : <svg className="w-4 h-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             }
                           </div>
-                          <span className="font-bold text-gray-900 max-w-[130px] truncate text-[13px]">
-                            {rx.medicine?.name || 'N/A'}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="block font-bold text-gray-900 max-w-[130px] truncate text-[13px]">
+                              {rx.medicine?.name || 'N/A'}
+                            </span>
+                            {rx.submissionMethod === 'fax' && (
+                              <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 text-purple-600 border border-purple-200">FAX</span>
+                            )}
+                            {rx.submissionMethod === 'email' && (
+                              <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-600 border border-blue-200">EMAIL</span>
+                            )}
+                          </div>
                         </div>
                       </td>
 
