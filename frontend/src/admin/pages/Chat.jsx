@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
+import { Navigate } from 'react-router-dom';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { useAdminChatSocket } from '../../context/AdminChatSocketContext';
 
 const STATUS_TABS = [
   { key: '', label: 'All' },
@@ -21,6 +24,11 @@ const fmtTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', m
 const fmtDate = (ts) => new Date(ts).toLocaleDateString();
 
 function Chat() {
+  const { can } = useAuth();
+  if (!can('chat', 'read')) {
+    return <Navigate to="/admin" replace />;
+  }
+
   const [conversations, setConversations] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedId, setSelectedId] = useState(null);
@@ -30,7 +38,10 @@ function Chat() {
   const [supportOnline, setSupportOnline] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const { socket, refreshUnread } = useAdminChatSocket();
   const messagesEndRef = useRef(null);
+  const selectedIdRef = useRef(null);
+  useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
 
   const loadList = useCallback(async () => {
     try {
@@ -60,20 +71,40 @@ function Chat() {
       .catch(() => {});
   }, []);
 
-  // Poll the conversation list
+  // Initial load + slow fallback poll for the inbox (live updates via socket).
   useEffect(() => {
     loadList();
-    const t = setInterval(loadList, 5000);
+    const t = setInterval(loadList, 30000);
     return () => clearInterval(t);
   }, [loadList]);
 
-  // Poll the open thread
+  // Load the open thread, join its live room, and slow-poll as a fallback.
   useEffect(() => {
     if (!selectedId) return;
     loadThread(selectedId);
-    const t = setInterval(() => loadThread(selectedId), 4000);
-    return () => clearInterval(t);
-  }, [selectedId, loadThread]);
+    socket?.emit('conversation:join', { conversationId: selectedId });
+    const t = setInterval(() => loadThread(selectedId), 30000);
+    return () => {
+      clearInterval(t);
+      socket?.emit('conversation:leave', { conversationId: selectedId });
+    };
+  }, [selectedId, loadThread, socket]);
+
+  // Live: refresh the inbox on any change, and the open thread on new messages.
+  useEffect(() => {
+    if (!socket) return;
+    const onUpdated = () => loadList();
+    const onMessage = ({ conversationId: cid }) => {
+      loadList();
+      if (String(cid) === String(selectedIdRef.current)) loadThread(selectedIdRef.current);
+    };
+    socket.on('conversation:updated', onUpdated);
+    socket.on('message:new', onMessage);
+    return () => {
+      socket.off('conversation:updated', onUpdated);
+      socket.off('message:new', onMessage);
+    };
+  }, [socket, loadList, loadThread]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -101,6 +132,7 @@ function Chat() {
       setReply('');
       await loadThread(selectedId);
       loadList();
+      refreshUnread();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to send');
     } finally {
@@ -115,6 +147,7 @@ function Chat() {
       toast.success('Conversation resolved');
       loadThread(selectedId);
       loadList();
+      refreshUnread();
     } catch {
       toast.error('Failed to resolve');
     }

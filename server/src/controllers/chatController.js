@@ -5,6 +5,7 @@ const Settings = require('../models/Settings');
 const sanitizeError = require('../utils/sanitizeError');
 const { notifyChemist, emailReplyToCustomer } = require('../services/chatNotifications');
 const chatBot = require('../services/chatBot');
+const { emitNewMessage, emitConversationUpdated } = require('../socket');
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,25 @@ const ownsConversation = (conv, req) => {
   return false;
 };
 
+// All conversations belonging to a visitor identity (logged-in user across
+// devices, or an anonymous browser's sessionId). Used to resume the active
+// thread and to assemble the full, continuous chat history.
+const identityFinder = (req, sessionId) =>
+  req.user
+    ? { $or: [{ 'customer.user': req.user._id }, { 'customer.sessionId': sessionId }] }
+    : { 'customer.sessionId': sessionId };
+
+// A friendly opening line tailored to whether we've seen this visitor before.
+// Returned to the client (not persisted) so a brand-new conversation still
+// reports `messages: []`.
+const buildGreeting = (name, isReturning) => {
+  const first = (name || '').trim().split(/\s+/)[0];
+  if (isReturning && first) return `Welcome back, ${first}! 👋 Good to see you again — how can I help you today?`;
+  if (isReturning) return 'Welcome back! 👋 How can we help you today?';
+  if (first) return `Hi ${first}! 👋 Welcome to CureBasket. How can we help you today?`;
+  return 'Hi there! Welcome to CureBasket. How can we help you today?';
+};
+
 // ── customer endpoints (optionalAuth) ───────────────────────────────────────
 
 // @desc  Start or resume the visitor's open conversation
@@ -36,11 +56,9 @@ exports.startConversation = async (req, res) => {
       ? { user: req.user._id, name: req.user.name, email: req.user.email, sessionId }
       : { user: null, name: name || '', email: email || '', sessionId };
 
-    // Resume the most recent non-resolved conversation for this visitor.
-    const finder = req.user
-      ? { $or: [{ 'customer.user': req.user._id }, { 'customer.sessionId': sessionId }] }
-      : { 'customer.sessionId': sessionId };
+    const finder = identityFinder(req, sessionId);
 
+    // Resume the most recent non-resolved conversation for this visitor.
     let conversation = await Conversation.findOne({
       ...finder,
       status: { $ne: 'resolved' },
@@ -50,8 +68,8 @@ exports.startConversation = async (req, res) => {
       conversation = await Conversation.create({ customer, subject: subject || '' });
     } else {
       // Enrich the existing conversation with any identity we just learned —
-      // a logged-in account, or the name/email a guest typed in the offline
-      // "Leave a Message" form (otherwise it would stay an anonymous "Guest").
+      // a logged-in account, or the name/email a guest typed in the pre-chat
+      // form (otherwise it would stay an anonymous "Guest").
       let changed = false;
       if (req.user && !conversation.customer.user) {
         conversation.customer.user = req.user._id;
@@ -65,11 +83,43 @@ exports.startConversation = async (req, res) => {
       if (changed) await conversation.save();
     }
 
-    const messages = await Message.find({ conversation: conversation._id }).sort('createdAt');
+    // Full continuous history across ALL of this visitor's conversations
+    // (including previously resolved ones), so a returning visitor sees their
+    // whole thread. New messages are still posted to `conversation` (the active
+    // thread) above.
+    const convIds = (await Conversation.find(finder).select('_id')).map((c) => c._id);
+    const messages = await Message.find({ conversation: { $in: convIds } }).sort('createdAt');
+
+    const isReturning = messages.length > 0;
+
     res.status(200).json({
       success: true,
-      data: { conversation, messages, supportOnline: await isSupportOnline() },
+      data: {
+        conversation,
+        messages,
+        isReturning,
+        greeting: buildGreeting(conversation.customer.name, isReturning),
+        supportOnline: await isSupportOnline(),
+      },
     });
+  } catch (err) {
+    res.status(400).json({ success: false, error: sanitizeError(err) });
+  }
+};
+
+// @desc  Link a guest's prior (anonymous) conversations to the now-logged-in
+//        account, so chat history follows them across sessions and devices.
+// @route POST /api/chat/link   (protect)
+exports.linkGuestConversations = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    if (!sessionId) return res.status(200).json({ success: true, data: { linked: 0 } });
+
+    const result = await Conversation.updateMany(
+      { 'customer.sessionId': sessionId, 'customer.user': null },
+      { $set: { 'customer.user': req.user._id, 'customer.name': req.user.name, 'customer.email': req.user.email } }
+    );
+    res.status(200).json({ success: true, data: { linked: result.modifiedCount || 0 } });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });
   }
@@ -149,11 +199,16 @@ exports.postMessage = async (req, res) => {
     conversation.lastMessageSender = 'user';
     conversation.lastUserSeenAt = message.createdAt;
 
+    // Push the customer's own message live (their other open tabs see it, and
+    // any admin viewing the thread sees it instantly).
+    emitNewMessage(conversation, message);
+
     // When support is online and no human has taken over, the AI assistant
     // fields the message first (escalating to a human if it can't help). Its
-    // reply reaches the customer on their next poll.
+    // reply is pushed live to the customer by chatBot.respond.
     if (supportOnline && conversation.status !== 'human_active') {
       await conversation.save();
+      emitConversationUpdated(conversation);
       res.status(201).json({ success: true, data: message });
       chatBot.respond(conversation._id).catch((e) => console.error('[chat] bot failed:', e.message));
       return;
@@ -164,6 +219,7 @@ exports.postMessage = async (req, res) => {
     conversation.unreadForAdmin = true;
     if (conversation.status !== 'human_active') conversation.status = 'waiting_human';
     await conversation.save();
+    emitConversationUpdated(conversation);
 
     if (conversation.status !== 'human_active' && (!hadMessages || !wasUnread)) {
       notifyChemist(conversation, message.text);
@@ -212,7 +268,15 @@ exports.getAdminConversation = async (req, res) => {
       await conversation.save();
     }
 
-    const messages = await Message.find({ conversation: conversation._id }).sort('createdAt');
+    // Show the chemist the visitor's full continuous history (across all their
+    // conversations — logged-in across devices, or the same guest sessionId),
+    // not just this one thread, so prior context is always visible.
+    const identity = conversation.customer.user
+      ? { $or: [{ 'customer.user': conversation.customer.user }, { 'customer.sessionId': conversation.customer.sessionId }] }
+      : { 'customer.sessionId': conversation.customer.sessionId };
+    const convIds = (await Conversation.find(identity).select('_id')).map((c) => c._id);
+    const messages = await Message.find({ conversation: { $in: convIds } }).sort('createdAt');
+
     res.status(200).json({ success: true, data: { conversation, messages } });
   } catch (err) {
     res.status(500).json({ success: false, error: sanitizeError(err) });
@@ -242,7 +306,12 @@ exports.postAdminMessage = async (req, res) => {
     conversation.unreadForAdmin = false;
     await conversation.save();
 
-    // If the customer has drifted away (>60s since last seen), email them.
+    // Push the reply to the customer (and any other admin) live.
+    emitNewMessage(conversation, message);
+    emitConversationUpdated(conversation);
+
+    // If the customer has drifted away (>60s since last seen), email them too —
+    // the live push only lands if a tab is still connected.
     if (Date.now() - new Date(conversation.lastUserSeenAt).getTime() > 60 * 1000) {
       emailReplyToCustomer(conversation, message.text);
     }
@@ -261,6 +330,7 @@ exports.updateStatus = async (req, res) => {
     if (!conversation) return res.status(404).json({ success: false, error: 'Conversation not found' });
     conversation.status = req.body.status;
     await conversation.save();
+    emitConversationUpdated(conversation);
     res.status(200).json({ success: true, data: conversation });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });

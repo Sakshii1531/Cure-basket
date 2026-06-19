@@ -46,6 +46,7 @@ import ForgotPasswordPage from './components/ForgotPasswordPage'
 import ResetPasswordPage from './components/ResetPasswordPage'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
+import { ChatSocketProvider } from './context/ChatSocketContext'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -96,6 +97,7 @@ const Analytics = lazy(() => import('./admin/pages/Analytics'))
 const CMS = lazy(() => import('./admin/pages/CMS'))
 const ContentManagement = lazy(() => import('./admin/pages/ContentManagement'))
 const AdminLogin = lazy(() => import('./admin/pages/AdminLogin'))
+const Roles = lazy(() => import('./admin/pages/Roles'))
 const Blogs = lazy(() => import('./admin/pages/Blogs'))
 const Chat = lazy(() => import('./admin/pages/Chat'))
 const MedicineDetails = lazy(() => import('./admin/pages/MedicineDetails'))
@@ -308,6 +310,7 @@ function AppContent() {
           <Route path="bank-contact" element={<Suspense fallback={<AdminSpinner />}><BankContact /></Suspense>} />
           <Route path="order-shipping" element={<Suspense fallback={<AdminSpinner />}><OrderShipping /></Suspense>} />
           <Route path="medicine-details" element={<Suspense fallback={<AdminSpinner />}><MedicineDetails /></Suspense>} />
+          <Route path="roles" element={<Suspense fallback={<AdminSpinner />}><Roles /></Suspense>} />
           <Route path="subscribers" element={<Suspense fallback={<AdminSpinner />}><Subscribers /></Suspense>} />
         </Route>
 
@@ -347,7 +350,9 @@ function App() {
         <Router>
           <ScrollToTop />
           <ErrorBoundary>
-            <AppContent />
+            <ChatSocketProvider>
+              <AppContent />
+            </ChatSocketProvider>
           </ErrorBoundary>
         </Router>
       </CartProvider>

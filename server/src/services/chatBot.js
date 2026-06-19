@@ -3,6 +3,7 @@ const Brand = require('../models/Brand');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const { notifyChemist } = require('./chatNotifications');
+const { emitNewMessage, emitConversationUpdated } = require('../socket');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CureBasket chat assistant.
@@ -356,6 +357,11 @@ const respond = async (conversationId) => {
       conversation.unreadForAdmin = false;
     }
     await conversation.save();
+
+    // Push the assistant's reply to the customer live, and refresh the admin
+    // inbox (an escalation flips the conversation to "waiting_human").
+    emitNewMessage(conversation, botMsg);
+    emitConversationUpdated(conversation);
 
     if (finalEscalate) notifyChemist(conversation, last.text);
   } catch (err) {
