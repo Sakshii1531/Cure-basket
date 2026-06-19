@@ -151,7 +151,7 @@ function MainBannerCarousel() {
                 <img
                   src={banner.image}
                   alt={banner.title}
-                  className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 ease-in-out group-hover:scale-105"
+                  className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 ease-in-out"
                 />
                 <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-10 max-w-[70%]">
                   <h2 className="text-primary text-[16px] sm:text-[20px] md:text-[36px] font-bold leading-tight">{banner.title}</h2>
@@ -216,7 +216,7 @@ function MainBannerCarousel() {
                 {/* Right: Image — visible on mobile too */}
                 <div className="flex-shrink-0 flex justify-end relative z-10 ml-2 md:ml-0 md:flex-1">
                   <div className="relative">
-                    <img src={slide.image} alt="Promotion" className="w-28 sm:w-40 md:w-60 lg:w-96 object-contain transition-transform duration-700 ease-in-out group-hover:scale-105" />
+                    <img src={slide.image} alt="Promotion" className="w-28 sm:w-40 md:w-60 lg:w-96 object-contain transition-transform duration-700 ease-in-out" />
                     <div
                       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 md:w-40 lg:w-52 h-20 md:h-40 lg:h-52 opacity-[0.05] rounded-full blur-3xl -z-10"
                       style={{ backgroundColor: slide.blobColor }}
