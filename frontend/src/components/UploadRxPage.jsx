@@ -1,20 +1,56 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
+import { useAuth } from '../context/AuthContext'
+import RxMethodSelector from './RxMethodSelector'
 
 function UploadRxPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [error, setError] = useState('')
 
+  const [method, setMethod] = useState('upload')
+  const [faxNumber, setFaxNumber] = useState('')
+  const [senderEmail, setSenderEmail] = useState('')
+  const [pharmacyFax, setPharmacyFax] = useState('')
+  const [pharmacyEmail, setPharmacyEmail] = useState('')
+
+  // Prefill the sender email with the logged-in user's email (editable).
+  useEffect(() => {
+    if (user?.email) setSenderEmail((prev) => prev || user.email)
+  }, [user])
+
+  // Load admin-configured fax/email destinations.
+  useEffect(() => {
+    api.get('/settings/public/bank_contact')
+      .then((res) => {
+        setPharmacyFax(res.data?.data?.prescriptionFax || '')
+        setPharmacyEmail(res.data?.data?.prescriptionEmail || '')
+      })
+      .catch(() => {})
+  }, [])
+
+  const canSubmit =
+    method === 'upload' ? !!selectedFile :
+    method === 'fax' ? faxNumber.trim().length > 0 :
+    senderEmail.trim().length > 0
+
   const handleUpload = async () => {
-    if (!selectedFile) return
+    if (!canSubmit) return
     setIsUploading(true)
     setError('')
     const formData = new FormData()
-    formData.append('prescription', selectedFile)
+    formData.append('submissionMethod', method)
+    if (method === 'upload') {
+      formData.append('prescription', selectedFile)
+    } else if (method === 'fax') {
+      formData.append('faxNumber', faxNumber.trim())
+    } else {
+      formData.append('senderEmail', senderEmail.trim())
+    }
     try {
       await api.post('/prescriptions', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -22,7 +58,7 @@ function UploadRxPage() {
       setUploadSuccess(true)
       setTimeout(() => navigate('/'), 3000)
     } catch (err) {
-      setError(err.response?.data?.error || 'Upload failed. Please try again.')
+      setError(err.response?.data?.error || 'Submission failed. Please try again.')
     } finally {
       setIsUploading(false)
     }
@@ -66,6 +102,16 @@ function UploadRxPage() {
                   </div>
                 )}
 
+                <RxMethodSelector
+                  method={method}
+                  onMethodChange={(m) => { setMethod(m); setError('') }}
+                  faxNumber={faxNumber}
+                  onFaxNumberChange={setFaxNumber}
+                  senderEmail={senderEmail}
+                  onSenderEmailChange={setSenderEmail}
+                  pharmacyFax={pharmacyFax}
+                  pharmacyEmail={pharmacyEmail}
+                >
                 <div
                   onClick={() => document.getElementById('fileInput').click()}
                   className={`relative border-2 border-dashed rounded-[24px] p-6 flex flex-col items-center justify-center cursor-pointer transition-all ${selectedFile ? 'border-[#006D6D] bg-[#E6F7F7]/10' : 'border-gray-200 hover:border-[#006D6D] hover:bg-[#E6F7F7]/5'}`}
@@ -126,6 +172,7 @@ function UploadRxPage() {
                     </li>
                   </ul>
                 </div>
+                </RxMethodSelector>
 
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button
@@ -135,16 +182,16 @@ function UploadRxPage() {
                     Go Back
                   </button>
                   <button
-                    disabled={!selectedFile || isUploading}
+                    disabled={!canSubmit || isUploading}
                     onClick={handleUpload}
-                    className={`w-full sm:w-auto px-10 py-3 rounded-2xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
+                    className={`w-full sm:w-auto px-10 py-3 rounded-2xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!canSubmit ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
                   >
                     {isUploading ? (
                       <>
                         <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Uploading...
+                        {method === 'upload' ? 'Uploading...' : 'Submitting...'}
                       </>
-                    ) : 'Upload & Continue'}
+                    ) : (method === 'upload' ? 'Upload & Continue' : 'Submit & Continue')}
                   </button>
                 </div>
               </div>
@@ -153,9 +200,15 @@ function UploadRxPage() {
                 <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl shadow-green-500/20">
                   <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
-                <h2 className="text-[20px] font-bold text-gray-900 mb-1.5">Prescription Uploaded!</h2>
+                <h2 className="text-[20px] font-bold text-gray-900 mb-1.5">
+                  {method === 'upload' ? 'Prescription Uploaded!' : 'Request Submitted!'}
+                </h2>
                 <p className="text-[13px] text-gray-500 mb-4">
-                  Your prescription has been successfully uploaded. Our pharmacist will review it shortly.
+                  {method === 'upload'
+                    ? 'Your prescription has been successfully uploaded. Our pharmacist will review it shortly.'
+                    : method === 'fax'
+                      ? "We've recorded your fax number. Make sure you've sent the fax — our pharmacist will match it and review shortly."
+                      : "We've recorded your email. Make sure you've sent the email — our pharmacist will find it and review shortly."}
                 </p>
                 <p className="text-[11px] text-[#006D6D] font-bold animate-pulse">
                   Redirecting to home page...

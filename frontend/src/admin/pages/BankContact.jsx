@@ -11,6 +11,8 @@ const DEFAULT_DATA = {
   phone: '',
   email: '',
   address: '',
+  prescriptionFax: '',
+  prescriptionEmail: '',
 };
 
 function BankContact() {
@@ -97,6 +99,17 @@ function BankContact() {
                   rows="3"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <h3 className="text-md font-bold text-gray-900 mb-1">Prescription Submission</h3>
+            <p className="text-gray-500 text-xs mb-4">
+              Shown to customers who choose to send their prescription by fax or email.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {field('Prescription Fax Number', 'prescriptionFax')}
+              {field('Prescription Email', 'prescriptionEmail', 'email')}
             </div>
           </div>
 

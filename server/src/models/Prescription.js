@@ -19,7 +19,21 @@ const prescriptionSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    required: true
+    // Only present for the 'upload' method; fax/email submissions have no file.
+    // Per-method requiredness is enforced in the controller.
+  },
+  submissionMethod: {
+    type: String,
+    enum: ['upload', 'fax', 'email'],
+    default: 'upload',
+  },
+  // Fax method: the fax number the customer sent the prescription from.
+  faxNumber: {
+    type: String,
+  },
+  // Email method: the email address the customer sent the prescription from.
+  senderEmail: {
+    type: String,
   },
   status: {
     type: String,
