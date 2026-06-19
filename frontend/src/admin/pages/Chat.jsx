@@ -153,7 +153,13 @@ function Chat() {
     }
   };
 
-  const customerName = (c) => c?.customer?.user?.name || c?.customer?.name || 'Guest';
+  // Registered users show their account name; guests show the name they typed in
+  // the pre-chat form, tagged "(Guest)" so the chemist can tell them apart.
+  const customerName = (c) => {
+    if (c?.customer?.user?.name) return c.customer.user.name;
+    const guestName = c?.customer?.name;
+    return guestName ? `${guestName} (Guest)` : 'Guest';
+  };
 
   return (
     <div className="space-y-6">

@@ -70,6 +70,22 @@ exports.startConversation = async (req, res) => {
     }).sort('-lastMessageAt');
 
     if (!conversation) {
+      // Don't create an empty conversation for an unidentified guest — wait
+      // until they submit the pre-chat form (which provides name/email). This
+      // keeps the chemist's inbox free of blank "Guest / New conversation" rows.
+      if (!req.user && !name) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            conversation: null,
+            messages: [],
+            isReturning: false,
+            needsForm: true,
+            greeting: buildGreeting('', false),
+            supportOnline: await isSupportOnline(),
+          },
+        });
+      }
       conversation = await Conversation.create({ customer, subject: subject || '' });
     } else {
       // Enrich the existing conversation with any identity we just learned —
