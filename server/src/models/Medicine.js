@@ -69,10 +69,11 @@ const medicineSchema = new mongoose.Schema({
   packages: [
     {
       label:    String,
-      price:    Number,
-      oldPrice: Number,
-      perUnit:  Number,
-      popular:  { type: Boolean, default: false },
+      price:    Number,   // selling price for the whole pack
+      oldPrice: Number,   // original price (for strikethrough + discount %)
+      units:    Number,   // how many units this pack contains
+      perUnit:  Number,   // auto-computed = price / units
+      popular:  { type: Boolean, default: false }, // "Best Value" badge
     },
   ],
 
