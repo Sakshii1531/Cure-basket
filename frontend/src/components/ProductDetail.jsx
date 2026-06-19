@@ -43,7 +43,28 @@ function ProductDetail({ onBack }) {
     const ppu = Number(product?.pricePerUnit) || Number(product?.price) || 0
     const packLabel = product?.packSize || product?.packaging || '1 Pack'
 
-    // 1. New schema: quantityOptions array + pricePerUnit
+    // 1. Explicit packages (admin-defined, supports independent per-pack discounts)
+    if (product?.packages?.length > 0) {
+      const opts = product.packages.map((pkg, idx) => {
+        const price = Number(pkg.price) || 0
+        const oldPrice = Number(pkg.oldPrice) || Number(pkg.mrp) || 0
+        const units = Number(pkg.units) || 0
+        const perUnit = Number(pkg.perUnit) || (units > 0 ? price / units : price)
+        return {
+          id: pkg._id || `pkg_${idx}`,
+          label: pkg.label || (units > 0 ? `${units} × ${packLabel}` : packLabel),
+          price,
+          mrp: oldPrice > price ? oldPrice : price,
+          perUnit,
+          popular: Boolean(pkg.popular),
+        }
+      })
+      // Guarantee one option is flagged as the default selection
+      if (!opts.some(o => o.popular) && opts[0]) opts[0].popular = true
+      return opts
+    }
+
+    // 2. New schema: quantityOptions array + pricePerUnit (linear pricing)
     const validQtyOptions = (product?.quantityOptions || []).filter(q => Number(q) > 0);
     if (validQtyOptions.length > 0 && ppu > 0) {
       // Use oldPrice (new field) or mrp (backward-compat) only when it's actually higher than the selling price
@@ -56,18 +77,6 @@ function ProductDetail({ onBack }) {
         mrp: hasDiscount ? baseOldPrice * qty : ppu * qty,
         perUnit: ppu,
         popular: idx === 0,
-      }))
-    }
-
-    // 2. Legacy: explicit packages array
-    if (product?.packages?.length > 0) {
-      return product.packages.map((pkg, idx) => ({
-        id: pkg._id || idx,
-        label: pkg.label,
-        price: Number(pkg.price) || 0,
-        mrp: Number(pkg.mrp) || Number(pkg.price) || 0,
-        perUnit: pkg.perUnit || Number(pkg.price) || 0,
-        popular: pkg.popular,
       }))
     }
 

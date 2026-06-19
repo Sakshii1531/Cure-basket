@@ -157,8 +157,29 @@ function Medicines() {
       .map(n => Number(n.trim()))
       .filter(n => !isNaN(n) && n > 0);
 
+    // Normalize packs: keep only rows with a price, compute per-unit from units
+    const parsedPackages = (current.packages || [])
+      .filter(p => p.price !== '' && p.price != null && !isNaN(Number(p.price)))
+      .map(p => {
+        const price = Number(p.price);
+        const units = Number(p.units) || 0;
+        return {
+          label:    p.label || (units > 0 ? `${units} Pack` : '1 Pack'),
+          price,
+          oldPrice: p.oldPrice !== '' && p.oldPrice != null ? Number(p.oldPrice) : undefined,
+          units:    units > 0 ? units : undefined,
+          perUnit:  units > 0 ? Number((price / units).toFixed(2)) : price,
+          popular:  Boolean(p.popular),
+        };
+      });
+    // Ensure exactly one pack is flagged as "Best Value"
+    if (parsedPackages.length > 0 && !parsedPackages.some(p => p.popular)) {
+      parsedPackages[0].popular = true;
+    }
+
     const payload = {
       ...current,
+      packages: parsedPackages,
       quantityOptions: parsedQtyOptions.length > 0 ? parsedQtyOptions : [1],
       pricePerUnit:    Number(current.pricePerUnit),
       totalPrice:      Number(current.totalPrice),
@@ -189,6 +210,28 @@ function Medicines() {
       setSaving(false);
     }
   };
+
+  // ── Package (pack pricing) handlers ────────────────────────────────────────
+  const addPackage = () =>
+    setCurrent(c => ({
+      ...c,
+      packages: [...(c.packages || []), { label: '', price: '', oldPrice: '', units: '', popular: false }],
+    }));
+
+  const updatePackage = (idx, field, value) =>
+    setCurrent(c => ({
+      ...c,
+      packages: c.packages.map((p, i) => (i === idx ? { ...p, [field]: value } : p)),
+    }));
+
+  const removePackage = (idx) =>
+    setCurrent(c => ({ ...c, packages: c.packages.filter((_, i) => i !== idx) }));
+
+  const setPopularPackage = (idx) =>
+    setCurrent(c => ({
+      ...c,
+      packages: c.packages.map((p, i) => ({ ...p, popular: i === idx })),
+    }));
 
   // ── Excel upload handlers ──────────────────────────────────────────────────
   const handleExcelFileChange = (e) => {
@@ -494,6 +537,60 @@ function Medicines() {
                     </select>
                   </div>
                 </div>
+              </div>
+
+              {/* Section 2b: Pack Pricing (multiple packs with independent prices) */}
+              <div>
+                <div className="flex items-center justify-between border-b border-gray-100 pb-2 mb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900">Pack Pricing (Optional)</h4>
+                    <p className="text-[11px] text-gray-400 mt-0.5">Offer multiple packs at different prices (e.g. 1 Pack $1, 10 Pack $8). When set, these override the price fields above on the product page.</p>
+                  </div>
+                  <button type="button" onClick={addPackage} className="shrink-0 text-xs font-semibold text-primary border border-primary/40 rounded-lg px-3 py-1.5 hover:bg-primary/5">+ Add Pack</button>
+                </div>
+
+                {(!current.packages || current.packages.length === 0) ? (
+                  <p className="text-xs text-gray-400 italic">No packs added. The single price above will be used.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {current.packages.map((pkg, idx) => {
+                      const price = Number(pkg.price) || 0;
+                      const units = Number(pkg.units) || 0;
+                      const perUnit = units > 0 ? (price / units).toFixed(2) : (price ? price.toFixed(2) : '0.00');
+                      return (
+                        <div key={idx} className="grid grid-cols-2 md:grid-cols-12 gap-3 items-end bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <div className="md:col-span-3">
+                            <label className="text-[11px] font-semibold text-gray-600 block mb-1">Pack Label</label>
+                            <input type="text" placeholder="e.g. 10 Pack" value={pkg.label} onChange={e => updatePackage(idx, 'label', e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="text-[11px] font-semibold text-gray-600 block mb-1">Units</label>
+                            <input type="number" min="1" placeholder="10" value={pkg.units} onChange={e => updatePackage(idx, 'units', e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="text-[11px] font-semibold text-gray-600 block mb-1">Price ({current.priceLabel || 'USD'})</label>
+                            <input type="number" step="0.01" min="0" placeholder="8.00" value={pkg.price} onChange={e => updatePackage(idx, 'price', e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="text-[11px] font-semibold text-gray-600 block mb-1">Old Price</label>
+                            <input type="number" step="0.01" min="0" placeholder="optional" value={pkg.oldPrice} onChange={e => updatePackage(idx, 'oldPrice', e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                          </div>
+                          <div className="md:col-span-2 flex flex-col gap-1">
+                            <span className="text-[11px] font-semibold text-gray-600">Per unit</span>
+                            <span className="text-sm font-medium text-gray-700 py-2">${perUnit}</span>
+                          </div>
+                          <div className="md:col-span-1 flex items-center justify-end gap-3 pb-2">
+                            <label className="flex items-center gap-1 text-[11px] font-semibold text-gray-600 cursor-pointer" title="Mark as Best Value (default selected)">
+                              <input type="radio" name="popularPack" checked={Boolean(pkg.popular)} onChange={() => setPopularPackage(idx)} className="accent-primary" />
+                              Best
+                            </label>
+                            <button type="button" onClick={() => removePackage(idx)} className="text-red-500 hover:text-red-600 text-lg leading-none" title="Remove pack">×</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Section 3: Product Details */}
