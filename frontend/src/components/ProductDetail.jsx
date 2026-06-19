@@ -17,15 +17,20 @@ function ProductDetail({ onBack }) {
   const [product, setProduct] = useState(location.state?.product || null)
   const [productLoading, setProductLoading] = useState(!location.state?.product)
 
-  // Fetch product from API when accessed directly by URL (no navigation state)
+  // Always refetch the freshest product by id so newly-added packs/price changes
+  // show up. The navigation-state product (if any) is only an instant placeholder
+  // while the network request resolves.
   useEffect(() => {
-    if (!location.state?.product && urlId) {
-      setProductLoading(true)
-      api.get(`/medicines/${urlId}`)
-        .then(res => setProduct(res.data.data))
-        .catch(() => setProduct({ name: 'Product Not Found', category: 'General', image: productImg }))
-        .finally(() => setProductLoading(false))
-    }
+    if (!urlId) return
+    api.get(`/medicines/${urlId}`)
+      .then(res => setProduct(res.data.data))
+      .catch(() => {
+        // Keep the placeholder if we have one; only show "not found" on a cold load
+        if (!location.state?.product) {
+          setProduct({ name: 'Product Not Found', category: 'General', image: productImg })
+        }
+      })
+      .finally(() => setProductLoading(false))
   }, [urlId])
 
   if (productLoading) {
