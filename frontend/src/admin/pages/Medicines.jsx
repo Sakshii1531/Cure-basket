@@ -717,11 +717,11 @@ function Medicines() {
                   <div className="flex flex-col gap-3 pt-6">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
                       <input type="checkbox" checked={current.isNewAndBest || false} onChange={e => setCurrent({...current, isNewAndBest: e.target.checked})} className="w-4 h-4 rounded" />
-                      New & Best
+                      Now Available
                     </label>
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
                       <input type="checkbox" checked={current.isBestSeller || false} onChange={e => setCurrent({...current, isBestSeller: e.target.checked})} className="w-4 h-4 rounded" />
-                      Best Seller
+                      Customer Favourite
                     </label>
                   </div>
                 </div>

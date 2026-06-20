@@ -111,7 +111,7 @@ const FAQ = [
 
   // ── Browse / categories / brands ──────────────────────────────────────────
   { test: /(what (categor|brand)|browse|product range|catalog\b|list.*(categor|brand|product)|show.*(categor|brand)|all (categories|brands)|what.*you sell)/i,
-    answer: 'Browse everything from the menu — explore “Categories”, “Brands” or “Best Sellers”, or use the search bar to find a specific medicine.' },
+    answer: 'Browse everything from the menu — explore "Categories", "Brands" or "Customer Favourites", or use the search bar to find a specific medicine.' },
 
   // ── Contact / hours ───────────────────────────────────────────────────────
   { test: /(contact|phone number|email you|reach you|support hours|opening hours|business hours|customer care|helpline|address of)/i,
