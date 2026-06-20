@@ -81,7 +81,7 @@ const SignupPage = () => {
       // Opt the user into the newsletter if they left the box checked.
       // Fire-and-forget: a subscribe failure must not block account creation.
       if (subscribeNewsletter) {
-        api.post('/subscribers', { email: form.email }).catch(() => {})
+        api.post('/subscribers', { email: form.email }).catch(() => { })
       }
       const from = typeof location.state?.from === 'string'
         ? location.state.from
@@ -247,7 +247,7 @@ const SignupPage = () => {
           </div>
         </form>
       </div>
-      
+
       <p className="mt-6 text-center text-[11px] text-gray-400 font-medium">
         By creating an account, you agree to our{' '}
         <Link to="/terms-conditions" className="text-primary font-bold hover:underline">Terms</Link> &{' '}
