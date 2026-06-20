@@ -22,7 +22,7 @@ function discountBadge(price, mrp) {
 
 function SkeletonCard() {
   return (
-    <div className="min-w-42.5 md:min-w-100 bg-white rounded-[20px] md:rounded-3xl border border-gray-100 px-3 py-1.5 md:px-4 md:py-2.5 animate-pulse shrink-0">
+    <div className="w-42.5 md:w-100 bg-white rounded-[20px] md:rounded-3xl border border-gray-100 px-3 py-1.5 md:px-4 md:py-2.5 animate-pulse shrink-0">
       <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mt-1">
         <div className="w-full md:w-40 h-20 md:h-32 bg-gray-100 rounded-lg shrink-0" />
         <div className="w-full space-y-2 md:pt-2">
@@ -91,7 +91,7 @@ function BestSellers({ onProductClick }) {
                 <div
                   key={product._id}
                   onClick={() => handleClick(product)}
-                  className={`min-w-42.5 md:min-w-100 bg-white rounded-[20px] md:rounded-3xl border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-md transition-all shrink-0 ${
+                  className={`w-42.5 md:w-100 bg-white rounded-[20px] md:rounded-3xl border border-gray-100 md:border-gray-200 px-3 py-1.5 md:px-4 md:py-2.5 relative flex flex-col h-full cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.03)] md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-md transition-all shrink-0 ${
                     outOfStock ? 'bg-gray-50 opacity-60 cursor-not-allowed' : ''
                   }`}
                 >
@@ -115,7 +115,7 @@ function BestSellers({ onProductClick }) {
                         onError={e => { e.target.src = productImg }}
                       />
                     </div>
-                    <div className="flex flex-col w-full text-left md:pt-2">
+                    <div className="flex flex-col w-full min-w-0 text-left md:pt-8">
                       <h3 className="text-[13px] md:text-[18px] font-bold text-gray-900 leading-tight mb-0.5 line-clamp-2">
                         {product.name}
                       </h3>
