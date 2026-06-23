@@ -3,11 +3,6 @@ import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
 const DEFAULT_DATA = {
-  bankName: '',
-  accountName: '',
-  accountNumber: '',
-  ifsc: '',
-  branch: '',
   phone: '',
   email: '',
   address: '',
@@ -15,7 +10,7 @@ const DEFAULT_DATA = {
   prescriptionEmail: '',
 };
 
-function BankContact() {
+function ContactPrescription() {
   const [data, setData] = useState(DEFAULT_DATA);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -38,7 +33,7 @@ function BankContact() {
     e.preventDefault();
     try {
       await api.put('/settings/bank_contact', data);
-      showToast('Bank & Contact details updated successfully!');
+      showToast('Contact & prescription details updated successfully!');
     } catch (err) {
       showToast(err.response?.data?.error || 'Failed to save changes.', 'error');
     }
@@ -71,21 +66,13 @@ function BankContact() {
       )}
 
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Bank & Contact Details</h2>
-        <p className="text-gray-500 text-sm">Manage your bank account details and contact information.</p>
+        <h2 className="text-2xl font-bold text-gray-900">Contact & Prescription Details</h2>
+        <p className="text-gray-500 text-sm">Manage your contact information and prescription submission details.</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 p-6 max-w-4xl">
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {field('Bank Name', 'bankName')}
-            {field('Account Name', 'accountName')}
-            {field('Account Number', 'accountNumber')}
-            {field('IFSC Code', 'ifsc')}
-            {field('Branch', 'branch')}
-          </div>
-
-          <div className="border-t border-gray-100 pt-4">
+          <div>
             <h3 className="text-md font-bold text-gray-900 mb-4">Contact Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {field('Phone Number', 'phone')}
@@ -127,4 +114,4 @@ function BankContact() {
   );
 }
 
-export default BankContact;
+export default ContactPrescription;
