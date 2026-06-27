@@ -36,16 +36,6 @@ function ProductDetail({ onBack }) {
       .finally(() => setProductLoading(false))
   }, [urlId])
 
-  if (productLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#006D6D]"></div>
-      </div>
-    )
-  }
-
-  if (!product) return null
-
   // Dynamic Package Options
   const getPackageOptions = React.useCallback(() => {
     const ppu = Number(product?.pricePerUnit) || Number(product?.price) || 0
@@ -225,6 +215,21 @@ function ProductDetail({ onBack }) {
       })
       .catch(() => {})
   }, [showUploadModal, user?.email])
+
+  // All hooks above must run unconditionally on every render (Rules of Hooks) —
+  // these early returns for the loading/not-found states have to come after
+  // every hook, otherwise a cold load (no router-state product, e.g. a
+  // refreshed/shared/chatbot-generated /product/:id link) calls fewer hooks on
+  // the first render than on the next, which React treats as a crash.
+  if (productLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#006D6D]"></div>
+      </div>
+    )
+  }
+
+  if (!product) return null
 
   const submitReview = async () => {
     if (reviewForm.rating === 0) { setReviewError('Please select a star rating.'); return }
@@ -769,6 +774,9 @@ function ProductDetail({ onBack }) {
                       }
                     }}
                   >{pData.genericName}</span></div>
+                  {pData.salt && pData.salt !== 'N/A' && (
+                    <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Salt Composition:</span> <span className="text-gray-900 font-bold">{pData.salt}</span></div>
+                  )}
                   <div className="text-[12px] md:text-[13px]"><span className="text-gray-500 font-medium">Category:</span> <span
                     className="text-[#006D6D] font-bold cursor-pointer hover:underline"
                     onClick={() => {

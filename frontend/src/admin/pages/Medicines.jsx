@@ -10,7 +10,7 @@ const TEMPLATE_HEADERS = [
   'Title', 'Category', 'Price Label', 'Pack Size', 'Quantity Options',
   'Price Per Unit', 'Total Price', 'Old Price', 'Discount', 'Description',
   'Precautions', 'Side Effects', 'How To Use', 'SKU', 'Generic For',
-  'Active Ingredient', 'Manufacturer', 'Country Origin', 'Uses',
+  'Active Ingredient', 'Manufacturer', 'Country Origin', 'Uses', 'Packs',
 ];
 
 const TEMPLATE_SAMPLE = [
@@ -19,6 +19,7 @@ const TEMPLATE_SAMPLE = [
   'Avoid if allergic to paracetamol. Do not exceed recommended dose.',
   'Nausea, rash (rare)', 'Take 1-2 tablets every 4-6 hours as needed.',
   '10012', 'Acetaminophen', 'Paracetamol', 'Generic Pharma Inc.', 'USA', 'Pain relief, fever reduction',
+  '10 Tablets:10:5.00:6.00 | 30 Tablets:30:13.50:18.00',
 ];
 
 function downloadTemplate() {
@@ -803,6 +804,11 @@ function Medicines() {
                   <span key={h} className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-mono">{h}</span>
                 ))}
               </div>
+              <p className="text-[11px] text-emerald-700 mt-2">
+                <span className="font-semibold">Packs</span> (optional): add multiple pack sizes with their own prices, e.g.{' '}
+                <span className="font-mono bg-emerald-100 px-1 rounded">10 Tablets:10:5.00:6.00 | 30 Tablets:30:13.50:18.00</span>{' '}
+                — each pack is <span className="font-mono">Label:Units:Price:OldPrice</span> (OldPrice optional), separated by <span className="font-mono">|</span>. Leave blank to use the single Pack Size + Price fields instead.
+              </p>
             </div>
 
             {/* Step 2: Upload File */}
