@@ -316,6 +316,10 @@ const COLUMN_MAP = {
   'countryoforigin':   'countryOrigin',
   
   'uses':              'uses',
+
+  'packs':             'packs',
+  'pack pricing':      'packs',
+  'multiple packs':    'packs',
 };
 
 function normalizeHeader(h) {
@@ -335,6 +339,32 @@ function parsePrice(val) {
   const clean = String(val).replace(/[^\d.]/g, '');
   const parsed = parseFloat(clean);
   return isNaN(parsed) ? 0 : parsed;
+}
+
+// Parses the "Packs" column: multiple packs separated by "|", each pack as
+// "Label:Units:Price:OldPrice" (OldPrice optional). Mirrors the admin UI's
+// manual "Pack Pricing" rows so bulk-uploaded medicines get the same
+// multi-pack pricing shown on the product page.
+function parsePacks(val) {
+  if (!val) return undefined;
+  const packs = val.split('|').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
+    const [label, unitsStr, priceStr, oldPriceStr] = entry.split(':').map((s) => (s || '').trim());
+    const units = parseFloat(unitsStr) || undefined;
+    const price = parsePrice(priceStr);
+    const oldPrice = oldPriceStr ? parsePrice(oldPriceStr) : undefined;
+    return {
+      label: label || (units ? `${units} Pack` : '1 Pack'),
+      units,
+      price,
+      oldPrice,
+      perUnit: units ? Math.round((price / units) * 100) / 100 : undefined,
+      popular: false,
+    };
+  }).filter((p) => p.price > 0);
+
+  if (packs.length === 0) return undefined;
+  packs[0].popular = true; // same default as the admin "Pack Pricing" UI
+  return packs;
 }
 
 function buildMedicineDoc(row, categoryId) {
@@ -358,6 +388,9 @@ function buildMedicineDoc(row, categoryId) {
     manufacturer:     row.manufacturer || undefined,
     countryOrigin:    row.countryOrigin || undefined,
   };
+
+  const packages = parsePacks(row.packs);
+  if (packages) doc.packages = packages;
 
   if (row.oldPrice)  doc.oldPrice  = parsePrice(row.oldPrice);
   if (row.discount)  doc.discount  = parsePrice(row.discount);
