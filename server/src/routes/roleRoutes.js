@@ -16,7 +16,7 @@ const router = express.Router();
 router.use(protect, authorize('admin', 'superadmin'));
 
 router.route('/')
-  .get(can('roles', 'read'), getRoles)
+  .get(getRoles)  // Any authenticated admin/superadmin can list roles
   .post(can('roles', 'write'), createRoleRules, validate, createRole);
 
 router.route('/:id')

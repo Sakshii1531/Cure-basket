@@ -51,6 +51,9 @@ exports.authorize = (...roles) => {
 // Granular permission gate — checks module + action against the Role's permission matrix
 exports.can = (module, action) => {
   return (req, res, next) => {
+    // Superadmin has unrestricted access — bypass all granular checks
+    if (req.user.role === 'superadmin') return next();
+
     if (!req.user.can(module, action)) {
       return res.status(403).json({
         success: false,
