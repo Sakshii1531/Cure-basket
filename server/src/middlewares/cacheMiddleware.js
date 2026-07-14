@@ -7,7 +7,8 @@ const cache = (duration) => {
       return next();
     }
 
-    const key = `cb_cache_${req.originalUrl || req.url}`;
+    const userId = req.user ? `user:${req.user.id}:` : 'public:';
+    const key = `cb_cache:${userId}${req.originalUrl || req.url}`;
 
     try {
       const cachedData = await redis.get(key);
@@ -40,7 +41,7 @@ const cache = (duration) => {
 const clearCache = async (pattern) => {
   if (redis.status !== 'ready') return;
   try {
-    const keys = await redis.keys(`cb_cache_${pattern}*`);
+    const keys = await redis.keys(`cb_cache:*${pattern}*`);
     if (keys.length > 0) {
       await redis.del(keys);
       console.log(`Cleared cache for pattern: ${pattern}`);

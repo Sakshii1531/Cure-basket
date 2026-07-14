@@ -1,13 +1,43 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import uploadImg from '../assets/upload.png'
 import { useAuth } from '../context/AuthContext'
+import api from '../utils/api'
 
 function PrescriptionBanner() {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [uploadError, setUploadError] = useState('')
   const { isLoggedIn, setIsRxPromptOpen } = useAuth()
+  const fileInputRef = useRef(null)
+
+  const handleClose = () => {
+    setShowUploadModal(false)
+    setSelectedFile(null)
+    setUploadError('')
+    setUploadSuccess(false)
+  }
+
+  const handleAttach = async () => {
+    if (!selectedFile || isUploading) return
+    setIsUploading(true)
+    setUploadError('')
+    const formData = new FormData()
+    formData.append('prescription', selectedFile)
+    formData.append('submissionMethod', 'upload')
+    try {
+      await api.post('/prescriptions', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      setUploadSuccess(true)
+      setTimeout(() => { handleClose() }, 2000)
+    } catch (err) {
+      setUploadError(err.response?.data?.error || 'Upload failed. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   return (
     <section className="bg-white py-2 md:py-3 px-2 md:px-12">
@@ -72,7 +102,7 @@ function PrescriptionBanner() {
                 <p className="text-[11px] text-[#006D6D]/60 font-medium mt-0.5">Medicines require a valid doctor's prescription</p>
               </div>
               <button 
-                onClick={() => { setShowUploadModal(false); setSelectedFile(null); }}
+                onClick={handleClose}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-white hover:text-gray-600 transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/></svg>
@@ -82,16 +112,26 @@ function PrescriptionBanner() {
             <div className="p-8">
               {!uploadSuccess ? (
                 <div className="space-y-6">
+                  {/* Error */}
+                  {uploadError && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 text-[13px] px-4 py-3 rounded-2xl">
+                      {uploadError}
+                    </div>
+                  )}
+
                   {/* Upload Area */}
                   <div 
-                    onClick={() => document.getElementById('fileInput').click()}
+                    onClick={() => fileInputRef.current?.click()}
                     className={`relative border-2 border-dashed rounded-[24px] p-10 flex flex-col items-center justify-center cursor-pointer transition-all ${selectedFile ? 'border-[#006D6D] bg-[#E6F7F7]/10' : 'border-gray-200 hover:border-[#006D6D] hover:bg-[#E6F7F7]/5'}`}
                   >
                     <input 
                       type="file" 
-                      id="fileInput" 
+                      ref={fileInputRef}
                       className="hidden" 
-                      onChange={(e) => setSelectedFile(e.target.files[0])}
+                      onChange={(e) => {
+                        setSelectedFile(e.target.files[0] || null)
+                        setUploadError('')
+                      }}
                       accept="image/*,.pdf"
                     />
                     
@@ -102,6 +142,12 @@ function PrescriptionBanner() {
                         </div>
                         <p className="text-[14px] font-bold text-gray-900 truncate max-w-[200px]">{selectedFile.name}</p>
                         <p className="text-[11px] text-gray-400 mt-1">{(selectedFile.size / 1024).toFixed(1)} KB • Ready to upload</p>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setUploadError('') }}
+                          className="mt-2 text-red-500 text-[12px] font-bold hover:underline"
+                        >
+                          Remove file
+                        </button>
                       </div>
                     ) : (
                       <div className="text-center">
@@ -109,7 +155,7 @@ function PrescriptionBanner() {
                           <svg className="w-8 h-8 text-gray-300 group-hover:text-[#006D6D] transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2"/></svg>
                         </div>
                         <p className="text-[14px] font-bold text-gray-900">Drag & drop or <span className="text-[#006D6D]">browse</span></p>
-                        <p className="text-[11px] text-gray-400 mt-1.5">Supports JPG, PNG, PDF (Max 5MB)</p>
+                        <p className="text-[11px] text-gray-400 mt-1.5">Supports JPG, PNG, PDF (Max 10MB)</p>
                       </div>
                     )}
                   </div>
@@ -127,22 +173,15 @@ function PrescriptionBanner() {
                   {/* Actions */}
                   <div className="flex gap-3">
                     <button 
-                      onClick={() => { setShowUploadModal(false); setSelectedFile(null); }}
+                      onClick={handleClose}
                       className="flex-1 py-4 rounded-xl border-2 border-gray-100 text-gray-500 font-bold text-[14px] hover:bg-gray-50 transition-all"
                     >
                       Cancel
                     </button>
                     <button 
                       disabled={!selectedFile || isUploading}
-                      onClick={() => {
-                        setIsUploading(true);
-                        setTimeout(() => {
-                          setIsUploading(false);
-                          setUploadSuccess(true);
-                          setTimeout(() => { setShowUploadModal(false); setUploadSuccess(false); setSelectedFile(null); }, 2000);
-                        }, 1500);
-                      }}
-                      className={`flex-1 py-4 rounded-xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
+                      onClick={handleAttach}
+                      className={`flex-1 py-4 rounded-xl font-bold text-[14px] transition-all shadow-lg flex items-center justify-center gap-2 ${!selectedFile || isUploading ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-[#006D6D] text-white hover:bg-[#005a5a] shadow-[#006D6D]/20'}`}
                     >
                       {isUploading ? (
                         <>
@@ -158,8 +197,8 @@ function PrescriptionBanner() {
                   <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-500/20">
                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </div>
-                  <h3 className="text-[20px] font-bold text-gray-900 mb-2">Prescription Attached!</h3>
-                  <p className="text-[13px] text-gray-500">Your prescription has been successfully added.</p>
+                  <h3 className="text-[20px] font-bold text-gray-900 mb-2">Prescription Uploaded!</h3>
+                  <p className="text-[13px] text-gray-500">Your prescription has been successfully submitted. Our pharmacist will review it shortly.</p>
                 </div>
               )}
             </div>
@@ -177,3 +216,4 @@ function PrescriptionBanner() {
 }
 
 export default PrescriptionBanner
+

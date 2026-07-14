@@ -68,7 +68,9 @@ function Roles() {
         setError('');
       })
       .catch(err => {
-        setError(err.response?.data?.error || 'Failed to load roles');
+        const msg = err.response?.data?.error || 'Failed to load roles';
+        setError(msg);
+        toast.error(msg);
       })
       .finally(() => setLoading(false));
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
@@ -11,6 +11,7 @@ function UploadRxPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [error, setError] = useState('')
+  const fileInputRef = useRef(null)
 
   const [method, setMethod] = useState('upload')
   const [faxNumber, setFaxNumber] = useState('')
@@ -113,12 +114,12 @@ function UploadRxPage() {
                   pharmacyEmail={pharmacyEmail}
                 >
                 <div
-                  onClick={() => document.getElementById('fileInput').click()}
+                  onClick={() => fileInputRef.current?.click()}
                   className={`relative border-2 border-dashed rounded-[24px] p-6 flex flex-col items-center justify-center cursor-pointer transition-all ${selectedFile ? 'border-[#006D6D] bg-[#E6F7F7]/10' : 'border-gray-200 hover:border-[#006D6D] hover:bg-[#E6F7F7]/5'}`}
                 >
                   <input
                     type="file"
-                    id="fileInput"
+                    ref={fileInputRef}
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files[0]
