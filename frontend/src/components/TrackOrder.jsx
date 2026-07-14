@@ -71,7 +71,7 @@ const TrackOrder = () => {
   }
 
   return (
-    <div className="bg-[#f8f9fa] min-h-screen">
+    <div className="bg-[#f8f9fa] min-h-screen pb-20">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 md:px-12 py-3 sticky top-0 z-50 grid grid-cols-3 items-center">
         <div className="flex justify-start">

@@ -59,6 +59,10 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const medicineName = rx.medicine?.name || (rx.order?.items && rx.order.items.map(i => i.name).join(', ')) || 'N/A';
+  const packageLabel = rx.packageLabel || '—';
+  const quantityLabel = rx.quantity?.toString() || (rx.order?.items && rx.order.items.map(i => i.quantity).join(', ')) || '—';
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -207,9 +211,9 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
                 rx.submissionMethod === 'fax' ? 'Fax' :
                 rx.submissionMethod === 'email' ? 'Email' : 'Upload'
               } />
-              <InfoCard label="Medicine" value={rx.medicine?.name || 'N/A'} />
-              <InfoCard label="Package" value={rx.packageLabel} />
-              <InfoCard label="Quantity" value={rx.quantity?.toString()} />
+              <InfoCard label="Medicine" value={medicineName} />
+              <InfoCard label="Package" value={packageLabel} />
+              <InfoCard label="Quantity" value={quantityLabel} />
             </div>
           </section>
 
@@ -569,6 +573,11 @@ function Prescriptions() {
                   const linkedOrder = rx.order;
                   const isDeleting  = deletingId === rx._id;
 
+                  const medicineName = rx.medicine?.name || (linkedOrder?.items && linkedOrder.items.map(i => i.name).join(', ')) || 'N/A';
+                  const medicineImage = rx.medicine?.image || linkedOrder?.items?.[0]?.medicine?.image;
+                  const packageLabel = rx.packageLabel || '—';
+                  const quantityLabel = rx.quantity?.toString() || (linkedOrder?.items && linkedOrder.items.map(i => i.quantity).join(', ')) || '—';
+
                   return (
                     <tr
                       key={rx._id}
@@ -583,14 +592,14 @@ function Prescriptions() {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden shrink-0 border border-gray-100">
-                            {rx.medicine?.image
-                              ? <img src={rx.medicine.image} alt={rx.medicine.name} className="w-full h-full object-contain p-1"/>
+                            {medicineImage
+                              ? <img src={medicineImage} alt={medicineName} className="w-full h-full object-contain p-1"/>
                               : <svg className="w-4 h-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             }
                           </div>
                           <div className="min-w-0">
                             <span className="block font-bold text-gray-900 max-w-[130px] truncate text-[13px]">
-                              {rx.medicine?.name || 'N/A'}
+                              {medicineName}
                             </span>
                             {rx.submissionMethod === 'fax' && (
                               <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 text-purple-600 border border-purple-200">FAX</span>
@@ -604,8 +613,8 @@ function Prescriptions() {
 
                       {/* Pkg/Qty */}
                       <td className="px-5 py-4">
-                        <div className="text-xs font-bold text-gray-900">{rx.packageLabel || '—'}</div>
-                        <div className="text-[10px] text-gray-400">Qty: {rx.quantity || '—'}</div>
+                        <div className="text-xs font-bold text-gray-900">{packageLabel}</div>
+                        <div className="text-[10px] text-gray-400">Qty: {quantityLabel}</div>
                       </td>
 
                       {/* Customer */}

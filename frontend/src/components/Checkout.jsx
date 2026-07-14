@@ -1475,81 +1475,6 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[12px] font-bold text-gray-700 mb-1.5">
-                    Doctor's Prescription
-                    {rxRequired
-                      ? <span className="text-red-500 ml-1">* Required</span>
-                      : <span className="text-gray-400 ml-1">(Optional)</span>
-                    }
-                  </label>
-                  <div
-                    onClick={() => {
-                      setRxUploadError('')
-                      if (!uploadingRx && !uploadSuccess) fileInputRef.current.click()
-                    }}
-                    className={`border-2 border-dashed rounded-[12px] p-6 text-center bg-gray-50 transition-colors ${
-                      rxUploadError ? 'border-red-400 bg-red-50/10' :
-                      uploadSuccess ? 'border-green-400 bg-green-50/10' :
-                      'border-gray-200 hover:bg-gray-100/50 cursor-pointer'
-                    }`}
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={e => {
-                        setRxUploadError('')
-                        handleFileChange(e)
-                      }}
-                      accept="image/*,.pdf"
-                      className="hidden"
-                    />
-                    {uploadingRx ? (
-                      <div className="flex flex-col items-center justify-center py-2">
-                        <svg className="animate-spin h-8 w-8 text-[#006D6D] mb-2" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span className="text-[13px] font-bold text-gray-600 animate-pulse">Uploading prescription...</span>
-                      </div>
-                    ) : uploadSuccess ? (
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 shadow-md shadow-green-500/20">
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span className="text-[13.5px] font-bold text-gray-900 truncate max-w-[280px]">{selectedRxFile?.name}</span>
-                        <p className="text-[11px] text-green-600 font-bold mt-1">Uploaded successfully!</p>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setSelectedRxFile(null)
-                            setUploadedRxId(null)
-                            setUploadSuccess(false)
-                            setRxError('')
-                            if (fileInputRef.current) fileInputRef.current.value = ''
-                          }}
-                          className="mt-3 text-red-500 hover:text-red-700 text-[11px] font-black uppercase tracking-wider hover:underline"
-                        >
-                          Remove file
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                        </svg>
-                        <span className="text-[13px] font-bold text-gray-600">Choose file or drag here to upload</span>
-                        <p className="text-[10px] text-gray-400 mt-1">PDF, JPG, PNG up to 5MB</p>
-                      </>
-                    )}
-                  </div>
-                  {rxError && <p className="text-[11px] text-red-500 font-bold mt-1.5">{rxError}</p>}
-                  {rxUploadError && <p className="text-[11px] text-red-500 font-bold mt-1.5">{rxUploadError}</p>}
-                </div>
-
                 <div className="pt-4 flex gap-4">
                   <button
                     onClick={() => setActiveTab('shipping')}
@@ -1559,10 +1484,6 @@ const Checkout = () => {
                   </button>
                   <button
                     onClick={() => {
-                      if (rxRequired && !uploadSuccess) {
-                        setRxUploadError('Please upload your prescription to continue.')
-                        return
-                      }
                       if (!validateMedicalForm()) {
                         return
                       }

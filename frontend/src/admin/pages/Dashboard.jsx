@@ -4,9 +4,9 @@ import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import DashboardChat from '../components/DashboardChat';
 
-function StatCard({ name, value, loading }) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
+function StatCard({ name, value, loading, to }) {
+  const cardContent = (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 h-full">
       {loading ? (
         <div className="animate-pulse space-y-2">
           <div className="h-8 bg-gray-100 rounded w-2/3" />
@@ -20,6 +20,16 @@ function StatCard({ name, value, loading }) {
       )}
     </div>
   );
+
+  if (to && !loading) {
+    return (
+      <Link to={to} className="block h-full group">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 
 const STATUS_COLORS = {
@@ -51,13 +61,13 @@ function Dashboard() {
   }, [authLoading, user]);
 
   const stats = summary ? [
-    { name: 'Total Orders', value: summary.orders.total.toLocaleString() },
-    { name: 'Orders This Month', value: summary.orders.thisMonth.toLocaleString() },
-    { name: 'Revenue This Month', value: `$${summary.revenue.thisMonth.toLocaleString()}` },
-    { name: 'Total Users', value: summary.users.total.toLocaleString() },
-    { name: 'Total Medicines', value: summary.medicines.total.toLocaleString() },
-    { name: 'Pending Prescriptions', value: summary.prescriptions.pending.toLocaleString() },
-  ] : Array(6).fill({ name: '', value: '' });
+    { name: 'Total Orders', value: summary.orders.total.toLocaleString(), to: '/admin/orders' },
+    { name: 'Orders This Month', value: summary.orders.thisMonth.toLocaleString(), to: '/admin/orders' },
+    { name: 'Revenue This Month', value: `$${summary.revenue.thisMonth.toLocaleString()}`, to: '/admin/analytics' },
+    { name: 'Total Users', value: summary.users.total.toLocaleString(), to: '/admin/users' },
+    { name: 'Total Medicines', value: summary.medicines.total.toLocaleString(), to: '/admin/medicines' },
+    { name: 'Pending Prescriptions', value: summary.prescriptions.pending.toLocaleString(), to: '/admin/prescriptions' },
+  ] : Array(6).fill({ name: '', value: '', to: '' });
 
   return (
     <div className="space-y-8">
@@ -72,7 +82,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat, i) => (
-          <StatCard key={i} name={stat.name} value={stat.value} loading={loading} />
+          <StatCard key={i} name={stat.name} value={stat.value} loading={loading} to={stat.to} />
         ))}
       </div>
 

@@ -136,7 +136,14 @@ exports.getPrescriptions = async (req, res, next) => {
       Prescription.find(filter)
         .populate('user', 'name email')
         .populate('medicine', 'name image')
-        .populate('order', '_id status totalAmount createdAt')
+        .populate({
+          path: 'order',
+          select: '_id status totalAmount createdAt items',
+          populate: {
+            path: 'items.medicine',
+            select: 'image'
+          }
+        })
         .sort('-createdAt')
         .skip(skip)
         .limit(limit),
@@ -164,7 +171,16 @@ exports.updatePrescriptionStatus = async (req, res, next) => {
       req.params.id,
       { status: req.body.status, notes: req.body.notes },
       { new: true, runValidators: true }
-    ).populate('user', 'name email');
+    ).populate('user', 'name email')
+     .populate('medicine', 'name image')
+     .populate({
+       path: 'order',
+       select: '_id status totalAmount createdAt items',
+       populate: {
+         path: 'items.medicine',
+         select: 'image'
+       }
+     });
 
     if (!prescription) {
       return res.status(404).json({ success: false, error: 'Prescription not found' });

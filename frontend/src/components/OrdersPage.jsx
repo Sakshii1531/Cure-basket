@@ -95,18 +95,10 @@ export function OrderDetailDrawer({ order, onClose }) {
   })
 
   const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  let shippingFee = 0;
-  let discount = 0;
-
-  if (order.totalAmount > subtotal) {
-    shippingFee = order.totalAmount - subtotal;
-  } else if (order.totalAmount < subtotal) {
-    discount = subtotal - order.totalAmount;
-  } else {
-    shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
-  }
-
-  const displayedTotal = subtotal + shippingFee - discount;
+  // Use settings-based shipping fee: if subtotal meets free threshold, no fee; otherwise apply configured fee.
+  const shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
+  // Compute total as subtotal + shipping so breakdown always adds up.
+  const displayedTotal = subtotal + shippingFee;
 
   return (
     <>
@@ -265,13 +257,6 @@ export function OrderDetailDrawer({ order, onClose }) {
                 </div>
               )}
 
-              {discount > 0 && (
-                <div className="flex justify-between text-[12.5px] text-green-600">
-                  <span>Discount</span>
-                  <span className="font-semibold">-${discount.toFixed(2)}</span>
-                </div>
-              )}
-
               <div className="border-t border-gray-200 pt-2.5 mt-1 flex justify-between">
                 <span className="text-[14px] font-black text-gray-900">Total</span>
                 <span className="text-[16px] font-black text-[#006D6D]">${displayedTotal.toFixed(2)}</span>
@@ -377,19 +362,9 @@ const OrdersPage = () => {
             // Show first item name as preview
             const previewItem = order.items?.[0]
 
-            const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            let shippingFee = 0;
-            let discount = 0;
-
-            if (order.totalAmount > subtotal) {
-              shippingFee = order.totalAmount - subtotal;
-            } else if (order.totalAmount < subtotal) {
-              discount = subtotal - order.totalAmount;
-            } else {
-              shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
-            }
-
-            const displayedTotal = subtotal + shippingFee - discount;
+            const cardSubtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const cardShipping = (freeThreshold > 0 && cardSubtotal >= freeThreshold) ? 0 : shippingCharges;
+            const displayedTotal = cardSubtotal + cardShipping;
 
             return (
               <div key={order._id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
