@@ -43,6 +43,7 @@ const SignupPage = () => {
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(true)
 
   const dialCode = (COUNTRY_CODES.find((c) => c.code === country) || COUNTRY_CODES[0]).dial
@@ -50,12 +51,13 @@ const SignupPage = () => {
   const validate = () => {
     const errs = {}
     if (!form.name.trim()) errs.name = 'Full name is required'
+    else if (/\d/.test(form.name)) errs.name = 'Full name cannot contain numbers'
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email'
     const localDigits = form.phone.replace(/\D/g, '')
     if (!form.phone.trim()) {
       errs.phone = 'Phone number is required'
-    } else if (localDigits.length < 6 || localDigits.length > 14) {
+    } else if (localDigits.length !== 10) {
       errs.phone = 'Enter a valid phone number'
     }
     if (!form.password || form.password.length < 8) {
@@ -95,8 +97,14 @@ const SignupPage = () => {
   }
 
   const handleChange = (e) => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-    setErrors(er => ({ ...er, [e.target.name]: '' }))
+    let { name, value } = e.target
+    if (name === 'name') {
+      value = value.replace(/\d/g, '')
+    } else if (name === 'phone') {
+      value = value.replace(/\D/g, '').slice(0, 10)
+    }
+    setForm(f => ({ ...f, [name]: value }))
+    setErrors(er => ({ ...er, [name]: '' }))
     setApiError('')
   }
 
@@ -181,42 +189,70 @@ const SignupPage = () => {
 
           <div>
             <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-0.5 block">Password</label>
-            <input
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              value={form.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              className={`w-full border-2 rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
-            />
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                className={`w-full border-2 rounded-xl pl-4 pr-12 py-2 text-[13px] font-medium outline-none transition-all ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10 cursor-pointer"
+                tabIndex={-1}
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            </div>
             {errors.password && <p className="text-red-500 text-[10px] mt-0.5 font-medium">{errors.password}</p>}
           </div>
 
           <div>
             <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-0.5 block">Confirm Password</label>
-            <input
-              name="confirmPassword"
-              type={showPassword ? 'text' : 'password'}
-              value={form.confirmPassword}
-              onChange={handleChange}
-              placeholder="••••••••"
-              className={`w-full border-2 rounded-xl px-4 py-2 text-[13px] font-medium outline-none transition-all ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
-            />
+            <div className="relative">
+              <input
+                name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={handleChange}
+                placeholder="••••••••"
+                className={`w-full border-2 rounded-xl pl-4 pr-12 py-2 text-[13px] font-medium outline-none transition-all ${errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-100 focus:border-primary bg-gray-50 focus:bg-white'}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(v => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10 cursor-pointer"
+                tabIndex={-1}
+                aria-label="Toggle confirm password visibility"
+              >
+                {showConfirmPassword ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            </div>
             {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-0.5 font-medium">{errors.confirmPassword}</p>}
           </div>
 
-          <div className="flex items-center gap-2 mt-1">
-            <input
-              type="checkbox"
-              id="show-passwords"
-              checked={showPassword}
-              onChange={(e) => setShowPassword(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-            />
-            <label htmlFor="show-passwords" className="text-[12px] font-bold text-gray-600 cursor-pointer select-none">
-              Show Password
-            </label>
-          </div>
 
           <div className="flex items-start gap-2 mt-1">
             <input

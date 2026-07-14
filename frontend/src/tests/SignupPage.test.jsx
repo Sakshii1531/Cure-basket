@@ -29,13 +29,14 @@ describe('SignupPage Password & Confirm Password Fields', () => {
     );
   };
 
-  it('renders password and confirm password fields with show password checkbox', () => {
+  it('renders password and confirm password fields with eye toggle buttons', () => {
     renderComponent();
 
-    expect(screen.getByLabelText(/Show password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Toggle password visibility')).toBeInTheDocument();
+    expect(screen.getByLabelText('Toggle confirm password visibility')).toBeInTheDocument();
   });
 
-  it('toggles password type between password and text', async () => {
+  it('toggles password type between password and text using eye toggle buttons', async () => {
     renderComponent();
 
     const inputs = screen.getAllByPlaceholderText('••••••••');
@@ -45,17 +46,22 @@ describe('SignupPage Password & Confirm Password Fields', () => {
     expect(pwdInput.type).toBe('password');
     expect(confirmPwdInput.type).toBe('password');
 
-    // Toggle the checkbox
-    const checkbox = screen.getByLabelText(/Show password/i);
-    fireEvent.click(checkbox);
+    // Toggle password eye button
+    const pwdToggle = screen.getByLabelText('Toggle password visibility');
+    fireEvent.click(pwdToggle);
+    expect(pwdInput.type).toBe('text');
+    expect(confirmPwdInput.type).toBe('password');
 
+    // Toggle confirm password eye button
+    const confirmPwdToggle = screen.getByLabelText('Toggle confirm password visibility');
+    fireEvent.click(confirmPwdToggle);
     expect(pwdInput.type).toBe('text');
     expect(confirmPwdInput.type).toBe('text');
 
-    // Toggle again to hide
-    fireEvent.click(checkbox);
+    // Toggle password again to hide
+    fireEvent.click(pwdToggle);
     expect(pwdInput.type).toBe('password');
-    expect(confirmPwdInput.type).toBe('password');
+    expect(confirmPwdInput.type).toBe('text');
   });
 
   it('validates that confirm password matches password', async () => {
