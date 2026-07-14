@@ -4,6 +4,15 @@ import api from '../../utils/api';
 import { SkeletonTable } from '../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
 
+// Built-in Super Admin role — not stored in DB, always shown at top
+const SUPER_ADMIN_ROLE = {
+  _id: '__superadmin__',
+  name: 'Super Admin',
+  isBuiltIn: true,
+  permissions: [], // Has access to everything — special-cased in UI
+  createdAt: null,
+};
+
 const MODULES = [
   { id: 'medicines', name: 'Medicines' },
   { id: 'categories', name: 'Categories' },
@@ -24,7 +33,8 @@ const MODULES = [
 const ACTIONS = ['read', 'write', 'delete'];
 
 function Roles() {
-  const { can } = useAuth();
+  const { can, user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -248,7 +258,7 @@ function Roles() {
           <h2 className="text-2xl font-bold text-gray-900">Roles & Permissions</h2>
           <p className="text-gray-500 text-sm">Configure staff roles and customize their read, write, and do-not-access permissions.</p>
         </div>
-        {(can('roles', 'write') || !can) && (
+        {(isSuperAdmin || can('roles', 'write')) && (
           <button
             onClick={openAddModal}
             className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-dark transition-colors flex items-center gap-2 shadow-sm"
@@ -279,6 +289,37 @@ function Roles() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
+                {/* ── Built-in Super Admin row ── */}
+                <tr className="text-sm bg-indigo-50/60 hover:bg-indigo-50 transition-colors border-b border-indigo-100">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-indigo-700">Super Admin</span>
+                      <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                        BUILT-IN
+                      </span>
+                      {isSuperAdmin && (
+                        <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          ● YOU
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 max-w-xs md:max-w-md lg:max-w-xl">
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="bg-indigo-100 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-md">All Modules</span>
+                      <span className="bg-indigo-100 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-md">Full Access (Read + Write + Delete)</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-400 text-xs italic">System default</td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="text-xs text-gray-400 italic">Cannot be modified</span>
+                  </td>
+                </tr>
+
+                {/* ── Custom roles from DB ── */}
                 {roles.map((role) => {
                   const allowedModules = role.permissions
                     .filter(p => p.actions.length > 0)
@@ -306,24 +347,28 @@ function Roles() {
                       <td className="px-6 py-4 text-gray-500">{new Date(role.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openEditModal(role)}
-                            className="p-1.5 text-gray-400 hover:text-primary hover:bg-teal-50 rounded-lg transition-colors"
-                            title="Edit Role"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.128-1.897l8.934-8.934Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => setDeleteId(role._id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Role"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
+                          {(isSuperAdmin || can('roles', 'write')) && (
+                            <button
+                              onClick={() => openEditModal(role)}
+                              className="p-1.5 text-gray-400 hover:text-primary hover:bg-teal-50 rounded-lg transition-colors"
+                              title="Edit Role"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.128-1.897l8.934-8.934Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                              </svg>
+                            </button>
+                          )}
+                          {(isSuperAdmin || can('roles', 'delete')) && (
+                            <button
+                              onClick={() => setDeleteId(role._id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Role"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
