@@ -204,7 +204,7 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
                         onClick={(e) => {
                           e.stopPropagation()
                           if (!outOfStock) {
-                            guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                            guardedAction(() => { addToCart(product) })()
                           }
                         }}
                         className={`flex items-center gap-1 md:gap-2 px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[11px] md:text-[13px] font-black transition-all ${

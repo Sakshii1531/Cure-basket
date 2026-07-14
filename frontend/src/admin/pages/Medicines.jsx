@@ -45,6 +45,16 @@ const EMPTY_FORM = {
 };
 
 function Medicines() {
+  const updateDiscount = (totalPriceVal, oldPriceVal) => {
+    const total = parseFloat(totalPriceVal);
+    const old = parseFloat(oldPriceVal);
+    if (!isNaN(total) && !isNaN(old) && old > total && old > 0) {
+      const pct = ((old - total) / old) * 100;
+      return pct.toFixed(2);
+    }
+    return '';
+  };
+
   const [medicines, setMedicines] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -59,6 +69,7 @@ function Medicines() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [current, setCurrent] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Excel upload state
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
@@ -82,6 +93,21 @@ function Medicines() {
       .catch(err => setError(err.response?.data?.error || 'Failed to load data'))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (isModalOpen || isExcelModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen, isExcelModalOpen]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
 
   const filtered = medicines.filter(m => {
     const displayName = m.title || m.name || '';
@@ -151,6 +177,51 @@ function Medicines() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    if (current.image === '__uploading__') {
+      toast.error('Please wait for the image to finish uploading');
+      return;
+    }
+
+    const pricePerUnit = Number(current.pricePerUnit);
+    const totalPrice = Number(current.totalPrice);
+
+    if (isNaN(pricePerUnit) || pricePerUnit <= 0) {
+      setSaveError('Price Per Unit must be greater than 0');
+      return;
+    }
+
+    if (isNaN(totalPrice) || totalPrice <= 0) {
+      setSaveError('Total Price must be greater than 0');
+      return;
+    }
+
+    if (current.oldPrice !== '' && current.oldPrice != null) {
+      const oldPrice = Number(current.oldPrice);
+      if (isNaN(oldPrice) || oldPrice <= 0) {
+        setSaveError('Old Price must be greater than 0');
+        return;
+      }
+      if (oldPrice <= totalPrice) {
+        setSaveError('Old Price must be greater than Total Price');
+        toast.error('Old Price must be greater than Total Price');
+        return;
+      }
+    }
+
+    if (/\d/.test(current.countryOrigin)) {
+      setSaveError('Country of Origin cannot contain numbers');
+      toast.error('Country of Origin cannot contain numbers');
+      return;
+    }
+
+    const stock = Number(current.stock);
+    if (isNaN(stock) || stock <= 0) {
+      setSaveError('Stock must be greater than 0');
+      toast.error('Stock must be greater than 0');
+      return;
+    }
+
     setSaving(true);
     setSaveError('');
     const parsedQtyOptions = String(current.quantityOptions)
@@ -293,6 +364,13 @@ function Medicines() {
     if (excelInputRef.current) excelInputRef.current.value = '';
   };
 
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedMedicines = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -332,7 +410,7 @@ function Medicines() {
             type="text"
             placeholder="Search medicines..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value.replace(/\s/g, ''))}
             className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full"
           />
           <svg className="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,7 +449,7 @@ function Medicines() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((med) => (
+                {paginatedMedicines.map((med) => (
                   <tr key={med._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
@@ -432,11 +510,84 @@ function Medicines() {
                     </td>
                   </tr>
                 ))}
-                {filtered.length === 0 && (
+                {paginatedMedicines.length === 0 && (
                   <tr><td colSpan="7" className="px-6 py-8 text-center text-gray-400 text-sm">No medicines found.</td></tr>
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-gray-100 bg-white px-4 py-3 sm:px-6 rounded-b-xl border-x border-b border-gray-100">
+            <div className="flex flex-1 justify-between sm:hidden">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing{' '}
+                  <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span>{' '}
+                  to{' '}
+                  <span className="font-medium">
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}
+                  </span>{' '}
+                  of <span className="font-medium">{filtered.length}</span> results
+                </p>
+              </div>
+              <div>
+                <nav className="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                  >
+                    <span className="sr-only">Previous</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      aria-current={currentPage === page ? 'page' : undefined}
+                      className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 ${
+                        currentPage === page
+                          ? 'z-10 bg-primary text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+                          : 'text-gray-900 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:outline-offset-0'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                  >
+                    <span className="sr-only">Next</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -513,23 +664,69 @@ function Medicines() {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Price Per Unit ({current.priceLabel || 'USD'}) <span className="text-red-500">*</span></label>
-                    <input type="number" step="0.01" min="0" placeholder="0.00" value={current.pricePerUnit} onChange={e => setCurrent({...current, pricePerUnit: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                    <input type="number" step="0.01" min="0.01" placeholder="0.00" value={current.pricePerUnit} onChange={e => setCurrent({...current, pricePerUnit: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Total Price ({current.priceLabel || 'USD'}) <span className="text-red-500">*</span></label>
-                    <input type="number" step="0.01" min="0" placeholder="0.00" value={current.totalPrice} onChange={e => setCurrent({...current, totalPrice: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      min="0.01" 
+                      placeholder="0.00" 
+                      value={current.totalPrice} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCurrent(prev => ({
+                          ...prev,
+                          totalPrice: val,
+                          discount: updateDiscount(val, prev.oldPrice)
+                        }));
+                      }} 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" 
+                      required 
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Old Price ({current.priceLabel || 'USD'})</label>
-                    <input type="number" step="0.01" min="0" placeholder="Leave blank if no discount" value={current.oldPrice} onChange={e => setCurrent({...current, oldPrice: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      min="0.01" 
+                      placeholder="Leave blank if no discount" 
+                      value={current.oldPrice} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCurrent(prev => ({
+                          ...prev,
+                          oldPrice: val,
+                          discount: updateDiscount(prev.totalPrice, val)
+                        }));
+                      }} 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" 
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Discount (%)</label>
                     <input type="number" step="0.01" min="0" max="100" placeholder="0" value={current.discount} onChange={e => setCurrent({...current, discount: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Stock</label>
-                    <input type="number" min="0" value={current.stock} onChange={e => setCurrent({...current, stock: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Stock <span className="text-red-500">*</span></label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      step="1" 
+                      placeholder="e.g. 100" 
+                      value={current.stock} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val !== '' && Number(val) <= 0) {
+                          toast.error('Stock must be greater than 0');
+                        }
+                        setCurrent({...current, stock: val});
+                      }} 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" 
+                      required 
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Status</label>
@@ -614,7 +811,7 @@ function Medicines() {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Country of Origin</label>
-                    <input type="text" value={current.countryOrigin} onChange={e => setCurrent({...current, countryOrigin: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. India" />
+                    <input type="text" value={current.countryOrigin} onChange={e => setCurrent({...current, countryOrigin: e.target.value.replace(/\d/g, '')})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. India" />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Packaging</label>
@@ -756,8 +953,12 @@ function Medicines() {
               )}
               <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-gray-200 rounded-lg font-semibold text-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60">
-                  {saving ? 'Saving...' : 'Save Medicine'}
+                <button 
+                  type="submit" 
+                  disabled={saving || current.image === '__uploading__'} 
+                  className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-60"
+                >
+                  {saving ? 'Saving...' : (current.image === '__uploading__' ? 'Uploading Image...' : 'Save Medicine')}
                 </button>
               </div>
             </form>

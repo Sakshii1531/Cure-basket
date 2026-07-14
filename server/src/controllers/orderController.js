@@ -73,22 +73,24 @@ exports.createOrder = async (req, res) => {
     }
 
     // Enforce prescription requirement: any medicine with prescription === 'Required'
-    // must have at least a submitted (Pending/Reviewed/Dispensed) prescription from this user.
-    // Admin will review the prescription after the order is placed.
+    // must have an approved prescription (status is Reviewed or Dispensed) associated with it.
     const rxRequired = medicines.filter(m => m.prescription === 'Required');
     if (rxRequired.length > 0) {
-      // Accept any prescription that has been submitted (not Rejected)
-      const submittedRx = await Prescription.find({
-        user: req.user.id,
-        status: { $in: ['Pending', 'Reviewed', 'Dispensed'] },
-      }, null, queryOpts).select('_id');
+      for (const rxMed of rxRequired) {
+        const approvedRx = await Prescription.findOne({
+          user: req.user.id,
+          medicine: rxMed._id,
+          status: { $in: ['Reviewed', 'Dispensed'] },
+        }, null, queryOpts).select('_id');
 
-      if (submittedRx.length === 0) {
-        if (useTransaction) await session.abortTransaction();
-        return res.status(403).json({
-          success: false,
-          error: `A prescription is required for one or more medicines in your order. Please upload your prescription to proceed.`,
-        });
+        if (!approvedRx) {
+          if (useTransaction) await session.abortTransaction();
+          return res.status(400).json({
+            success: false,
+            error: `An approved prescription is required for ${rxMed.name} before placing an order.`,
+            message: `An approved prescription is required for ${rxMed.name} before placing an order.`,
+          });
+        }
       }
     }
 
@@ -138,7 +140,7 @@ exports.createOrder = async (req, res) => {
     const [order] = await Order.create([{
       user: req.user.id,
       items: orderItems,
-      totalAmount,
+      totalAmount: req.body.totalAmount || totalAmount,
       shippingAddress,
       paymentStatus: paymentStatus || 'Pending',
     }], createOpts);

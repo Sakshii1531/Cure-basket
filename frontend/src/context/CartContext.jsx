@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 const CartContext = createContext(null);
 
@@ -37,6 +38,7 @@ export function CartProvider({ children }) {
         mrp:   pkg ? pkg.mrp   : (product.mrp ?? product.pricePerUnit ?? product.price),
       }];
     });
+    toast.success('Added to cart!');
   };
 
   const removeFromCart = (itemKey) => {

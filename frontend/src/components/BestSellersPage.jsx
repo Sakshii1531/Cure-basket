@@ -132,7 +132,7 @@ function BestSellersPage({ onBack }) {
                       onClick={(e) => {
                         e.stopPropagation()
                         if (!outOfStock) {
-                          guardedAction(() => { addToCart(product); toast.success('Added to cart!') })()
+                          guardedAction(() => { addToCart(product) })()
                         }
                       }}
                       className={`w-8 h-8 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform ${

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -6,9 +6,21 @@ const LoginPage = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [form, setForm] = useState({ email: '', password: '' })
+  const [form, setForm] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('cb_login_form')
+      if (stored) {
+        return JSON.parse(stored)
+      }
+    } catch (e) {}
+    return { email: '', password: '' }
+  })
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
+
+  useEffect(() => {
+    sessionStorage.setItem('cb_login_form', JSON.stringify(form))
+  }, [form])
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const togglePassword = useCallback(() => setShowPassword(v => !v), [])
@@ -29,6 +41,7 @@ const LoginPage = () => {
     setApiError('')
     try {
       await login(form.email, form.password)
+      sessionStorage.removeItem('cb_login_form')
       const from = typeof location.state?.from === 'string'
         ? location.state.from
         : (location.state?.from?.pathname || '/account')

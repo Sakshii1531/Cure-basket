@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
 import { OrderDetailDrawer } from './OrdersPage'
@@ -10,6 +11,8 @@ const AccountPage = () => {
   const [activeTab, setActiveTab] = useState('My Orders')
   const [orders, setOrders] = useState([])
   const [loadingOrders, setLoadingOrders] = useState(true)
+  const [shippingCharges, setShippingCharges] = useState(0)
+  const [freeThreshold, setFreeThreshold] = useState(0)
   
   const [addresses, setAddresses] = useState([])
   const [wishlistItems, setWishlistItems] = useState([])
@@ -33,21 +36,59 @@ const AccountPage = () => {
   })
   const [addressSaving, setAddressSaving] = useState(false)
   const [addressError, setAddressError] = useState('')
+  const [editingAddressId, setEditingAddressId] = useState(null)
+  const [deleteAddressId, setDeleteAddressId] = useState(null)
 
   const handleAddAddressSubmit = async (e) => {
     e.preventDefault()
+
+    // Validate city name (no digits allowed)
+    if (/\d/.test(addressForm.city)) {
+      setAddressError('City name cannot contain numbers.')
+      return
+    }
+
     setAddressSaving(true)
     setAddressError('')
     try {
-      const res = await api.post('/auth/me/addresses', addressForm)
+      let res;
+      if (editingAddressId) {
+        res = await api.put(`/auth/me/addresses/${editingAddressId}`, addressForm)
+        toast.success('Address updated successfully.')
+      } else {
+        res = await api.post('/auth/me/addresses', addressForm)
+        toast.success('Address added successfully.')
+      }
       setAddresses(res.data.addresses)
-      setShowAddressModal(false)
-      setAddressForm({ name: '', street: '', city: '', phone: '' })
+      closeAddressModal()
     } catch (err) {
       setAddressError(err.response?.data?.error || 'Failed to save address. Please try again.')
     } finally {
       setAddressSaving(false)
     }
+  }
+
+  const closeAddressModal = () => {
+    setShowAddressModal(false)
+    setEditingAddressId(null)
+    setAddressForm({ name: '', street: '', city: '', phone: '' })
+    setAddressError('')
+  }
+
+  const handleEditAddressClick = (addr) => {
+    setEditingAddressId(addr._id)
+    setAddressForm({
+      name: addr.name,
+      street: addr.street,
+      city: addr.city,
+      phone: addr.phone
+    })
+    setAddressError('')
+    setShowAddressModal(true)
+  }
+
+  const handleDeleteAddressClick = (addressId) => {
+    setDeleteAddressId(addressId)
   }
 
   useEffect(() => {
@@ -77,6 +118,18 @@ const AccountPage = () => {
 
   // ── Change Password Modal ──────────────────────────────────────────────────
   const [showPwModal, setShowPwModal] = useState(false)
+
+  useEffect(() => {
+    if (showAddressModal || showPwModal || deleteAddressId) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [showAddressModal, showPwModal, deleteAddressId])
+
   const [pwTab, setPwTab] = useState('current') // 'current' | 'email'
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
   const [pwLoading, setPwLoading] = useState(false)
@@ -177,6 +230,17 @@ const AccountPage = () => {
         .then(res => setOrders(res.data.data || []))
         .catch(err => console.error(err))
         .finally(() => setLoadingOrders(false))
+
+      api.get('/settings/public/order_shipping')
+        .then(res => {
+          if (res.data && res.data.data) {
+            const charges = parseFloat(res.data.data.shippingCharges);
+            const threshold = parseFloat(res.data.data.freeShippingThreshold);
+            if (!isNaN(charges)) setShippingCharges(charges);
+            if (!isNaN(threshold)) setFreeThreshold(threshold);
+          }
+        })
+        .catch(() => {});
 
       setLoadingReviews(true)
       api.get('/reviews/my-reviews')
@@ -290,6 +354,19 @@ const AccountPage = () => {
               <h3 className="text-[17px] font-bold text-gray-800 border-b border-gray-100 pb-2 mb-4">Your Recent Orders</h3>
               {orders.map((order) => {
                 const itemCount = (order.items || []).length
+                const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                let shippingFee = 0;
+                let discount = 0;
+
+                if (order.totalAmount > subtotal) {
+                  shippingFee = order.totalAmount - subtotal;
+                } else if (order.totalAmount < subtotal) {
+                  discount = subtotal - order.totalAmount;
+                } else {
+                  shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
+                }
+
+                const displayedTotal = subtotal + shippingFee - discount;
                 return (
                   <div key={order._id} className="border border-gray-100 rounded-xl p-4 bg-gray-50/50 hover:bg-gray-50 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
@@ -301,7 +378,7 @@ const AccountPage = () => {
                     </div>
                     <div className="flex items-center gap-6 self-stretch md:self-auto justify-between md:justify-end font-sans">
                       <span className="text-[14px] text-gray-500 font-semibold">{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
-                      <span className="text-[18px] font-bold text-gray-850">${order.totalAmount}</span>
+                      <span className="text-[18px] font-bold text-gray-850">${displayedTotal.toFixed(2)}</span>
                       <button
                         onClick={() => setSelectedOrder(order)}
                         className="flex items-center gap-1.5 text-[#006D6D] text-[13px] font-bold border border-[#006D6D]/30 bg-[#006D6D]/5 hover:bg-[#006D6D]/10 px-3.5 py-2 rounded-xl transition-colors shrink-0"
@@ -446,13 +523,30 @@ const AccountPage = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {addresses.map((addr, i) => (
-                  <div key={addr._id || i} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
-                    <h4 className="text-[14px] font-semibold text-primary flex items-center gap-2">
-                      {addr.name}
-                      {i === 0 && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">Default</span>}
-                    </h4>
-                    <p className="text-[13px] text-gray-600 mt-2 leading-relaxed">{addr.street}, {addr.city}</p>
-                    <p className="text-[12px] text-gray-400 mt-1">{addr.phone}</p>
+                  <div key={addr._id || i} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-[14px] font-semibold text-primary flex items-center gap-2">
+                        {addr.name}
+                        {i === 0 && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">Default</span>}
+                      </h4>
+                      <p className="text-[13px] text-gray-600 mt-2 leading-relaxed">{addr.street}, {addr.city}</p>
+                      <p className="text-[12px] text-gray-400 mt-1">{addr.phone}</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end gap-3 text-[12px] font-semibold">
+                      <button
+                        onClick={() => handleEditAddressClick(addr)}
+                        className="text-[#006D6D] hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <span className="text-gray-300 font-normal">|</span>
+                      <button
+                        onClick={() => handleDeleteAddressClick(addr._id)}
+                        className="text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -765,7 +859,7 @@ const AccountPage = () => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
-            onClick={() => setShowAddressModal(false)}
+            onClick={closeAddressModal}
             className="absolute inset-0 bg-black/60 backdrop-blur-[1px] transition-opacity" 
           />
           
@@ -773,9 +867,11 @@ const AccountPage = () => {
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all border border-gray-100 font-sans">
             {/* Header */}
             <div className="bg-gradient-to-r from-[#006D6D] to-[#005a5a] px-6 py-4 flex items-center justify-between text-white">
-              <h3 className="text-[16px] font-bold tracking-tight">Add New Shipping Address</h3>
+              <h3 className="text-[16px] font-bold tracking-tight">
+                {editingAddressId ? 'Edit Shipping Address' : 'Add New Shipping Address'}
+              </h3>
               <button 
-                onClick={() => setShowAddressModal(false)}
+                onClick={closeAddressModal}
                 className="text-white/80 hover:text-white text-[18px] leading-none transition-colors"
               >
                 ✕
@@ -823,7 +919,7 @@ const AccountPage = () => {
                     required
                     placeholder="e.g. Delhi, Mumbai"
                     value={addressForm.city} 
-                    onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
+                    onChange={(e) => setAddressForm({...addressForm, city: e.target.value.replace(/\d/g, '')})}
                     className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
                   />
                 </div>
@@ -845,7 +941,7 @@ const AccountPage = () => {
               <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3 font-sans">
                 <button 
                   type="button"
-                  onClick={() => setShowAddressModal(false)}
+                  onClick={closeAddressModal}
                   className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-semibold hover:bg-gray-50 active:scale-[0.98] transition-all"
                 >
                   Cancel
@@ -855,10 +951,52 @@ const AccountPage = () => {
                   disabled={addressSaving}
                   className="px-5 py-2 bg-[#006D6D] text-white rounded-lg font-semibold hover:bg-[#005a5a] active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5"
                 >
-                  {addressSaving ? 'Saving...' : 'Save Address'}
+                  {addressSaving ? 'Saving...' : (editingAddressId ? 'Update Address' : 'Save Address')}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Address Confirmation Modal */}
+      {deleteAddressId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center z-[9999] p-4">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setDeleteAddressId(null)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px] transition-opacity" 
+          />
+          
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-gray-100 p-6 font-sans">
+            <h3 className="text-[17px] font-bold text-gray-900 mb-2">Delete Address</h3>
+            <p className="text-gray-500 text-[13.5px] mb-6 leading-relaxed">
+              Are you sure you want to delete this shipping address? This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-3 font-semibold text-[13px]">
+              <button
+                onClick={() => setDeleteAddressId(null)}
+                className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 active:scale-[0.98] transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const id = deleteAddressId;
+                  setDeleteAddressId(null);
+                  try {
+                    const res = await api.delete(`/auth/me/addresses/${id}`)
+                    setAddresses(res.data.addresses)
+                    toast.success('Address deleted successfully.')
+                  } catch (err) {
+                    toast.error(err.response?.data?.error || 'Failed to delete address.')
+                  }
+                }}
+                className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:scale-[0.98] transition-all"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

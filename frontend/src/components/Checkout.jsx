@@ -43,6 +43,21 @@ const Checkout = () => {
   const { isLoggedIn } = useAuth()
   const [shippingMethod, setShippingMethod] = useState('standard')
   const [addresses, setAddresses] = useState([])
+  const [shippingCharges, setShippingCharges] = useState(0)
+  const [freeThreshold, setFreeThreshold] = useState(0)
+
+  useEffect(() => {
+    api.get('/settings/public/order_shipping')
+      .then(res => {
+        if (res.data && res.data.data) {
+          const charges = parseFloat(res.data.data.shippingCharges);
+          const threshold = parseFloat(res.data.data.freeShippingThreshold);
+          if (!isNaN(charges)) setShippingCharges(charges);
+          if (!isNaN(threshold)) setFreeThreshold(threshold);
+        }
+      })
+      .catch(() => {});
+  }, []);
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [editingAddress, setEditingAddress] = useState(null)
@@ -76,6 +91,10 @@ const Checkout = () => {
   const [dob, setDob] = useState('')
   const [medicalErrors, setMedicalErrors] = useState({})
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
+
   const validateMedicalForm = () => {
     const errs = {}
     if (!drugAllergiesNone && !drugAllergies.trim()) {
@@ -89,9 +108,26 @@ const Checkout = () => {
     }
     if (!dob) {
       errs.dob = 'Date of Birth is required'
+    } else {
+      const selectedDate = new Date(dob);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate > today) {
+        errs.dob = 'Date of Birth cannot be in the future';
+      }
     }
     if (!gender) {
       errs.gender = 'Gender selection is required'
+    }
+    if (!physicianName.trim()) {
+      errs.physicianName = "Primary Physician's Name is required"
+    } else if (/\d/.test(physicianName)) {
+      errs.physicianName = "Physician's Name cannot contain numbers"
+    }
+    if (!physicianPhone.trim()) {
+      errs.physicianPhone = "Physician's Telephone Number is required"
+    } else if (!/^\+?[0-9\s-]{10,15}$/.test(physicianPhone.trim())) {
+      errs.physicianPhone = "Physician's Telephone Number must be a valid format (e.g. 10 to 15 digits)"
     }
     setMedicalErrors(errs)
     return Object.keys(errs).length === 0
@@ -334,7 +370,8 @@ const Checkout = () => {
     ? items[0].price * items[0].qty
     : cartTotal
 
-  const shippingCost = shippingMethod === 'express' ? 25 : 10
+  const standardCost = freeThreshold > 0 && subtotal >= freeThreshold ? 0 : shippingCharges;
+  const shippingCost = shippingMethod === 'express' ? standardCost + 15 : standardCost;
 
   const [couponInput, setCouponInput] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState(null)
@@ -348,6 +385,49 @@ const Checkout = () => {
       .then(res => setAvailableCoupons(res.data.data || []))
       .catch(() => {})
   }, [])
+
+  const [rxValidationError, setRxValidationError] = useState('')
+
+  useEffect(() => {
+    if (items.length === 0 || !isLoggedIn) {
+      setRxValidationError('')
+      return
+    }
+
+    const checkPrescriptions = async () => {
+      try {
+        const res = await api.get('/prescriptions/my-prescriptions')
+        const rxList = res.data.data || []
+        
+        let hasError = false
+        const unapprovedMeds = []
+
+        items.forEach(item => {
+          if (item.prescription === 'Required') {
+            const matching = rxList.filter(rx => String(rx.medicine) === String(item._id))
+            const approved = matching.some(rx => rx.status === 'Reviewed' || rx.status === 'Dispensed')
+            if (!approved) {
+              hasError = true
+              unapprovedMeds.push(item.name)
+            }
+          }
+        })
+
+        if (hasError) {
+          const errMsg = `An approved prescription is required for: ${unapprovedMeds.join(', ')}. Please wait for the pharmacist to review it before completing checkout.`
+          setRxValidationError(errMsg)
+          setOrderError(errMsg)
+        } else {
+          setRxValidationError('')
+          setOrderError('')
+        }
+      } catch (err) {
+        console.error('Failed to verify prescriptions in checkout:', err)
+      }
+    }
+
+    checkPrescriptions()
+  }, [items, isLoggedIn])
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return
@@ -534,6 +614,11 @@ const Checkout = () => {
 
     const isStockValid = await validateStock()
     if (!isStockValid) {
+      return
+    }
+
+    if (rxValidationError) {
+      setOrderError(rxValidationError)
       return
     }
 
@@ -1066,29 +1151,42 @@ const Checkout = () => {
                     {/* Primary Physician's Name */}
                     <div className="relative mt-2">
                       <label className="absolute top-[-7.5px] left-3.5 bg-white px-1.5 text-[11px] font-bold text-gray-500">
-                        Primary Physician's Name
+                        Primary Physician's Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         placeholder="Primary Physician's Name"
                         value={physicianName}
-                        onChange={e => setPhysicianName(e.target.value)}
-                        className="w-full border border-gray-400 rounded-[10px] px-4 py-3.5 text-[14px] text-gray-800 outline-none focus:border-[#006D6D] font-sans font-medium"
+                        onChange={e => {
+                          setPhysicianName(e.target.value.replace(/\d/g, ''));
+                          if (medicalErrors.physicianName) setMedicalErrors(prev => ({ ...prev, physicianName: '' }));
+                        }}
+                        className={`w-full border rounded-[10px] px-4 py-3.5 text-[14px] text-gray-800 outline-none focus:border-[#006D6D] font-sans font-medium ${medicalErrors.physicianName ? 'border-red-400 focus:border-red-400' : 'border-gray-400'}`}
                       />
+                      {medicalErrors.physicianName && (
+                        <p className="text-[11px] text-red-500 font-bold mt-1.5 ml-1">{medicalErrors.physicianName}</p>
+                      )}
                     </div>
 
                     {/* Physician's Telephone Number */}
                     <div className="relative mt-2">
                       <label className="absolute top-[-7.5px] left-3.5 bg-white px-1.5 text-[11px] font-bold text-gray-500">
-                        Physician's Telephone Number
+                        Physician's Telephone Number <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         placeholder="Physician's Telephone Number"
                         value={physicianPhone}
-                        onChange={e => setPhysicianPhone(e.target.value)}
-                        className="w-full border border-gray-400 rounded-[10px] px-4 py-3.5 text-[14px] text-gray-800 outline-none focus:border-[#006D6D] font-sans font-medium"
+                        onChange={e => {
+                          setPhysicianPhone(e.target.value.replace(/[^0-9+\s-]/g, ''));
+                          if (medicalErrors.physicianPhone) setMedicalErrors(prev => ({ ...prev, physicianPhone: '' }));
+                        }}
+                        maxLength={15}
+                        className={`w-full border rounded-[10px] px-4 py-3.5 text-[14px] text-gray-800 outline-none focus:border-[#006D6D] font-sans font-medium ${medicalErrors.physicianPhone ? 'border-red-400 focus:border-red-400' : 'border-gray-400'}`}
                       />
+                      {medicalErrors.physicianPhone && (
+                        <p className="text-[11px] text-red-500 font-bold mt-1.5 ml-1">{medicalErrors.physicianPhone}</p>
+                      )}
                     </div>
                   </div>
 
@@ -1285,6 +1383,7 @@ const Checkout = () => {
                         <input
                           type="date"
                           value={dob}
+                          max={new Date().toISOString().split('T')[0]}
                           onChange={e => {
                             setDob(e.target.value)
                             if (medicalErrors.dob) setMedicalErrors(prev => ({ ...prev, dob: '' }))
@@ -1515,9 +1614,9 @@ const Checkout = () => {
                   </button>
                   <button
                     onClick={handleContinueToPayment}
-                    disabled={Object.keys(stockErrors).length > 0 || validationLoading}
+                    disabled={Object.keys(stockErrors).length > 0 || validationLoading || !!rxValidationError}
                     className={`font-bold px-12 py-3.5 rounded-full text-[14px] uppercase tracking-wider transition-all shadow-md active:scale-95 ${
-                      Object.keys(stockErrors).length > 0 || validationLoading
+                      Object.keys(stockErrors).length > 0 || validationLoading || !!rxValidationError
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none opacity-80'
                         : 'bg-[#006D6D] hover:bg-[#005a5a] text-white'
                     }`}
@@ -1563,7 +1662,7 @@ const Checkout = () => {
                         Pack Size
                       </div>
                       <div className="text-[11.5px] text-gray-600 font-bold leading-tight mt-0.5">
-                        30 Tablet/s X {item.qty}
+                        {item.packSize || '30 Tablet/s'} X {item.qty}
                       </div>
                       {isItemUnavailable && (
                         <div className="text-[10px] text-red-600 font-bold mt-1">

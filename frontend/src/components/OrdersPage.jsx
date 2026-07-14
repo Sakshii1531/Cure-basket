@@ -68,8 +68,21 @@ function StatusTracker({ status }) {
 }
 
 export function OrderDetailDrawer({ order, onClose }) {
+  const [shippingCharges, setShippingCharges] = useState(0)
+  const [freeThreshold, setFreeThreshold] = useState(0)
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
+    api.get('/settings/public/order_shipping')
+      .then(res => {
+        if (res.data && res.data.data) {
+          const charges = parseFloat(res.data.data.shippingCharges);
+          const threshold = parseFloat(res.data.data.freeShippingThreshold);
+          if (!isNaN(charges)) setShippingCharges(charges);
+          if (!isNaN(threshold)) setFreeThreshold(threshold);
+        }
+      })
+      .catch(() => {});
     return () => { document.body.style.overflow = '' }
   }, [])
 
@@ -80,6 +93,20 @@ export function OrderDetailDrawer({ order, onClose }) {
   const date = new Date(order.createdAt).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'long', year: 'numeric'
   })
+
+  const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  let shippingFee = 0;
+  let discount = 0;
+
+  if (order.totalAmount > subtotal) {
+    shippingFee = order.totalAmount - subtotal;
+  } else if (order.totalAmount < subtotal) {
+    discount = subtotal - order.totalAmount;
+  } else {
+    shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
+  }
+
+  const displayedTotal = subtotal + shippingFee - discount;
 
   return (
     <>
@@ -223,9 +250,31 @@ export function OrderDetailDrawer({ order, onClose }) {
                   <span className="font-semibold text-gray-700 shrink-0 ml-2">${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
+              
+              <div className="border-t border-gray-200/60 my-2" />
+
+              <div className="flex justify-between text-[12.5px] text-gray-500">
+                <span>Subtotal</span>
+                <span className="font-semibold text-gray-700">${subtotal.toFixed(2)}</span>
+              </div>
+
+              {shippingFee > 0 && (
+                <div className="flex justify-between text-[12.5px] text-gray-500">
+                  <span>Shipping Fee</span>
+                  <span className="font-semibold text-gray-700">${shippingFee.toFixed(2)}</span>
+                </div>
+              )}
+
+              {discount > 0 && (
+                <div className="flex justify-between text-[12.5px] text-green-600">
+                  <span>Discount</span>
+                  <span className="font-semibold">-${discount.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="border-t border-gray-200 pt-2.5 mt-1 flex justify-between">
                 <span className="text-[14px] font-black text-gray-900">Total</span>
-                <span className="text-[16px] font-black text-[#006D6D]">${Number(order.totalAmount).toFixed(2)}</span>
+                <span className="text-[16px] font-black text-[#006D6D]">${displayedTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -256,12 +305,25 @@ const OrdersPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [shippingCharges, setShippingCharges] = useState(0)
+  const [freeThreshold, setFreeThreshold] = useState(0)
 
   useEffect(() => {
     api.get('/orders/my-orders')
       .then(res => setOrders(res.data.data || []))
       .catch(err => setError(err.response?.data?.error || 'Failed to load orders'))
       .finally(() => setLoading(false))
+
+    api.get('/settings/public/order_shipping')
+      .then(res => {
+        if (res.data && res.data.data) {
+          const charges = parseFloat(res.data.data.shippingCharges);
+          const threshold = parseFloat(res.data.data.freeShippingThreshold);
+          if (!isNaN(charges)) setShippingCharges(charges);
+          if (!isNaN(threshold)) setFreeThreshold(threshold);
+        }
+      })
+      .catch(() => {});
   }, [])
 
   const filteredOrders = activeTab === 'All'
@@ -314,6 +376,21 @@ const OrdersPage = () => {
             const itemCount = (order.items || []).length
             // Show first item name as preview
             const previewItem = order.items?.[0]
+
+            const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            let shippingFee = 0;
+            let discount = 0;
+
+            if (order.totalAmount > subtotal) {
+              shippingFee = order.totalAmount - subtotal;
+            } else if (order.totalAmount < subtotal) {
+              discount = subtotal - order.totalAmount;
+            } else {
+              shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
+            }
+
+            const displayedTotal = subtotal + shippingFee - discount;
+
             return (
               <div key={order._id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
                 {/* Top row */}
@@ -364,7 +441,7 @@ const OrdersPage = () => {
                       <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
-                  <span className="text-[20px] font-black text-gray-900">${Number(order.totalAmount).toFixed(2)}</span>
+                  <span className="text-[20px] font-black text-gray-900">${displayedTotal.toFixed(2)}</span>
                 </div>
               </div>
             )

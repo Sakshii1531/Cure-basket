@@ -2,16 +2,35 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
 
 const Cart = () => {
   const navigate = useNavigate()
   const { guardedAction } = useAuthGate()
   const { items, removeFromCart, updateQty, cartTotal } = useCart()
+  const { isLoggedIn } = useAuth()
 
   const [stockErrors, setStockErrors] = useState({})
   const [globalStockError, setGlobalStockError] = useState('')
   const [validationLoading, setValidationLoading] = useState(false)
+  const [rxErrors, setRxErrors] = useState({})
+  const [globalRxError, setGlobalRxError] = useState('')
+  const [shippingCharges, setShippingCharges] = useState(0)
+  const [freeThreshold, setFreeThreshold] = useState(0)
+
+  useEffect(() => {
+    api.get('/settings/public/order_shipping')
+      .then(res => {
+        if (res.data && res.data.data) {
+          const charges = parseFloat(res.data.data.shippingCharges);
+          const threshold = parseFloat(res.data.data.freeShippingThreshold);
+          if (!isNaN(charges)) setShippingCharges(charges);
+          if (!isNaN(threshold)) setFreeThreshold(threshold);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const requiresPrescription = items.some(item => item.prescription === 'Required')
 
@@ -51,7 +70,53 @@ const Cart = () => {
     validate()
   }, [items])
 
-  const shipping = items.length > 0 ? 50 : 0
+  useEffect(() => {
+    if (items.length === 0 || !isLoggedIn) {
+      setRxErrors({})
+      setGlobalRxError('')
+      return
+    }
+
+    const checkPrescriptions = async () => {
+      try {
+        const res = await api.get('/prescriptions/my-prescriptions')
+        const rxList = res.data.data || []
+        
+        const errors = {}
+        let hasError = false
+
+        items.forEach(item => {
+          if (item.prescription === 'Required') {
+            const matching = rxList.filter(rx => String(rx.medicine) === String(item._id))
+            const approved = matching.some(rx => rx.status === 'Reviewed' || rx.status === 'Dispensed')
+            const pending = matching.some(rx => rx.status === 'Pending')
+
+            if (!approved) {
+              hasError = true
+              if (pending) {
+                errors[item._id] = 'Your prescription for this medicine is currently under review.'
+              } else {
+                errors[item._id] = 'An approved prescription is required for this medicine.'
+              }
+            }
+          }
+        })
+
+        setRxErrors(errors)
+        if (hasError) {
+          setGlobalRxError('Some items in your cart require an approved prescription before you can checkout.')
+        } else {
+          setGlobalRxError('')
+        }
+      } catch (err) {
+        console.error('Failed to verify prescriptions:', err)
+      }
+    }
+
+    checkPrescriptions()
+  }, [items, isLoggedIn])
+
+  const shipping = items.length > 0 ? (freeThreshold > 0 && cartTotal >= freeThreshold ? 0 : shippingCharges) : 0
   const hasErrors = Object.keys(stockErrors).length > 0
 
   return (
@@ -103,7 +168,21 @@ const Cart = () => {
                 </div>
               )}
 
-              {requiresPrescription && (
+              {globalRxError && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
+                  <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <h4 className="text-[14px] font-bold text-red-800">Checkout Blocked</h4>
+                    <p className="text-[12px] text-red-600 mt-1">
+                      {globalRxError}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {requiresPrescription && !isLoggedIn && (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
                   <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -111,7 +190,7 @@ const Cart = () => {
                   <div>
                     <h4 className="text-[14px] font-bold text-amber-800">Prescription Required</h4>
                     <p className="text-[12px] text-amber-600 mt-1">
-                      One or more medicines in your cart require a doctor's prescription. You will need to upload your prescription in the next step (checkout) to complete your purchase.
+                      One or more medicines in your cart require a doctor's prescription. You must log in and have an approved prescription before you can checkout.
                     </p>
                   </div>
                 </div>
@@ -140,11 +219,18 @@ const Cart = () => {
                             <h3 className="text-[14px] md:text-[15px] font-semibold text-gray-900 leading-tight">{item.name}</h3>
                             {item.generic && <p className="text-[12px] text-gray-500 mt-1">{item.generic}</p>}
                             {item.prescription === 'Required' && (
-                              <div className="flex items-center gap-1.5 text-[#d97706] mt-2 text-[11px] font-bold bg-[#FFF8E7] px-2.5 py-1 rounded-md w-fit border border-[#FFD200]/30">
-                                <svg className="w-3.5 h-3.5 text-[#FBB03B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <span>Prescription Required</span>
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
+                                <div className="flex items-center gap-1.5 text-[#d97706] text-[11px] font-bold bg-[#FFF8E7] px-2.5 py-1 rounded-md w-fit border border-[#FFD200]/30">
+                                  <svg className="w-3.5 h-3.5 text-[#FBB03B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  <span>Prescription Required</span>
+                                </div>
+                                {rxErrors[item._id] && (
+                                  <span className="text-[11px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-md border border-red-100/50">
+                                    {rxErrors[item._id].includes('review') ? 'Under Review' : 'Prescription Missing'}
+                                  </span>
+                                )}
                               </div>
                             )}
                             {hasStockError && (
@@ -215,9 +301,9 @@ const Cart = () => {
 
                 <button
                   onClick={guardedAction(() => navigate('/checkout'), 'checkout')}
-                  disabled={hasErrors || validationLoading}
+                  disabled={hasErrors || validationLoading || Object.keys(rxErrors).length > 0}
                   className={`w-full font-semibold py-3.5 rounded-xl text-[14px] shadow-md transition-all mt-6 flex items-center justify-center gap-2 ${
-                    hasErrors || validationLoading
+                    hasErrors || validationLoading || Object.keys(rxErrors).length > 0
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-80 pointer-events-none'
                       : 'bg-[#006D6D] text-white hover:bg-[#005a5a] active:scale-[0.98]'
                   }`}

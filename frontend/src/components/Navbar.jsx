@@ -247,7 +247,7 @@ function Navbar({ openSupport }) {
       >
         {/* Navbar (Desktop Only) */}
         <nav className="navbar h-[80px] flex items-center shadow-sm">
-          <div className="max-w-[1800px] mx-auto w-full flex items-center justify-between px-8 gap-4">
+          <div className="max-w-[1800px] mx-auto w-full flex items-center justify-between px-4 xl:px-8 gap-2 xl:gap-4">
             {/* Logo */}
             <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer group shrink-0">
               <img src={curebasketLogo} alt="CureBasket Logo" className="w-12 h-12 object-contain" />
@@ -255,11 +255,24 @@ function Navbar({ openSupport }) {
             </div>
 
             {/* Nav Links */}
-            <div className="flex items-center gap-6 shrink-0">
-              <button onClick={() => navigate('/blogs')} className="nav-link text-[13px]">Blogs</button>
+            <div className="flex items-center gap-3 xl:gap-4 2xl:gap-6 shrink-0">
+              <button 
+                onClick={() => navigate('/blogs')} 
+                onMouseEnter={() => {
+                  setIsAllCategoriesMenuOpen(false)
+                  setIsMensHealthOpen(false)
+                }}
+                className="nav-link text-[13px]"
+              >
+                Blogs
+              </button>
               
               <div 
                 className="flex flex-col items-center translate-y-2 cursor-pointer"
+                onMouseEnter={() => {
+                  setIsAllCategoriesMenuOpen(false)
+                  setIsMensHealthOpen(false)
+                }}
                 onClick={() => {
                   if (isLoggedIn) {
                     navigate('/upload-rx');
@@ -274,7 +287,10 @@ function Navbar({ openSupport }) {
 
               <div
                 className="relative h-full flex items-center"
-                onMouseEnter={() => setIsAllCategoriesMenuOpen(true)}
+                onMouseEnter={() => {
+                  setIsAllCategoriesMenuOpen(true)
+                  setIsMensHealthOpen(false)
+                }}
               >
                 <a href="#" className="nav-link flex items-center gap-1 text-[13px]">
                   All Categories
@@ -286,7 +302,10 @@ function Navbar({ openSupport }) {
 
               <div
                 className="relative h-full flex items-center"
-                onMouseEnter={() => { setIsMensHealthOpen(true); setIsAllCategoriesMenuOpen(false) }}
+                onMouseEnter={() => { 
+                  setIsMensHealthOpen(true); 
+                  setIsAllCategoriesMenuOpen(false) 
+                }}
               >
                 <a href="#" className="nav-link flex items-center gap-1 text-[13px]">
                   Men's Health
@@ -305,9 +324,25 @@ function Navbar({ openSupport }) {
                 )}
               </div>
 
-              <button onClick={() => goToCategory('Eye Care')} className="nav-link text-[13px]">Eye Care</button>
+              <button 
+                onClick={() => goToCategory('Eye Care')} 
+                onMouseEnter={() => {
+                  setIsAllCategoriesMenuOpen(false)
+                  setIsMensHealthOpen(false)
+                }}
+                className="nav-link text-[13px]"
+              >
+                Eye Care
+              </button>
 
-              <button onClick={() => navigate('/track-order')} className="nav-link flex items-center gap-2 text-[13px]">
+              <button 
+                onClick={() => navigate('/track-order')} 
+                onMouseEnter={() => {
+                  setIsAllCategoriesMenuOpen(false)
+                  setIsMensHealthOpen(false)
+                }}
+                className="nav-link flex items-center gap-2 text-[13px]"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                   <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -318,7 +353,7 @@ function Navbar({ openSupport }) {
             </div>
 
             {/* Search Bar Integrated */}
-            <div className="flex flex-1 max-w-[400px] items-center relative mx-4">
+            <div className="flex flex-1 min-w-[180px] xl:min-w-[240px] max-w-[400px] items-center relative mx-2 xl:mx-4">
               <input
                 type="text"
                 value={navSearch}
@@ -348,7 +383,7 @@ function Navbar({ openSupport }) {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-6 shrink-0">
+            <div className="flex items-center gap-3 xl:gap-4 2xl:gap-6 shrink-0">
               {/* Cart Button */}
               <button 
                 onClick={() => navigate('/cart')}

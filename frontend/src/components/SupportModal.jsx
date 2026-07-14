@@ -2,6 +2,17 @@ import { toast } from 'sonner'
 import React from 'react'
 
 const SupportModal = ({ isOpen, onClose, type }) => {
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const isContact = type === 'contact'
