@@ -195,7 +195,7 @@ function Coupons() {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-700 block mb-1">Expiry Date <span className="text-gray-400 font-normal">optional</span></label>
-                  <input type="date" value={current.expiresAt} onChange={e => setCurrent({...current, expiresAt: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <input type="date" value={current.expiresAt} onChange={e => setCurrent({...current, expiresAt: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary relative" />
                 </div>
               </div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">

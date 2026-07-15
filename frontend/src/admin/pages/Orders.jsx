@@ -50,7 +50,10 @@ export function OrderDetailPanel({ order, onClose, onStatusChange }) {
     const userId = order.user?._id || order.user;
     setRxLoading(true);
     api.get('/prescriptions', { params: { user: userId, limit: 50 } })
-      .then(res => setPrescriptions(res.data.data || []))
+      .then(res => {
+        const list = res.data.data || [];
+        setPrescriptions(list.filter(rx => (rx.user?._id || rx.user) === userId));
+      })
       .catch(() => {})
       .finally(() => setRxLoading(false));
   }, [order]);
@@ -127,11 +130,11 @@ export function OrderDetailPanel({ order, onClose, onStatusChange }) {
               onChange={e => onStatusChange(order._id, e.target.value)}
               className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white"
             >
-              <option value="Pending">Pending</option>
-              <option value="Processing">Processing</option>
-              <option value="Shipped">Shipped</option>
+              <option value="Pending" disabled={order.status === 'Delivered'}>Pending</option>
+              <option value="Processing" disabled={order.status === 'Delivered'}>Processing</option>
+              <option value="Shipped" disabled={order.status === 'Delivered'}>Shipped</option>
               <option value="Delivered">Delivered</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="Cancelled" disabled={order.status === 'Delivered'}>Cancelled</option>
             </select>
           </div>
 
@@ -489,11 +492,11 @@ function Orders() {
                           onChange={e => handleStatusChange(order._id, e.target.value)}
                           className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary bg-white"
                         >
-                          <option value="Pending">Pending</option>
-                          <option value="Processing">Processing</option>
-                          <option value="Shipped">Shipped</option>
+                          <option value="Pending" disabled={order.status === 'Delivered'}>Pending</option>
+                          <option value="Processing" disabled={order.status === 'Delivered'}>Processing</option>
+                          <option value="Shipped" disabled={order.status === 'Delivered'}>Shipped</option>
                           <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
+                          <option value="Cancelled" disabled={order.status === 'Delivered'}>Cancelled</option>
                         </select>
                       </div>
                     </td>

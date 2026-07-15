@@ -40,6 +40,7 @@ describe('UserForm Component', () => {
     vi.clearAllMocks();
     useAuth.mockReturnValue({
       user: { role: 'admin' },
+      can: vi.fn(() => false),
     });
   });
 
@@ -89,12 +90,14 @@ describe('UserForm Component', () => {
     const emailInput = container.querySelector('input[name="email"]');
     const phoneInput = container.querySelector('input[name="phone"]');
     const passwordInput = container.querySelector('input[name="password"]');
+    const confirmPasswordInput = container.querySelector('input[name="confirmPassword"]');
     const addressTextarea = container.querySelector('textarea[name="address"]');
 
     fireEvent.change(nameInput, { target: { value: 'Jane Doe' } });
     fireEvent.change(emailInput, { target: { value: 'jane@example.com' } });
     fireEvent.change(phoneInput, { target: { value: '9876543210' } });
     fireEvent.change(passwordInput, { target: { value: 'securepassword123' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'securepassword123' } });
     fireEvent.change(addressTextarea, { target: { value: '456 Oak Road' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Save User/i }));
@@ -178,6 +181,7 @@ describe('UserForm Component', () => {
 
     const nameInput = () => container.querySelector('input[name="name"]');
     const passwordInput = () => container.querySelector('input[name="password"]');
+    const confirmPasswordInput = () => container.querySelector('input[name="confirmPassword"]');
 
     await waitFor(() => {
       expect(nameInput().value).toBe('John Smith');
@@ -185,6 +189,7 @@ describe('UserForm Component', () => {
 
     // Provide a valid new password
     fireEvent.change(passwordInput(), { target: { value: 'newpassword123' } });
+    fireEvent.change(confirmPasswordInput(), { target: { value: 'newpassword123' } });
     fireEvent.click(screen.getByRole('button', { name: /Save User/i }));
 
     await waitFor(() => {
@@ -210,19 +215,26 @@ describe('UserForm Component', () => {
       { _id: 'role2', name: 'Support' },
     ];
 
+    const mockUser = {
+      _id: 'user123',
+      name: 'John Smith',
+      email: 'john.smith@example.com',
+      phone: '1112223333',
+      role: 'admin',
+      address: '789 Pine Ave',
+    };
+
     api.get.mockImplementation((url) => {
       if (url === '/roles') {
         return Promise.resolve({ data: { data: mockRoles } });
       }
+      if (url === '/users/user123') {
+        return Promise.resolve({ data: { data: mockUser } });
+      }
       return Promise.resolve({ data: { data: {} } });
     });
 
-    const { container } = renderComponent();
-
-    const roleSelect = () => container.querySelector('select[name="role"]');
-
-    // Select role "Admin" to trigger custom role dropdown visibility
-    fireEvent.change(roleSelect(), { target: { value: 'admin' } });
+    const { container } = renderComponent('user123');
 
     await waitFor(() => {
       expect(container.querySelector('select[name="customRole"]')).toBeInTheDocument();

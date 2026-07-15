@@ -1,10 +1,19 @@
 const User = require('../models/User');
 const sanitizeError = require('../utils/sanitizeError');
+const { clearCache } = require('../middlewares/cacheMiddleware');
 
 exports.getUsers = async (req, res) => {
   try {
     const filter = {};
     if (req.query.role) filter.role = req.query.role;
+    if (req.query.q) {
+      const searchRegex = new RegExp(req.query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { phone: searchRegex },
+      ];
+    }
 
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(100, parseInt(req.query.limit) || 20);
@@ -57,6 +66,7 @@ exports.updateUser = async (req, res) => {
     });
 
     await user.save();
+    await clearCache('/api/users');
     
     const updatedUser = await User.findById(user._id).select('-password').populate('customRole', 'name');
     res.status(200).json({ success: true, data: updatedUser });
@@ -73,6 +83,7 @@ exports.deleteUser = async (req, res) => {
       return res.status(403).json({ success: false, error: 'Cannot delete superadmin account' });
     }
     await user.deleteOne();
+    await clearCache('/api/users');
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
     res.status(500).json({ success: false, error: sanitizeError(err) });
@@ -81,12 +92,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    // Only superadmin can create a superadmin
-    if (req.body.role === 'superadmin' && req.user.role !== 'superadmin') {
-      return res.status(403).json({ success: false, error: 'Only superadmin can create superadmin accounts' });
-    }
-
-    const { name, email, password, phone, role, customRole, address } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     // Check if user email already exists
     const emailExists = await User.findOne({ email });
@@ -99,13 +105,15 @@ exports.createUser = async (req, res) => {
       email,
       password,
       phone,
-      role,
-      customRole: customRole || null,
-      address
+      address,
+      role: 'user',
+      customRole: null
     });
 
     const userObj = user.toObject();
     delete userObj.password;
+
+    await clearCache('/api/users');
 
     res.status(201).json({ success: true, data: userObj });
   } catch (err) {

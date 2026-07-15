@@ -4,12 +4,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 
+const formatPhone = (phone) => {
+  if (!phone) return '—';
+  const trimmed = phone.trim();
+  if (/^\d{10}$/.test(trimmed)) {
+    return `+91${trimmed}`;
+  }
+  return trimmed;
+};
+
 function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ pages: 1, total: 0 });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('All');
   
   const [deleteId, setDeleteId] = useState(null);
   const [deleteError, setDeleteError] = useState('');
@@ -17,9 +28,13 @@ function Users() {
 
   const navigate = useNavigate();
 
-  const fetchUsers = (p = 1) => {
+  const fetchUsers = (p = 1, search = searchTerm, role = selectedRole) => {
     setLoading(true);
-    api.get(`/users?page=${p}&limit=20`)
+    let url = `/users?page=${p}&limit=20`;
+    if (search.trim()) url += `&q=${encodeURIComponent(search.trim())}`;
+    if (role !== 'All') url += `&role=${role}`;
+
+    api.get(url)
       .then(res => {
         setUsers(res.data.data);
         setPagination({ pages: res.data.pages, total: res.data.total });
@@ -29,7 +44,13 @@ function Users() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchUsers(1, searchTerm, selectedRole);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, selectedRole]);
 
   const confirmDelete = async () => {
     if (!deleteId) return;
@@ -67,6 +88,35 @@ function Users() {
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
 
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-64">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full"
+          />
+          <svg className="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Role:</span>
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary px-3 py-2 w-full md:w-auto"
+          >
+            <option value="All">All Roles</option>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         {loading ? (
           <SkeletonTable />
@@ -88,7 +138,7 @@ function Users() {
                   <tr key={user._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-semibold text-gray-900">{user.name}</td>
                     <td className="px-6 py-4">{user.email}</td>
-                    <td className="px-6 py-4">{user.phone || '—'}</td>
+                    <td className="px-6 py-4">{formatPhone(user.phone)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
                         user.role === 'superadmin' ? 'bg-purple-50 text-purple-600' :
@@ -146,9 +196,9 @@ function Users() {
 
       {pagination.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <button onClick={() => fetchUsers(page - 1)} disabled={page === 1} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-gray-50">Prev</button>
+          <button onClick={() => fetchUsers(page - 1, searchTerm, selectedRole)} disabled={page === 1} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-gray-50">Prev</button>
           <span className="text-sm text-gray-500">Page {page} of {pagination.pages}</span>
-          <button onClick={() => fetchUsers(page + 1)} disabled={page === pagination.pages} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-gray-50">Next</button>
+          <button onClick={() => fetchUsers(page + 1, searchTerm, selectedRole)} disabled={page === pagination.pages} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-gray-50">Next</button>
         </div>
       )}
 

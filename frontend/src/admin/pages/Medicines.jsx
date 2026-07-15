@@ -184,7 +184,7 @@ function Medicines() {
     }
 
     const pricePerUnit = Number(current.pricePerUnit);
-    const totalPrice = Number(current.totalPrice);
+    const totalPrice = current.totalPrice ? Number(current.totalPrice) : pricePerUnit;
 
     if (isNaN(pricePerUnit) || pricePerUnit <= 0) {
       setSaveError('Price Per Unit must be greater than 0');
@@ -254,7 +254,7 @@ function Medicines() {
       packages: parsedPackages,
       quantityOptions: parsedQtyOptions.length > 0 ? parsedQtyOptions : [1],
       pricePerUnit:    Number(current.pricePerUnit),
-      totalPrice:      Number(current.totalPrice),
+      totalPrice:      totalPrice,
       priceLabel:      current.priceLabel || 'USD',
       price:           Number(current.pricePerUnit),
       stock:           Number(current.stock) || 0,
@@ -664,20 +664,17 @@ function Medicines() {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Price Per Unit ({current.priceLabel || 'USD'}) <span className="text-red-500">*</span></label>
-                    <input type="number" step="0.01" min="0.01" placeholder="0.00" value={current.pricePerUnit} onChange={e => setCurrent({...current, pricePerUnit: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" required />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Total Price ({current.priceLabel || 'USD'}) <span className="text-red-500">*</span></label>
                     <input 
                       type="number" 
                       step="0.01" 
                       min="0.01" 
                       placeholder="0.00" 
-                      value={current.totalPrice} 
+                      value={current.pricePerUnit} 
                       onChange={e => {
                         const val = e.target.value;
                         setCurrent(prev => ({
                           ...prev,
+                          pricePerUnit: val,
                           totalPrice: val,
                           discount: updateDiscount(val, prev.oldPrice)
                         }));

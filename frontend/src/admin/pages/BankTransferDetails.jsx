@@ -131,6 +131,7 @@ function BankTransferDetails() {
   const [saving, setSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
   const [toast, setToast] = useState(null);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     api.get('/settings/bank_transfer')
@@ -155,10 +156,29 @@ function BankTransferDetails() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    const errs = {};
+    for (const tab of TYPES) {
+      const accNum = data[tab].accountNumber;
+      if (accNum && (accNum.length < 9 || accNum.length > 18)) {
+        if (!errs[tab]) errs[tab] = {};
+        errs[tab].accountNumber = 'Account number must be between 9 and 18 digits';
+      }
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      const firstTab = Object.keys(errs)[0];
+      setActiveTab(firstTab);
+      showToast('Please fix the validation errors.', 'error');
+      return;
+    }
+
     setSaving(true);
     try {
       await api.put('/settings/bank_transfer', data);
       setHasSaved(true);
+      setErrors({});
       showToast('Bank transfer details updated successfully!');
     } catch (err) {
       showToast(err.response?.data?.error || 'Failed to save changes.', 'error');
@@ -187,6 +207,27 @@ function BankTransferDetails() {
 
   const updateField = (type, key, value) =>
     setData((prev) => ({ ...prev, [type]: { ...prev[type], [key]: value } }));
+
+  const handleFieldChange = (type, key, value) => {
+    let cleanVal = value;
+    if (key === 'accountHolder' || key === 'addrCity' || key === 'addrState' || key === 'addrCountry' || key === 'instCity' || key === 'instState' || key === 'instCountry') {
+      cleanVal = value.replace(/[0-9]/g, '');
+    } else if (key === 'accountNumber') {
+      cleanVal = value.replace(/\D/g, '').slice(0, 18);
+    } else if (key === 'routingNumber') {
+      cleanVal = value.replace(/\D/g, '');
+    }
+    updateField(type, key, cleanVal);
+    if (errors[type]?.[key]) {
+      setErrors((prev) => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          [key]: '',
+        },
+      }));
+    }
+  };
 
   if (loading) {
     return <SkeletonForm />;
@@ -242,17 +283,23 @@ function BankTransferDetails() {
             <div key={section.title || `main-${idx}`} className={idx > 0 ? 'border-t border-gray-100 pt-4' : ''}>
               {section.title && <h3 className="text-md font-bold text-gray-900 mb-4">{section.title}</h3>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {section.fields.map((f) => (
-                  <div key={f.key}>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">{f.label}</label>
-                    <input
-                      type="text"
-                      value={data[activeTab][f.key] || ''}
-                      onChange={(e) => updateField(activeTab, f.key, e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                ))}
+                {section.fields.map((f) => {
+                  const hasError = errors[activeTab]?.[f.key];
+                  return (
+                    <div key={f.key}>
+                      <label className="text-sm font-semibold text-gray-700 block mb-1">{f.label}</label>
+                      <input
+                        type="text"
+                        value={data[activeTab][f.key] || ''}
+                        onChange={(e) => handleFieldChange(activeTab, f.key, e.target.value)}
+                        className={`w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                          hasError ? 'border-red-300 focus:ring-red-200' : 'border-gray-200'
+                        }`}
+                      />
+                      {hasError && <p className="text-xs text-red-500 mt-1">{hasError}</p>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

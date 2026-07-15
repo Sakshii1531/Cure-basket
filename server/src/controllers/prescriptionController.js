@@ -131,6 +131,7 @@ exports.getPrescriptions = async (req, res, next) => {
 
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
+    if (req.query.user) filter.user = req.query.user;
 
     const [prescriptions, total] = await Promise.all([
       Prescription.find(filter)
@@ -167,24 +168,30 @@ exports.getPrescriptions = async (req, res, next) => {
 // @access  Private/Admin
 exports.updatePrescriptionStatus = async (req, res, next) => {
   try {
-    const prescription = await Prescription.findByIdAndUpdate(
-      req.params.id,
-      { status: req.body.status, notes: req.body.notes },
-      { new: true, runValidators: true }
-    ).populate('user', 'name email')
-     .populate('medicine', 'name image')
-     .populate({
-       path: 'order',
-       select: '_id status totalAmount createdAt items',
-       populate: {
-         path: 'items.medicine',
-         select: 'image'
-       }
-     });
-
-    if (!prescription) {
+    const rx = await Prescription.findById(req.params.id);
+    if (!rx) {
       return res.status(404).json({ success: false, error: 'Prescription not found' });
     }
+
+    if (rx.status === 'Dispensed') {
+      return res.status(400).json({ success: false, error: 'Dispensed prescriptions cannot be modified' });
+    }
+
+    rx.status = req.body.status;
+    if (req.body.notes !== undefined) rx.notes = req.body.notes;
+    await rx.save();
+
+    const prescription = await Prescription.findById(rx._id)
+      .populate('user', 'name email')
+      .populate('medicine', 'name image')
+      .populate({
+        path: 'order',
+        select: '_id status totalAmount createdAt items',
+        populate: {
+          path: 'items.medicine',
+          select: 'image'
+        }
+      });
 
     // Fire the configured dispense email when the new status matches the template.
     // Fire-and-forget: an email failure must not fail the status update.

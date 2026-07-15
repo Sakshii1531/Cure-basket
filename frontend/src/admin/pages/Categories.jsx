@@ -11,6 +11,12 @@ function Categories() {
   const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentCategory, setCurrentCategory] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil(categories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCategories = categories.slice(startIndex, startIndex + itemsPerPage);
 
   const fetchCategories = () => {
     setLoading(true);
@@ -25,7 +31,14 @@ function Categories() {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/categories/${id}`);
-      setCategories(prev => prev.filter(c => c._id !== id));
+      setCategories(prev => {
+        const updated = prev.filter(c => c._id !== id);
+        const totalPages = Math.ceil(updated.length / itemsPerPage);
+        if (currentPage > totalPages && totalPages > 0) {
+          setCurrentPage(totalPages);
+        }
+        return updated;
+      });
       toast.success('Category deleted');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to delete category');
@@ -55,7 +68,7 @@ function Categories() {
           image: currentCategory.image,
           description: currentCategory.description,
         });
-        setCategories(prev => [...prev, res.data.data]);
+        setCategories(prev => [res.data.data, ...prev]);
         toast.success('Category added');
       }
       setIsModalOpen(false);
@@ -90,52 +103,96 @@ function Categories() {
         {loading ? (
           <SkeletonTable />
         ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
-                <th className="px-6 py-4">Image</th>
-                <th className="px-6 py-4">Name</th>
-                <th className="px-6 py-4">Description</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {categories.map((cat) => (
-                <tr key={cat._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
-                      {cat.image && cat.image !== 'no-photo.jpg' && cat.image !== '__uploading__' ? (
-                        <img src={cat.image} alt={cat.name} className="max-w-full max-h-full object-contain" />
-                      ) : (
-                        <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-gray-900">{cat.name}</td>
-                  <td className="px-6 py-4 text-gray-500">{cat.description || '—'}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => handleOpenModal(cat)} className="p-1.5 text-gray-400 hover:text-primary rounded-lg transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.128-1.897l8.934-8.934Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                        </svg>
-                      </button>
-                      <button onClick={() => handleDelete(cat._id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
+          <>
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4">Image</th>
+                  <th className="px-6 py-4">Name</th>
+                  <th className="px-6 py-4">Description</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
-              ))}
-              {categories.length === 0 && (
-                <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-400 text-sm">No categories found.</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {paginatedCategories.map((cat) => (
+                  <tr key={cat._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
+                        {cat.image && cat.image !== 'no-photo.jpg' && cat.image !== '__uploading__' ? (
+                          <img src={cat.image} alt={cat.name} className="max-w-full max-h-full object-contain" />
+                        ) : (
+                          <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-bold text-gray-900">{cat.name}</td>
+                    <td className="px-6 py-4 text-gray-500">{cat.description || '—'}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleOpenModal(cat)} className="p-1.5 text-gray-400 hover:text-primary rounded-lg transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.128-1.897l8.934-8.934Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                          </svg>
+                        </button>
+                        <button onClick={() => handleDelete(cat._id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {categories.length === 0 && (
+                  <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-400 text-sm">No categories found.</td></tr>
+                )}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            {categories.length > itemsPerPage && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-white border-t border-gray-100">
+                <div className="text-sm text-gray-500">
+                  Showing <span className="font-semibold">{startIndex + 1}</span> to{' '}
+                  <span className="font-semibold">
+                    {Math.min(startIndex + itemsPerPage, categories.length)}
+                  </span>{' '}
+                  of <span className="font-semibold">{categories.length}</span> categories
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
+                        currentPage === page
+                          ? 'bg-primary text-white'
+                          : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

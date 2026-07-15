@@ -59,7 +59,7 @@ function AllBrandsPage({ onBack }) {
               <div 
                 key={brand.id}
                 onClick={() => navigate(`/medicines?brand=${brand.id}&brandName=${encodeURIComponent(brand.name)}`)}
-                className="bg-white border border-gray-100 rounded-[16px] md:rounded-[24px] p-3 md:p-4 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:border-[#006D6D]/30 transition-all cursor-pointer h-[130px] md:h-[180px] group"
+                className="bg-white border border-gray-100 rounded-[16px] md:rounded-[24px] p-3 md:p-4 flex flex-col items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:border-[#006D6D]/30 transition-all cursor-pointer min-h-[130px] md:min-h-[180px] group"
               >
                 <div className="flex-1 flex items-center justify-center w-full mb-2 md:mb-3">
                   {brand.image ? (
@@ -75,7 +75,7 @@ function AllBrandsPage({ onBack }) {
                     </div>
                   )}
                 </div>
-                <span className="text-[13px] md:text-[18px] font-bold text-gray-700 text-center line-clamp-1">
+                <span className="text-[13px] md:text-[18px] font-bold text-gray-700 text-center w-full">
                   {brand.name}
                 </span>
                 <p className="text-[12px] text-gray-400 mt-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">View Medicines</p>

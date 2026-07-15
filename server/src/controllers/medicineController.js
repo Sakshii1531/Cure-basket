@@ -461,16 +461,6 @@ exports.bulkUploadMedicines = async (req, res) => {
 
       const packSize = row.packSize || '1 Pack';
 
-      // Duplicate check: title + packSize combination
-      const exists = await Medicine.exists({
-        title:    { $regex: new RegExp(`^${row.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-        packSize: { $regex: new RegExp(`^${packSize.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-      });
-      if (exists) {
-        skipped++;
-        continue;
-      }
-
       // Resolve category
       let categoryId = null;
       if (row.category) {
@@ -490,9 +480,19 @@ exports.bulkUploadMedicines = async (req, res) => {
         continue;
       }
 
+      // Duplicate check: title + packSize combination
+      const exists = await Medicine.findOne({
+        title:    { $regex: new RegExp(`^${row.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        packSize: { $regex: new RegExp(`^${packSize.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+      }).select('_id');
+
       try {
         const doc = buildMedicineDoc(row, categoryId);
-        await Medicine.create(doc);
+        if (exists) {
+          await Medicine.findByIdAndUpdate(exists._id, doc, { runValidators: true });
+        } else {
+          await Medicine.create(doc);
+        }
         inserted++;
       } catch (err) {
         errors.push({ row: rowNum, error: `Row "${row.title}": ${sanitizeError(err)}` });

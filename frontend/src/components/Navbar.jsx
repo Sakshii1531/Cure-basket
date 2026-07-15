@@ -1,8 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import curebasketLogo from '../assets/favicon.svg'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import api from '../utils/api'
+
+const FALLBACK_CATEGORIES = [
+  'Acid Reflux', 'Acne', 'Alcohol & Drug Treatment', 'Allergy', 'Alpha Blockers', 'Alzheimers', 
+  'Angina Pectoris Anti-Anginals', 'Anthelmintic & Anti-worm', 'Anti Amebics', 'Anti Androgen', 
+  'Anti Cancer', 'Anti Coagulants', 'Anti Convulsant', 'Anti Emetic', 'Anti Migraine', 
+  'Anti Parkinsonian', 'Anti Viral', 'Antibiotics', 'Antifungal', 'Asthma', 'Available Products', 
+  'Beauty & Skin Care', 'Best selling Products', 'Birth Control', 'Bladder Prostate', 'Diabetes', 
+  'ED Pills Online', 'Eye Care', 'Featured Products', 'Free Shipping Products', 'Gastro Health', 
+  'Hair Loss', 'Heart & Blood Pressure', 'HIV & Herpes', 'Hypothyroidism', 'Immunosuppressive', 
+  'Infertility Therapy', 'Melasma', "Men's Health", 'New Products', 'Offers', 'Osteoporosis', 
+  'Others', 'Pain Relief', 'Quit Smoking', 'Sildenafil Citrate', 'Stock Clearance', 'Weight Loss', 
+  "Women's Day", "Women's Health"
+];
 
 function Navbar({ openSupport }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -15,11 +29,22 @@ function Navbar({ openSupport }) {
   const [isAllCategoriesMenuOpen, setIsAllCategoriesMenuOpen] = useState(false)
   const [isMensHealthOpen, setIsMensHealthOpen] = useState(false)
   const [navSearch, setNavSearch] = useState('')
+  const [categories, setCategories] = useState([])
   const navigate = useNavigate()
   const location = useLocation()
   const isHomePage = location.pathname === '/'
   const { isLoggedIn, user, logout, openLoginModal, setIsRxPromptOpen } = useAuth()
   const { cartCount } = useCart()
+
+  useEffect(() => {
+    api.get('/categories')
+      .then(res => {
+        if (Array.isArray(res.data.data)) {
+          setCategories(res.data.data.map(c => c.name))
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false)
@@ -160,7 +185,7 @@ function Navbar({ openSupport }) {
                   </button>
                   {isMobileCategoriesOpen && (
                     <div className="mt-2 ml-3 space-y-2 border-l-2 border-[#f5b23e] pl-3">
-                      {['Allergy', 'Diabetes', 'Eye Care', 'Hair Loss', 'Pain Relief', 'Weight Loss', 'Asthma', 'Antibiotics', "Women's Health", "Men's Health", 'Skin Care'].map(cat => (
+                      {(categories.length > 0 ? categories : FALLBACK_CATEGORIES).map(cat => (
                         <button key={cat} onClick={() => { goToCategory(cat); closeMobileMenu(); }} className="block w-full text-left text-[13px] text-gray-600 hover:text-[#006D6D] py-0.5">{cat}</button>
                       ))}
                     </div>
@@ -472,25 +497,10 @@ function Navbar({ openSupport }) {
             className="hidden xl:block absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-2xl pt-8 pb-10 z-[90] animate-in fade-in slide-in-from-top-1 duration-200"
             onMouseEnter={() => setIsAllCategoriesMenuOpen(true)}
           >
-            <div className="max-w-[1450px] mx-auto px-4 md:px-12 grid grid-cols-4 gap-12">
-              <div className="space-y-2">
-                {['Acid Reflux', 'Acne', 'Alcohol & Drug Treatment', 'Allergy', 'Alpha Blockers', 'Alzheimers', 'Angina Pectoris Anti-Anginals', 'Anthelmintic & Anti-worm', 'Anti Amebics', 'Anti Androgen', 'Anti Cancer', 'Anti Coagulants', 'Anti Convulsant'].map(cat => (
-                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {['Anti Emetic', 'Anti Migraine', 'Anti Parkinsonian', 'Anti Viral', 'Antibiotics', 'Antifungal', 'Asthma', 'Available Products', 'Beauty & Skin Care', 'Best selling Products', 'Birth Control', 'Bladder Prostate', 'Diabetes'].map(cat => (
-                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {['ED Pills Online', 'Eye Care', 'Featured Products', 'Free Shipping Products', 'Gastro Health', 'Hair Loss', 'Heart & Blood Pressure', 'HIV & Herpes', 'Hypothyroidism', 'Immunosuppressive', 'Infertility Therapy', 'Melasma'].map(cat => (
-                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {["Men's Health", 'New Products', 'Offers', 'Osteoporosis', 'Others', 'Pain Relief', 'Quit Smoking', 'Sildenafil Citrate', 'Stock Clearance', 'Weight Loss', "Women's Day", "Women's Health"].map(cat => (
-                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight">{cat}</div>
+            <div className="max-w-[1450px] mx-auto px-4 md:px-12">
+              <div className="columns-2 md:columns-4 gap-8 space-y-2">
+                {(categories.length > 0 ? categories : FALLBACK_CATEGORIES).map(cat => (
+                  <div key={cat} onClick={() => goToCategory(cat)} className="text-[13.5px] text-gray-700 hover:text-primary cursor-pointer transition-colors leading-tight break-inside-avoid mb-2">{cat}</div>
                 ))}
               </div>
             </div>

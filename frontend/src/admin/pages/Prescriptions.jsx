@@ -290,11 +290,12 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
                 <button
                   key={s}
                   onClick={() => onStatusChange(rx._id, s)}
+                  disabled={rx.status === 'Dispensed'}
                   className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
                     rx.status === s
                       ? STATUS_COLORS[s] + ' ring-2 ring-offset-1 ring-current'
                       : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                  }`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {s}
                 </button>
@@ -690,16 +691,24 @@ function Prescriptions() {
                             </button>
 
                             {/* Status dropdown */}
-                            <select
-                              value={rx.status}
-                              onChange={e => handleStatusChange(rx._id, e.target.value)}
-                              className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-                            >
-                              <option value="Pending">Pending</option>
-                              <option value="Reviewed">Reviewed</option>
-                              <option value="Dispensed">Dispensed</option>
-                              <option value="Rejected">Rejected</option>
-                            </select>
+                            {rx.status === 'Dispensed' ? (
+                              <div
+                                className={`inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg text-xs font-bold border ${STATUS_COLORS.Dispensed} w-[102px] h-[32px]`}
+                              >
+                                Dispensed
+                              </div>
+                            ) : (
+                              <select
+                                value={rx.status}
+                                onChange={e => handleStatusChange(rx._id, e.target.value)}
+                                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary bg-white w-[102px] h-[32px]"
+                              >
+                                <option value="Pending">Pending</option>
+                                <option value="Reviewed">Reviewed</option>
+                                <option value="Dispensed">Dispensed</option>
+                                <option value="Rejected">Rejected</option>
+                              </select>
+                            )}
 
                             {/* Delete */}
                             <button

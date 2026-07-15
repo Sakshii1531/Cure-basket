@@ -112,7 +112,7 @@ export function OrderDetailDrawer({ order, onClose }) {
       {/* Drawer panel */}
       <div
         className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl shadow-2xl flex flex-col"
-        style={{ maxHeight: '90vh', animation: 'slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)' }}
+        style={{ maxHeight: 'calc(100vh - 120px)', animation: 'slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)' }}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
@@ -283,6 +283,8 @@ export function OrderDetailDrawer({ order, onClose }) {
   )
 }
 
+const ITEMS_PER_PAGE = 5
+
 const OrdersPage = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('All')
@@ -292,6 +294,8 @@ const OrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [shippingCharges, setShippingCharges] = useState(0)
   const [freeThreshold, setFreeThreshold] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     api.get('/orders/my-orders')
@@ -311,9 +315,25 @@ const OrdersPage = () => {
       .catch(() => {});
   }, [])
 
-  const filteredOrders = activeTab === 'All'
+  // Reset page when tab or search changes
+  useEffect(() => { setCurrentPage(1) }, [activeTab, searchTerm])
+
+  const tabFiltered = activeTab === 'All'
     ? orders
     : orders.filter(o => o.status === activeTab)
+
+  const searchFiltered = searchTerm.trim()
+    ? tabFiltered.filter(o =>
+        o._id.slice(-8).toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+        (o.items || []).some(item => item.name?.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+      )
+    : tabFiltered
+
+  const totalPages = Math.max(1, Math.ceil(searchFiltered.length / ITEMS_PER_PAGE))
+  const paginatedOrders = searchFiltered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen pb-20">
@@ -349,17 +369,47 @@ const OrdersPage = () => {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="max-w-4xl mx-auto px-4 pt-4">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Search by order ID or medicine name..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-[13px] focus:outline-none focus:border-[#006D6D] shadow-sm"
+          />
+          <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        {searchTerm && (
+          <p className="text-[12px] text-gray-400 mt-1.5 ml-1">
+            {searchFiltered.length} result{searchFiltered.length !== 1 ? 's' : ''} found
+          </p>
+        )}
+      </div>
+
       {/* Orders list */}
-      <div className="max-w-4xl mx-auto p-4 md:py-8 space-y-4">
+      <div className="max-w-4xl mx-auto p-4 md:py-4 space-y-4">
         {loading ? (
           <div className="text-center py-20 text-gray-400">Loading orders...</div>
         ) : error ? (
           <div className="text-center py-20 text-red-500 text-sm">{error}</div>
-        ) : filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => {
+        ) : paginatedOrders.length > 0 ? (
+          paginatedOrders.map((order) => {
             const colorClass = statusColor[order.status] || 'text-gray-600 bg-gray-50 border-gray-200'
             const itemCount = (order.items || []).length
-            // Show first item name as preview
             const previewItem = order.items?.[0]
 
             const cardSubtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -429,10 +479,51 @@ const OrdersPage = () => {
               </svg>
             </div>
             <h3 className="text-[16px] font-bold text-gray-800">No orders found</h3>
-            <p className="text-[13px] text-gray-400 mt-1">Looks like you haven't placed any orders yet.</p>
+            <p className="text-[13px] text-gray-400 mt-1">
+              {searchTerm ? `No orders match "${searchTerm}"` : 'Looks like you haven\'t placed any orders yet.'}
+            </p>
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && !error && totalPages > 1 && (
+        <div className="max-w-4xl mx-auto px-4 pb-6 flex items-center justify-center gap-2">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="w-9 h-9 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-500 disabled:opacity-40 hover:border-[#006D6D] hover:text-[#006D6D] transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M15 19l-7-7 7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+            <button
+              key={pg}
+              onClick={() => setCurrentPage(pg)}
+              className={`w-9 h-9 rounded-xl text-[13px] font-bold border transition-colors ${
+                pg === currentPage
+                  ? 'bg-[#006D6D] text-white border-[#006D6D]'
+                  : 'bg-white border-gray-200 text-gray-600 hover:border-[#006D6D] hover:text-[#006D6D]'
+              }`}
+            >
+              {pg}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="w-9 h-9 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-500 disabled:opacity-40 hover:border-[#006D6D] hover:text-[#006D6D] transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Order Detail Drawer */}
       {selectedOrder && (

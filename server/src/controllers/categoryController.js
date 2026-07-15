@@ -12,7 +12,7 @@ exports.getCategories = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const [categories, total] = await Promise.all([
-      Category.find().sort('name').skip(skip).limit(limit),
+      Category.find().sort('-createdAt').skip(skip).limit(limit),
       Category.countDocuments(),
     ]);
 

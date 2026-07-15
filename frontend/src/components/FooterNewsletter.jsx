@@ -5,8 +5,13 @@ import api from '../utils/api'
 import medico from '../assets/medico.png'
 
 function FooterNewsletter() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => sessionStorage.getItem('newsletter_email_draft') || '');
   const [loading, setLoading] = useState(false);
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    sessionStorage.setItem('newsletter_email_draft', e.target.value);
+  };
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -19,6 +24,7 @@ function FooterNewsletter() {
       const res = await api.post('/subscribers', { email });
       toast.success(res.data.message || 'Subscribed successfully!');
       setEmail('');
+      sessionStorage.removeItem('newsletter_email_draft');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to subscribe. Please try again.');
     } finally {
@@ -117,7 +123,7 @@ function FooterNewsletter() {
                     type="email"
                     placeholder="Email address"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
                     disabled={loading}
                     className="w-full h-[34px] md:h-[54px] px-3.5 md:px-5 rounded-lg md:rounded-xl border border-gray-200 focus:outline-none focus:border-[#006D6D] text-gray-700 text-[11px] md:text-[16px] bg-white transition-all shadow-sm disabled:opacity-60"
                     required

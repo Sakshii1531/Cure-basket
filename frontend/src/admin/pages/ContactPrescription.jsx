@@ -14,11 +14,20 @@ function ContactPrescription() {
   const [data, setData] = useState(DEFAULT_DATA);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     api.get('/settings/bank_contact')
       .then((res) => {
-        if (res.data.data) setData({ ...DEFAULT_DATA, ...res.data.data });
+        if (res.data.data) {
+          const raw = res.data.data;
+          setData({
+            ...DEFAULT_DATA,
+            ...raw,
+            phone: raw.phone ? raw.phone.replace('+91', '').trim() : '',
+            prescriptionFax: raw.prescriptionFax ? raw.prescriptionFax.replace('+91', '').trim() : '',
+          });
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -31,8 +40,28 @@ function ContactPrescription() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    const errs = {};
+    if (data.phone && data.phone.length !== 10) {
+      errs.phone = 'Phone number must be exactly 10 digits';
+    }
+    if (data.prescriptionFax && data.prescriptionFax.length !== 10) {
+      errs.prescriptionFax = 'Fax number must be exactly 10 digits';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      showToast('Please fix the validation errors.', 'error');
+      return;
+    }
+
     try {
-      await api.put('/settings/bank_contact', data);
+      const payload = {
+        ...data,
+        phone: data.phone ? `+91${data.phone}` : '',
+        prescriptionFax: data.prescriptionFax ? `+91${data.prescriptionFax}` : '',
+      };
+      await api.put('/settings/bank_contact', payload);
+      setErrors({});
       showToast('Contact & prescription details updated successfully!');
     } catch (err) {
       showToast(err.response?.data?.error || 'Failed to save changes.', 'error');
@@ -75,8 +104,28 @@ function ContactPrescription() {
           <div>
             <h3 className="text-md font-bold text-gray-900 mb-4">Contact Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {field('Phone Number', 'phone')}
+              <div>
+                <label className="text-sm font-semibold text-gray-700 block mb-1">Phone Number</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-semibold">+91</span>
+                  <input
+                    type="text"
+                    value={data.phone}
+                    onChange={(e) => {
+                      setData({ ...data, phone: e.target.value.replace(/\D/g, '').slice(0, 10) });
+                      setErrors({ ...errors, phone: '' });
+                    }}
+                    className={`w-full bg-gray-50 border rounded-lg pl-12 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                      errors.phone ? 'border-red-300 focus:ring-red-200' : 'border-gray-200'
+                    }`}
+                    placeholder="Enter 10-digit phone number"
+                  />
+                </div>
+                {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+              </div>
+
               {field('Email Address', 'email', 'email')}
+
               <div className="md:col-span-2">
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Office Address</label>
                 <textarea
@@ -95,7 +144,26 @@ function ContactPrescription() {
               Shown to customers who choose to send their prescription by fax or email.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {field('Prescription Fax Number', 'prescriptionFax')}
+              <div>
+                <label className="text-sm font-semibold text-gray-700 block mb-1">Prescription Fax Number</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-semibold">+91</span>
+                  <input
+                    type="text"
+                    value={data.prescriptionFax}
+                    onChange={(e) => {
+                      setData({ ...data, prescriptionFax: e.target.value.replace(/\D/g, '').slice(0, 10) });
+                      setErrors({ ...errors, prescriptionFax: '' });
+                    }}
+                    className={`w-full bg-gray-50 border rounded-lg pl-12 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                      errors.prescriptionFax ? 'border-red-300 focus:ring-red-200' : 'border-gray-200'
+                    }`}
+                    placeholder="Enter 10-digit fax number"
+                  />
+                </div>
+                {errors.prescriptionFax && <p className="text-xs text-red-500 mt-1">{errors.prescriptionFax}</p>}
+              </div>
+
               {field('Prescription Email', 'prescriptionEmail', 'email')}
             </div>
           </div>
