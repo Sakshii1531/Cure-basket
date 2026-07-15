@@ -21,7 +21,7 @@ exports.subscribe = async (req, res) => {
 
     let subscriber = await Subscriber.findOne({ email: email.toLowerCase() });
 
-    const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+    const frontendOrigin = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').split(',')[0].trim();
 
     if (subscriber) {
       if (subscriber.status === 'subscribed') {

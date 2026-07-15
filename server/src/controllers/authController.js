@@ -59,7 +59,7 @@ exports.register = async (req, res) => {
                 <li>Track your orders in real time</li>
               </ul>
             </div>
-            <a href="${process.env.FRONTEND_ORIGIN || 'http://localhost:5173'}" style="display:inline-block;background:#006D6D;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px;">
+            <a href="${(process.env.FRONTEND_ORIGIN || 'http://localhost:5173').split(',')[0].trim()}" style="display:inline-block;background:#006D6D;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px;">
               Start Shopping
             </a>
           </div>
@@ -146,7 +146,7 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+    const frontendOrigin = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').split(',')[0].trim();
     const resetUrl = `${frontendOrigin}/reset-password/${resetToken}`;
 
     const html = `
@@ -318,16 +318,58 @@ exports.changePassword = async (req, res) => {
       return res.status(400).json({ success: false, error: 'New password must be at least 8 characters.' });
     }
 
-    const user = await User.findById(req.user.id).select('+password');
+    const user = await User.findById(req.user.id).select('+password +pwChangeAttempts +pwChangeLockUntil');
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found.' });
     }
 
-    const isMatch = await user.matchPassword(currentPassword);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, error: 'Current password is incorrect.' });
+    // ── Check if currently locked out ────────────────────────────────────────
+    const MAX_ATTEMPTS = 3;
+    const LOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+
+    if (user.pwChangeLockUntil && user.pwChangeLockUntil > Date.now()) {
+      const minutesLeft = Math.ceil((user.pwChangeLockUntil - Date.now()) / 60000);
+      return res.status(429).json({
+        success: false,
+        error: `Too many failed attempts. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`,
+        code: 'PW_LOCKED',
+        minutesLeft,
+      });
     }
 
+    // ── Verify current password ───────────────────────────────────────────────
+    const isMatch = await user.matchPassword(currentPassword);
+
+    if (!isMatch) {
+      // Increment attempts
+      user.pwChangeAttempts = (user.pwChangeAttempts || 0) + 1;
+
+      if (user.pwChangeAttempts >= MAX_ATTEMPTS) {
+        // Lock for 30 minutes
+        user.pwChangeLockUntil = new Date(Date.now() + LOCK_DURATION_MS);
+        user.pwChangeAttempts = 0;
+        await user.save({ validateBeforeSave: false });
+        return res.status(429).json({
+          success: false,
+          error: 'Too many failed attempts. Your account has been locked for 30 minutes.',
+          code: 'PW_LOCKED',
+          minutesLeft: 30,
+        });
+      }
+
+      await user.save({ validateBeforeSave: false });
+      const remaining = MAX_ATTEMPTS - user.pwChangeAttempts;
+      return res.status(401).json({
+        success: false,
+        error: 'Current password is incorrect.',
+        code: 'PW_WRONG',
+        attemptsLeft: remaining,
+      });
+    }
+
+    // ── Password correct — reset counters and update ──────────────────────────
+    user.pwChangeAttempts = 0;
+    user.pwChangeLockUntil = undefined;
     user.password = newPassword;
     await user.save();
 

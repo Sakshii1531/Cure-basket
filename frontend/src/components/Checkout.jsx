@@ -92,8 +92,14 @@ const Checkout = () => {
   const [medicalErrors, setMedicalErrors] = useState({})
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (orderError) {
+      window.scrollTo(0, 0);
+    }
+  }, [orderError]);
 
   const validateMedicalForm = () => {
     const errs = {}
@@ -419,7 +425,7 @@ const Checkout = () => {
           setOrderError(errMsg)
         } else {
           setRxValidationError('')
-          setOrderError('')
+          setOrderError(prev => (prev && prev.startsWith('An approved prescription is required')) ? '' : prev)
         }
       } catch (err) {
         console.error('Failed to verify prescriptions in checkout:', err)
@@ -693,6 +699,7 @@ const Checkout = () => {
                 onClick={() => {
                   if (!selectedAddress) {
                     setOrderError('Shipping Address is required.')
+                    window.scrollTo(0, 0)
                     return
                   }
                   setActiveTab('medical')
@@ -707,6 +714,7 @@ const Checkout = () => {
                 onClick={() => {
                   if (!selectedAddress) {
                     setOrderError('Shipping Address is required.')
+                    window.scrollTo(0, 0)
                     return
                   }
                   setActiveTab('payment')
@@ -1111,6 +1119,7 @@ const Checkout = () => {
                         onClick={() => {
                           if (!selectedAddress) {
                             setOrderError('Shipping Address is required.')
+                            window.scrollTo(0, 0)
                             return
                           }
                           setOrderError('')
@@ -1485,6 +1494,7 @@ const Checkout = () => {
                   <button
                     onClick={() => {
                       if (!validateMedicalForm()) {
+                        window.scrollTo(0, 0)
                         return
                       }
                       setRxUploadError('')

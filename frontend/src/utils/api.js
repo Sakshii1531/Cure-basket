@@ -20,10 +20,15 @@ api.interceptors.request.use(
 
 // On 401: wipe the local token and notify AuthContext via a custom DOM event.
 // We can't import AuthContext here (circular dep), so we use a lightweight event bus.
+// Skip auto-logout for endpoints that intentionally return 401 for wrong credentials.
+const SKIP_AUTO_LOGOUT_URLS = ['/auth/me/password'];
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || '';
+    const shouldSkip = SKIP_AUTO_LOGOUT_URLS.some(u => url.includes(u));
+    if (error.response?.status === 401 && !shouldSkip) {
       localStorage.removeItem('cb_token');
       window.dispatchEvent(new Event('cb:unauthorized'));
     }

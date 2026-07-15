@@ -146,7 +146,19 @@ function MainBannerCarousel() {
               <div
                 key={banner._id}
                 className="min-w-full rounded-3xl overflow-hidden relative h-40 sm:h-56 md:h-auto md:min-h-[350px] cursor-pointer group"
-                onClick={() => banner.link && navigate(banner.link)}
+                onClick={() => {
+                  if (!banner.link) return;
+                  const link = banner.link.trim();
+                  // Ignore data URIs or blob URLs (accidental image URLs in the link field)
+                  if (link.startsWith('data:') || link.startsWith('blob:')) return;
+                  // External URL → open in new tab
+                  if (link.startsWith('http://') || link.startsWith('https://')) {
+                    window.open(link, '_blank', 'noopener,noreferrer');
+                  } else {
+                    // Internal path → React Router navigate
+                    navigate(link);
+                  }
+                }}
               >
                 <img
                   src={banner.image}

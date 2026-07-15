@@ -90,6 +90,14 @@ const userSchema = new mongoose.Schema({
   lockUntil: {
     type: Date,
   },
+  // Change-password lockout (3 wrong attempts → 30 min lock)
+  pwChangeAttempts: {
+    type: Number,
+    default: 0,
+  },
+  pwChangeLockUntil: {
+    type: Date,
+  },
   // Password reset
   resetPasswordToken: String,
   resetPasswordExpire: Date,

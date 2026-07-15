@@ -24,8 +24,9 @@ function Testimonials() {
   const slideCount = reviews.length
   useEffect(() => {
     if (slideCount === 0) return
+    const loopCount = slideCount > 4 ? slideCount + 1 : slideCount
     const timer = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % (slideCount + 1))
+      setCurrentIndex(prev => (prev + 1) % loopCount)
     }, 5000)
     return () => clearInterval(timer)
   }, [slideCount])
@@ -88,7 +89,7 @@ function Testimonials() {
               style={{ transform: `translateX(-${currentIndex * (typeof window !== 'undefined' && window.innerWidth < 768 ? 85 : 25)}%)` }}
               onTransitionEnd={() => { if (currentIndex >= reviews.length) setCurrentIndex(0) }}
             >
-              {[...reviews, ...reviews.slice(0, 4)].map((rev, i) => (
+              {(reviews.length > 4 ? [...reviews, ...reviews.slice(0, 4)] : reviews).map((rev, i) => (
                 <div key={`${rev._id}-${i}`} className="w-[85%] md:w-1/2 lg:w-1/4 shrink-0 px-2 py-4">
                   <div className="bg-gray-50 p-4 md:p-6 rounded-[20px] flex flex-col h-full shadow-sm hover:shadow-md transition-all border border-gray-200">
                     <span className="text-primary font-bold text-[16px] md:text-[18px] mb-1">

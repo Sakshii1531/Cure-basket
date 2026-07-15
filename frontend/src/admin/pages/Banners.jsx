@@ -38,6 +38,12 @@ function Banners() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    // Reject data/blob URLs in the link field
+    const link = (current.link || '').trim();
+    if (link.startsWith('data:') || link.startsWith('blob:')) {
+      toast.error('Invalid link URL. Please enter a page path (e.g. /category/diabetes) or a full URL (https://...).');
+      return;
+    }
     setSaving(true);
     try {
       if (current._id) {
@@ -137,7 +143,27 @@ function Banners() {
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Link URL</label>
-                <input type="text" value={current.link} onChange={e => setCurrent({...current, link: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="/category/diabetes" />
+                <input
+                  type="text"
+                  value={current.link}
+                  onChange={e => setCurrent({...current, link: e.target.value})}
+                  className={`w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                    current.link && (current.link.startsWith('data:') || current.link.startsWith('blob:'))
+                      ? 'border-red-400 bg-red-50'
+                      : 'border-gray-200'
+                  }`}
+                  placeholder="/category/diabetes  or  https://example.com"
+                />
+                {current.link && (current.link.startsWith('data:') || current.link.startsWith('blob:')) && (
+                  <p className="text-red-500 text-xs mt-1 font-medium">
+                    ⚠️ This looks like an image URL, not a page link. Enter a path like <code>/category/diabetes</code> or a full URL like <code>https://example.com</code>.
+                  </p>
+                )}
+                {current.link && !current.link.startsWith('data:') && !current.link.startsWith('blob:') && (
+                  <p className="text-gray-400 text-xs mt-1">
+                    {current.link.startsWith('http') ? '🌐 External link — opens in new tab' : '🔗 Internal link — navigates within site'}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

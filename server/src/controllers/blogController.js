@@ -17,7 +17,7 @@ async function sendBlogNotification(blog) {
     const subscribers = await Subscriber.find({ status: 'subscribed' });
     if (subscribers.length === 0) return;
 
-    const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+    const frontendOrigin = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').split(',')[0].trim();
     const blogUrl = `${frontendOrigin}/blog/${blog.slug}`;
     const allBlogsUrl = `${frontendOrigin}/blogs`;
 

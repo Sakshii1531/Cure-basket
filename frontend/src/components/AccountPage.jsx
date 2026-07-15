@@ -135,12 +135,15 @@ const AccountPage = () => {
   const [pwLoading, setPwLoading] = useState(false)
   const [pwError, setPwError] = useState('')
   const [pwSuccess, setPwSuccess] = useState('')
+  const [pwLockUntil, setPwLockUntil] = useState(null) // Date when lock expires
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false })
 
   const openPwModal = () => {
     setPwTab('current')
     setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
     setPwError('')
     setPwSuccess('')
+    setShowPw({ current: false, new: false, confirm: false })
     setShowPwModal(true)
   }
 
@@ -148,6 +151,14 @@ const AccountPage = () => {
     e.preventDefault()
     setPwError('')
     setPwSuccess('')
+
+    // Check local lockout state first
+    if (pwLockUntil && pwLockUntil > Date.now()) {
+      const mins = Math.ceil((pwLockUntil - Date.now()) / 60000)
+      toast.error(`Account locked. Try again in ${mins} minute${mins !== 1 ? 's' : ''}.`)
+      return
+    }
+
     if (pwForm.newPassword !== pwForm.confirmPassword) {
       setPwError('New passwords do not match.')
       return
@@ -163,9 +174,27 @@ const AccountPage = () => {
         newPassword: pwForm.newPassword,
       })
       setPwSuccess('Password updated successfully!')
+      setPwLockUntil(null)
       setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      toast.success('Password updated successfully!')
     } catch (err) {
-      setPwError(err.response?.data?.error || 'Failed to update password. Please try again.')
+      const data = err.response?.data || {}
+      if (data.code === 'PW_LOCKED') {
+        const lockExpiry = Date.now() + (data.minutesLeft || 30) * 60 * 1000
+        setPwLockUntil(lockExpiry)
+        const msg = `Too many failed attempts. You are locked out for ${data.minutesLeft || 30} minutes.`
+        setPwError(msg)
+        toast.error(msg, { duration: 6000 })
+      } else if (data.code === 'PW_WRONG') {
+        const left = data.attemptsLeft ?? '?'
+        const msg = `Incorrect password. You have ${left} attempt${left !== 1 ? 's' : ''} remaining.`
+        setPwError(msg)
+        toast.warning(msg, { duration: 5000 })
+      } else {
+        const msg = data.error || 'Failed to update password. Please try again.'
+        setPwError(msg)
+        toast.error(msg)
+      }
     } finally {
       setPwLoading(false)
     }
@@ -1052,8 +1081,15 @@ const AccountPage = () => {
             </div>
 
             <div className="p-6">
+              {/* Locked-out banner */}
+              {pwLockUntil && pwLockUntil > Date.now() && (
+                <div className="mb-4 bg-red-50 border border-red-300 text-red-700 text-[13px] px-4 py-3 rounded-lg font-medium flex items-center gap-2">
+                  <span>🔒</span>
+                  <span>Account locked for <strong>{Math.ceil((pwLockUntil - Date.now()) / 60000)} min</strong>. Too many wrong attempts.</span>
+                </div>
+              )}
               {/* Feedback messages */}
-              {pwError && (
+              {pwError && !pwLockUntil && (
                 <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-[13px] px-4 py-2.5 rounded-lg font-medium flex items-center gap-2">
                   <span>⚠️</span> {pwError}
                 </div>
@@ -1070,36 +1106,63 @@ const AccountPage = () => {
                   <p className="text-[12.5px] text-gray-500 mb-2">Enter your current password to set a new one.</p>
                   <div>
                     <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">Current Password <span className="text-red-500">*</span></label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="Your current password"
-                      value={pwForm.currentPassword}
-                      onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
-                      className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPw.current ? 'text' : 'password'}
+                        required
+                        placeholder="Your current password"
+                        value={pwForm.currentPassword}
+                        onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
+                        className="border border-gray-200 rounded-lg px-3.5 py-2.5 pr-10 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
+                      />
+                      <button type="button" onClick={() => setShowPw(s => ({ ...s, current: !s.current }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {showPw.current ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">New Password <span className="text-red-500">*</span></label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="Min. 8 characters"
-                      value={pwForm.newPassword}
-                      onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
-                      className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPw.new ? 'text' : 'password'}
+                        required
+                        placeholder="Min. 8 characters"
+                        value={pwForm.newPassword}
+                        onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                        className="border border-gray-200 rounded-lg px-3.5 py-2.5 pr-10 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
+                      />
+                      <button type="button" onClick={() => setShowPw(s => ({ ...s, new: !s.new }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {showPw.new ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="text-[12.5px] font-semibold text-[#006D6D] mb-1.5 block">Confirm New Password <span className="text-red-500">*</span></label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="Repeat new password"
-                      value={pwForm.confirmPassword}
-                      onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
-                      className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPw.confirm ? 'text' : 'password'}
+                        required
+                        placeholder="Repeat new password"
+                        value={pwForm.confirmPassword}
+                        onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                        className="border border-gray-200 rounded-lg px-3.5 py-2.5 pr-10 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] text-gray-700 font-sans"
+                      />
+                      <button type="button" onClick={() => setShowPw(s => ({ ...s, confirm: !s.confirm }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {showPw.confirm ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100">
                     <button
@@ -1111,10 +1174,10 @@ const AccountPage = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={pwLoading}
+                      disabled={pwLoading || (pwLockUntil && pwLockUntil > Date.now())}
                       className="px-5 py-2 bg-[#006D6D] text-white rounded-lg font-semibold hover:bg-[#005a5a] active:scale-[0.98] disabled:opacity-50 transition-all flex items-center gap-1.5 text-[13px]"
                     >
-                      {pwLoading ? 'Updating...' : 'Update Password'}
+                      {pwLoading ? 'Updating...' : pwLockUntil && pwLockUntil > Date.now() ? '🔒 Locked' : 'Update Password'}
                     </button>
                   </div>
                 </form>
