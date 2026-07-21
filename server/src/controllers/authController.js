@@ -92,7 +92,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select('+password +loginAttempts +lockUntil').populate('customRole');
 
     if (!user) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      return res.status(401).json({ success: false, error: 'Email not registered. Please sign up.' });
     }
 
     // Account locked

@@ -90,7 +90,13 @@ function InsuranceCoveragePage() {
         {/* Back Button */}
         <div className="pt-8 text-center">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1)
+              } else {
+                window.close()
+              }
+            }}
             className="bg-[#006D6D] hover:bg-[#005a5a] text-white font-bold px-12 py-3 rounded-full text-[14px] uppercase tracking-wider transition-colors shadow-md"
           >
             Go Back

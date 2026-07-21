@@ -126,11 +126,12 @@ function UserForm() {
       if (isEditMode) {
         await api.put(`/users/${id}`, payload);
         toast.success('User updated successfully');
+        navigate(`/admin/users/${id}`);
       } else {
         await api.post('/users', payload);
         toast.success('User created successfully');
+        navigate('/admin/users');
       }
-      navigate('/admin/users');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save user');
     } finally {
