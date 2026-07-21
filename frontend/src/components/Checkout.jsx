@@ -75,6 +75,7 @@ const Checkout = () => {
   const [callFrom, setCallFrom] = useState('2 AM')
   const [callTo, setCallTo] = useState('5 AM')
   const [timeZone, setTimeZone] = useState('GMT')
+  const [paymentMethod, setPaymentMethod] = useState('card')
 
   // Medical Conditions Tab States
   const [physicianName, setPhysicianName] = useState('')
@@ -1145,19 +1146,7 @@ const Checkout = () => {
               const rxRequired = items.some(i => i.prescription === 'Required')
               return (
               <div className="space-y-6">
-                {rxRequired && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-[10px] p-4 flex gap-3">
-                    <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div>
-                      <h4 className="text-[13px] font-bold text-amber-800">Prescription Required</h4>
-                      <p className="text-[12px] text-amber-600 mt-0.5">
-                        One or more items in your order require a doctor's prescription. Please upload it below to continue.
-                      </p>
-                    </div>
-                  </div>
-                )}
+
 
                 <div className="space-y-6">
                   {/* Physician Name & Phone Row */}
@@ -1265,7 +1254,6 @@ const Checkout = () => {
                             type="checkbox"
                             checked={currentMedicationsNone}
                             onChange={e => {
-                              setDrugAllergiesNone(false)
                               setCurrentMedicationsNone(e.target.checked)
                               if (e.target.checked) {
                                 setCurrentMedications('')
@@ -1524,18 +1512,20 @@ const Checkout = () => {
                   {[
                     { id: 'card', name: 'Credit / Debit Card', desc: 'Secure payment via SSL payment gateway' },
                     { id: 'upi', name: 'UPI / Net Banking', desc: 'Pay instantly using PhonePe, GPay, Paytm or Net Banking' },
-                    { id: 'cod', name: 'Cash on Delivery (COD)', desc: 'Pay when your package arrives at your address' },
                   ].map(pm => (
                     <div
                       key={pm.id}
-                      className="border border-gray-200 rounded-[12px] p-4 bg-white flex items-center justify-between cursor-pointer hover:border-[#006D6D]/50 transition-all"
+                      onClick={() => setPaymentMethod(pm.id)}
+                      className={`border rounded-[12px] p-4 bg-white flex items-center justify-between cursor-pointer transition-all ${
+                        paymentMethod === pm.id ? 'border-[#006D6D]' : 'border-gray-200 hover:border-[#006D6D]/50'
+                      }`}
                     >
                       <div>
                         <h4 className="text-[14px] font-bold text-gray-900">{pm.name}</h4>
                         <p className="text-[12px] text-gray-400 mt-0.5">{pm.desc}</p>
                       </div>
                       <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                        {pm.id === 'cod' && <div className="w-2.5 h-2.5 rounded-full bg-[#006D6D]"></div>}
+                        {paymentMethod === pm.id && <div className="w-2.5 h-2.5 rounded-full bg-[#006D6D]"></div>}
                       </div>
                     </div>
                   ))}
@@ -1730,7 +1720,7 @@ const Checkout = () => {
             {/* Free comprehensive insurance coverage */}
             <div className="border-t border-gray-150 pt-4 pb-1 text-[12px] font-semibold text-gray-500 leading-normal">
               Free comprehensive insurance coverage
-              <Link to="/insurance-coverage" className="text-blue-500 hover:text-blue-700 underline font-bold ml-1.5">
+              <Link to="/insurance-coverage" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 underline font-bold ml-1.5">
                 Know More
               </Link>
             </div>

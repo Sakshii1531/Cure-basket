@@ -11,6 +11,15 @@ function Brands() {
   const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentBrand, setCurrentBrand] = useState(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+
+  const filteredBrands = brands.filter(b =>
+    b.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.max(1, Math.ceil(filteredBrands.length / PAGE_SIZE));
+  const pagedBrands = filteredBrands.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   useEffect(() => {
     api.get('/brands')
@@ -70,6 +79,20 @@ function Brands() {
         </button>
       </div>
 
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
+        </svg>
+        <input
+          type="text"
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1); }}
+          placeholder="Search brands..."
+          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -85,7 +108,7 @@ function Brands() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {brands.map((brand) => (
+              {pagedBrands.map((brand) => (
                 <tr key={brand._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
@@ -115,13 +138,49 @@ function Brands() {
                   </td>
                 </tr>
               ))}
-              {brands.length === 0 && (
+              {pagedBrands.length === 0 && (
                 <tr><td colSpan="3" className="px-6 py-8 text-center text-gray-400 text-sm">No brands found.</td></tr>
               )}
             </tbody>
           </table>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm text-gray-500">
+          <span>{filteredBrands.length} brand{filteredBrands.length !== 1 ? 's' : ''} found</span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ← Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3 py-1.5 rounded-lg border transition-colors ${
+                  p === page
+                    ? 'bg-primary text-white border-primary font-semibold'
+                    : 'border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
