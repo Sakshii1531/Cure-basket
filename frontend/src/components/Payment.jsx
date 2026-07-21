@@ -26,7 +26,7 @@ const Payment = () => {
     )
   }
 
-  const { orderItems, totalAmount, shippingAddress, shippingMethod, prescriptionId } = orderData
+  const { orderItems, totalAmount, subtotal, shippingFee, discountAmount, couponCode, shippingAddress, shippingMethod, prescriptionId } = orderData
 
   const placeOrder = async (paymentStatus) => {
     setProcessing(true)
@@ -34,6 +34,10 @@ const Payment = () => {
     try {
       const res = await api.post('/orders', {
         items: orderItems,
+        subtotal,
+        shippingFee,
+        discountAmount,
+        couponCode,
         totalAmount,
         shippingAddress,
         paymentStatus,
@@ -56,6 +60,10 @@ const Payment = () => {
     try {
       await api.post('/orders', {
         items: orderItems,
+        subtotal,
+        shippingFee,
+        discountAmount,
+        couponCode,
         totalAmount,
         shippingAddress,
         paymentStatus: 'Failed',
@@ -160,7 +168,29 @@ const Payment = () => {
                 </div>
               ))}
             </div>
-            <div className="border-t border-gray-100 pt-3 flex justify-between text-[15px] font-bold text-gray-900">
+            
+            <div className="border-t border-gray-100 pt-3 space-y-2 text-[13px] text-gray-600">
+              {subtotal !== undefined && (
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-semibold text-gray-800">${subtotal.toFixed(2)}</span>
+                </div>
+              )}
+              {shippingFee !== undefined && shippingFee > 0 && (
+                <div className="flex justify-between">
+                  <span>Shipping Fee</span>
+                  <span className="font-semibold text-gray-800">${shippingFee.toFixed(2)}</span>
+                </div>
+              )}
+              {discountAmount !== undefined && discountAmount > 0 && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>Discount {couponCode ? `(${couponCode})` : ''}</span>
+                  <span className="font-bold">-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-gray-100 pt-3 mt-3 flex justify-between text-[15px] font-bold text-gray-900">
               <span>Total</span>
               <span className="text-[#006D6D]">${totalAmount.toFixed(2)}</span>
             </div>

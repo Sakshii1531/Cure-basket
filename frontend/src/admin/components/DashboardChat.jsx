@@ -12,6 +12,14 @@ const STATUS_BADGE = {
   bot: 'bg-violet-50 text-violet-600',
 };
 
+const STATUS_LABEL = {
+  waiting_human: 'waiting',
+  human_active: 'active',
+  resolved: 'resolved',
+  async: 'async',
+  bot: 'bot',
+};
+
 const fmtTime = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 function DashboardChat() {
@@ -162,7 +170,7 @@ function DashboardChat() {
                   {c.lastMessageSender === 'admin' ? 'You: ' : ''}{c.lastMessageText || 'New conversation'}
                 </p>
                 <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[c.status] || 'bg-gray-100 text-gray-500'}`}>
-                  {c.status.replace('_', ' ')}
+                  {STATUS_LABEL[c.status] || c.status.replace('_', ' ')}
                 </span>
               </button>
             ))
@@ -182,9 +190,11 @@ function DashboardChat() {
                 <p className="font-bold text-gray-900 text-sm flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${thread.conversation.customerOnline ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`}></span>
                   {customerName(thread.conversation)}
-                  <span className={`text-[10px] font-semibold ${thread.conversation.customerOnline ? 'text-emerald-600' : 'text-gray-400'}`}>
-                    {thread.conversation.customerOnline ? 'Online' : 'Away'}
-                  </span>
+                  {thread.conversation.customerOnline && (
+                    <span className="text-[10px] font-semibold text-emerald-600">
+                      Online
+                    </span>
+                  )}
                 </p>
               </div>
 

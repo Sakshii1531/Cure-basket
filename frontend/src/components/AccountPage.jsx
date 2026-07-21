@@ -60,6 +60,9 @@ const AccountPage = () => {
         toast.success('Address added successfully.')
       }
       setAddresses(res.data.addresses)
+      if (setUser && res.data.addresses) {
+        setUser(prev => prev ? { ...prev, addresses: res.data.addresses } : prev)
+      }
       closeAddressModal()
     } catch (err) {
       setAddressError(err.response?.data?.error || 'Failed to save address. Please try again.')
@@ -73,6 +76,13 @@ const AccountPage = () => {
     setEditingAddressId(null)
     setAddressForm({ name: '', street: '', city: '', phone: '' })
     setAddressError('')
+  }
+
+  const openAddAddressModal = () => {
+    setEditingAddressId(null)
+    setAddressForm({ name: '', street: '', city: '', phone: '' })
+    setAddressError('')
+    setShowAddressModal(true)
   }
 
   const handleEditAddressClick = (addr) => {
@@ -383,19 +393,7 @@ const AccountPage = () => {
               <h3 className="text-[17px] font-bold text-gray-800 border-b border-gray-100 pb-2 mb-4">Your Recent Orders</h3>
               {orders.map((order) => {
                 const itemCount = (order.items || []).length
-                const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                let shippingFee = 0;
-                let discount = 0;
-
-                if (order.totalAmount > subtotal) {
-                  shippingFee = order.totalAmount - subtotal;
-                } else if (order.totalAmount < subtotal) {
-                  discount = subtotal - order.totalAmount;
-                } else {
-                  shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
-                }
-
-                const displayedTotal = subtotal + shippingFee - discount;
+                const displayedTotal = Number(order.totalAmount) || 0;
                 return (
                   <div key={order._id} className="border border-gray-100 rounded-xl p-4 bg-gray-50/50 hover:bg-gray-50 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
@@ -580,7 +578,7 @@ const AccountPage = () => {
                 ))}
               </div>
             )}
-            <button onClick={() => setShowAddressModal(true)} className="mt-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-md text-[14px] font-semibold transition-all font-sans">+ Add New Address</button>
+            <button onClick={openAddAddressModal} className="mt-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-md text-[14px] font-semibold transition-all font-sans">+ Add New Address</button>
           </div>
         )
       case 'Edit Profile':
@@ -828,7 +826,7 @@ const AccountPage = () => {
               
               {/* User Profile Section */}
               <div className="font-sans">
-                <h2 className="text-[20px] font-bold text-gray-800 tracking-tight leading-none font-sans">{user?.name || 'Ujjawal K'}</h2>
+                <h2 className="text-[20px] font-bold text-gray-800 tracking-tight leading-none font-sans capitalize">{user?.name || 'Ujjawal K'}</h2>
                 <p className="text-[13px] text-gray-400 mt-2 font-medium tracking-tight mb-4 font-sans">{getMemberSince()}</p>
                 
                 <div className="border-t border-gray-100 pt-4 flex items-center gap-2.5 text-gray-600 text-[14px] font-semibold font-sans">
@@ -849,9 +847,26 @@ const AccountPage = () => {
                     <p className="text-[13px] text-gray-400 font-sans">No saved addresses yet.</p>
                   ) : addresses.map((addr, i) => (
                     <div key={addr._id || i} className={i > 0 ? "border-t border-gray-100 pt-4" : ""}>
-                      <h4 className="text-[12.5px] font-bold text-primary uppercase tracking-wider font-sans">
-                        {addr.name} {i === 0 && <span className="text-[10px] text-gray-400 font-normal lowercase">(Default)</span>}
-                      </h4>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-[12.5px] font-bold text-primary uppercase tracking-wider font-sans">
+                          {addr.name} {i === 0 && <span className="text-[10px] text-gray-400 font-normal lowercase">(default)</span>}
+                        </h4>
+                        <div className="flex items-center gap-2 text-[12px] font-semibold">
+                          <button
+                            onClick={() => handleEditAddressClick(addr)}
+                            className="text-[#006D6D] hover:underline"
+                          >
+                            Edit
+                          </button>
+                          <span className="text-gray-300 font-normal">|</span>
+                          <button
+                            onClick={() => handleDeleteAddressClick(addr._id)}
+                            className="text-red-600 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                       <p className="text-[13.5px] text-gray-500 font-semibold mt-1.5 leading-relaxed font-sans">
                         {addr.street}, {addr.city}
                       </p>
@@ -861,7 +876,7 @@ const AccountPage = () => {
 
                   <div className="border-t border-gray-100 pt-4">
                     <button 
-                      onClick={() => setShowAddressModal(true)} 
+                      onClick={openAddAddressModal} 
                       className="text-[13.5px] font-bold text-[#006D6D] hover:underline flex items-center gap-1 uppercase tracking-wider font-sans"
                     >
                       <span className="text-[15px] font-bold font-sans">+</span> Add New Address
@@ -957,8 +972,8 @@ const AccountPage = () => {
                   <input 
                     type="tel" 
                     required
-                    pattern="[0-9]{10}"
-                    placeholder="10-digit number"
+                    pattern="[\+]?[0-9\s\-]{7,15}"
+                    placeholder="Phone number"
                     value={addressForm.phone} 
                     onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
                     className="border border-gray-200 rounded-lg px-3.5 py-2.5 focus:outline-none focus:border-[#006D6D] w-full text-[13.5px] font-semibold text-gray-700 font-sans"
@@ -1016,6 +1031,9 @@ const AccountPage = () => {
                   try {
                     const res = await api.delete(`/auth/me/addresses/${id}`)
                     setAddresses(res.data.addresses)
+                    if (setUser && res.data.addresses) {
+                      setUser(prev => prev ? { ...prev, addresses: res.data.addresses } : prev)
+                    }
                     toast.success('Address deleted successfully.')
                   } catch (err) {
                     toast.error(err.response?.data?.error || 'Failed to delete address.')

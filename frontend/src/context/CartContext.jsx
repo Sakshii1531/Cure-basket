@@ -5,6 +5,13 @@ const CartContext = createContext(null);
 
 const STORAGE_KEY = 'cb_cart';
 
+function getItemKey(product, pkg) {
+  const baseId = String(product._id || product.id || '');
+  if (!pkg) return baseId;
+  const pkgId = pkg.id || pkg._id || pkg.label || '';
+  return `${baseId}_pkg_${pkgId}`;
+}
+
 function loadCart() {
   try {
     const items = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -12,15 +19,10 @@ function loadCart() {
     
     const merged = [];
     items.forEach(item => {
-      const itemKey = String(item._id || item.id);
-      const existing = merged.find(i => i.itemKey === itemKey || i._id === item._id);
+      const itemKey = item.itemKey || getItemKey(item, item.pkg);
+      const existing = merged.find(i => i.itemKey === itemKey);
       if (existing) {
         existing.qty = (existing.qty || 1) + (item.qty || 1);
-        if (item.pkg || (!existing.pkg && item.price > existing.price)) {
-          existing.pkg = item.pkg;
-          existing.price = item.price;
-          existing.mrp = item.mrp;
-        }
       } else {
         merged.push({
           ...item,
@@ -43,7 +45,7 @@ export function CartProvider({ children }) {
 
   const addToCart = (product, qty = 1, pkg = null) => {
     setItems(prev => {
-      const itemKey = String(product._id || product.id);
+      const itemKey = getItemKey(product, pkg);
       const existing = prev.find(i => i.itemKey === itemKey);
 
       if (existing) {

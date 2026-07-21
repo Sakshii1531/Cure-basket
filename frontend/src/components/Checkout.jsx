@@ -635,7 +635,12 @@ const Checkout = () => {
           name: i.name,
           price: i.price,
           quantity: i.qty,
+          ...(i.pkg ? { pkg: i.pkg } : {})
         })),
+        subtotal,
+        shippingFee: shippingCost,
+        discountAmount,
+        couponCode: appliedCoupon?.code || null,
         totalAmount: total,
         shippingAddress: { name: addr.name, street: addr.street, city: addr.city, phone: addr.phone },
         shippingMethod,

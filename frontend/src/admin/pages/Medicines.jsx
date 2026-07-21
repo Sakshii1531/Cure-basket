@@ -892,18 +892,35 @@ function Medicines() {
                 <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">Media & Display</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 block mb-1">Upload Image</label>
-                    <input type="file" accept="image/*" onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      setCurrent(prev => ({...prev, image: '__uploading__'}));
-                      try {
-                        const url = await uploadImage(file, 'cure-basket/medicines');
-                        setCurrent(prev => ({...prev, image: url}));
-                      } catch {
-                        setCurrent(prev => ({...prev, image: ''}));
-                      }
-                    }} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <label className="text-sm font-semibold text-gray-700 block mb-1">Image Path / URL</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Image path or URL" 
+                        value={current.image === '__uploading__' ? '' : (current.image || '')} 
+                        onChange={e => setCurrent({...current, image: e.target.value})} 
+                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" 
+                      />
+                      <label className="shrink-0 bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 font-semibold px-4 py-2.5 rounded-lg text-sm cursor-pointer transition-colors flex items-center gap-1 select-none">
+                        <span>Upload File</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            setCurrent(prev => ({...prev, image: '__uploading__'}));
+                            try {
+                              const url = await uploadImage(file, 'cure-basket/medicines');
+                              setCurrent(prev => ({...prev, image: url}));
+                            } catch {
+                              setCurrent(prev => ({...prev, image: ''}));
+                            }
+                          }} 
+                        />
+                      </label>
+                    </div>
                     {current.image === '__uploading__' && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
                     {current.image && current.image !== 'no-photo.jpg' && current.image !== '__uploading__' && (
                       <img src={current.image} alt="Preview" className="mt-2 w-20 h-20 object-contain rounded-lg border border-gray-100" />

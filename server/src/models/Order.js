@@ -18,9 +18,17 @@ const orderSchema = new mongoose.Schema({
       quantity: {
         type: Number,
         required: true
+      },
+      pkg: {
+        label: String,
+        units: Number,
       }
     }
   ],
+  subtotal: Number,
+  shippingFee: Number,
+  discountAmount: Number,
+  couponCode: String,
   totalAmount: {
     type: Number,
     required: true

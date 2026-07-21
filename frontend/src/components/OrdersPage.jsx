@@ -94,11 +94,27 @@ export function OrderDetailDrawer({ order, onClose }) {
     day: 'numeric', month: 'long', year: 'numeric'
   })
 
-  const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  // Use settings-based shipping fee: if subtotal meets free threshold, no fee; otherwise apply configured fee.
-  const shippingFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
-  // Compute total as subtotal + shipping so breakdown always adds up.
-  const displayedTotal = subtotal + shippingFee;
+  const rawSubtotal = (order.items || []).reduce((sum, item) => {
+    const p = Number(item.price ?? item.medicine?.price ?? 0) || 0;
+    const q = Number(item.quantity) || 1;
+    return sum + (p * q);
+  }, 0);
+
+  const subtotal = Number(order.subtotal) || (rawSubtotal > 0 ? rawSubtotal : (Number(order.totalAmount) || 0));
+  const discountAmount = Number(order.discountAmount) || 0;
+
+  let shippingFee = 0;
+  if (order.shippingFee !== undefined && order.shippingFee !== null) {
+    shippingFee = Number(order.shippingFee) || 0;
+  } else if (order.totalAmount && order.totalAmount > (subtotal - discountAmount)) {
+    shippingFee = order.totalAmount - (subtotal - discountAmount);
+  } else if (freeThreshold > 0 && subtotal >= freeThreshold) {
+    shippingFee = 0;
+  } else {
+    shippingFee = shippingCharges;
+  }
+
+  const displayedTotal = Number(order.totalAmount) || Math.max(0, subtotal + shippingFee - discountAmount);
 
   return (
     <>
@@ -157,6 +173,9 @@ export function OrderDetailDrawer({ order, onClose }) {
             <div className="divide-y divide-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
               {(order.items || []).map((item, idx) => {
                 const medImg = item.medicine?.image || null
+                const unitPrice = Number(item.price ?? item.medicine?.price ?? (order.totalAmount && (order.items || []).length === 1 ? order.totalAmount : 0)) || 0;
+                const itemQty = Number(item.quantity) || 1;
+                const itemTotal = unitPrice * itemQty;
                 return (
                   <div key={idx} className="flex gap-4 p-4 bg-white">
                     {/* Product image or placeholder */}
@@ -171,11 +190,11 @@ export function OrderDetailDrawer({ order, onClose }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-[13.5px] font-bold text-gray-900 leading-tight truncate">{item.name}</h4>
-                      <p className="text-[12px] text-gray-400 mt-0.5 font-medium">Qty: {item.quantity}</p>
+                      <p className="text-[12px] text-gray-400 mt-0.5 font-medium">Qty: {itemQty}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-[14px] font-black text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">${item.price?.toFixed(2)} each</p>
+                      <p className="text-[14px] font-black text-gray-900">${itemTotal.toFixed(2)}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">${unitPrice.toFixed(2)} each</p>
                     </div>
                   </div>
                 )
@@ -236,12 +255,16 @@ export function OrderDetailDrawer({ order, onClose }) {
           <div>
             <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider mb-3">Price Breakdown</p>
             <div className="bg-gray-50 rounded-2xl p-4 space-y-2.5">
-              {(order.items || []).map((item, idx) => (
-                <div key={idx} className="flex justify-between text-[12.5px] text-gray-500">
-                  <span className="truncate max-w-[200px]">{item.name} × {item.quantity}</span>
-                  <span className="font-semibold text-gray-700 shrink-0 ml-2">${(item.price * item.quantity).toFixed(2)}</span>
-                </div>
-              ))}
+              {(order.items || []).map((item, idx) => {
+                const uPrice = Number(item.price ?? item.medicine?.price ?? (order.totalAmount && (order.items || []).length === 1 ? order.totalAmount : 0)) || 0;
+                const iQty = Number(item.quantity) || 1;
+                return (
+                  <div key={idx} className="flex justify-between text-[12.5px] text-gray-500">
+                    <span className="truncate max-w-[200px]">{item.name} × {iQty}</span>
+                    <span className="font-semibold text-gray-700 shrink-0 ml-2">${(uPrice * iQty).toFixed(2)}</span>
+                  </div>
+                );
+              })}
               
               <div className="border-t border-gray-200/60 my-2" />
 
@@ -254,6 +277,13 @@ export function OrderDetailDrawer({ order, onClose }) {
                 <div className="flex justify-between text-[12.5px] text-gray-500">
                   <span>Shipping Fee</span>
                   <span className="font-semibold text-gray-700">${shippingFee.toFixed(2)}</span>
+                </div>
+              )}
+
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-[12.5px] text-emerald-600">
+                  <span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
+                  <span className="font-bold">-${discountAmount.toFixed(2)}</span>
                 </div>
               )}
 
@@ -412,9 +442,12 @@ const OrdersPage = () => {
             const itemCount = (order.items || []).length
             const previewItem = order.items?.[0]
 
-            const cardSubtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const cardShipping = (freeThreshold > 0 && cardSubtotal >= freeThreshold) ? 0 : shippingCharges;
-            const displayedTotal = cardSubtotal + cardShipping;
+            const cardSubtotal = (order.items || []).reduce((sum, item) => sum + (Number(item.price ?? item.medicine?.price ?? 0) * (Number(item.quantity) || 1)), 0);
+            const cardShipping = (order.shippingFee !== undefined && order.shippingFee !== null)
+              ? Number(order.shippingFee)
+              : (order.totalAmount && order.totalAmount > cardSubtotal ? order.totalAmount - cardSubtotal : ((freeThreshold > 0 && cardSubtotal >= freeThreshold) ? 0 : shippingCharges));
+            const cardDiscount = Number(order.discountAmount) || 0;
+            const cardTotal = Number(order.totalAmount) || Math.max(0, cardSubtotal + cardShipping - cardDiscount);
 
             return (
               <div key={order._id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -466,7 +499,7 @@ const OrdersPage = () => {
                       <path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
-                  <span className="text-[20px] font-black text-gray-900">${displayedTotal.toFixed(2)}</span>
+                  <span className="text-[20px] font-black text-gray-900">${cardTotal.toFixed(2)}</span>
                 </div>
               </div>
             )

@@ -87,9 +87,6 @@ exports.validateCoupon = async (req, res) => {
     if (coupon.maxDiscount !== null) discount = Math.min(discount, coupon.maxDiscount);
     discount = Math.min(discount, orderTotal);
 
-    // Atomically increment usedCount so concurrent requests don't double-count
-    await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: 1 } });
-
     res.status(200).json({
       success: true,
       data: {

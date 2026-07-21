@@ -29,7 +29,7 @@ exports.createOrder = async (req, res) => {
   }
 
   try {
-    const { items, shippingAddress, paymentStatus, prescriptionId, medicalDetails } = req.body;
+    const { items, shippingAddress, paymentStatus, prescriptionId, medicalDetails, subtotal: reqSubtotal, shippingFee: reqShippingFee, discountAmount: reqDiscountAmount, couponCode } = req.body;
 
     if (!items || items.length === 0) {
       if (useTransaction) await session.abortTransaction();
@@ -44,7 +44,7 @@ exports.createOrder = async (req, res) => {
     const medicineMap = Object.fromEntries(medicines.map((m) => [m._id.toString(), m]));
 
     const orderItems = [];
-    let totalAmount = 0;
+    let calculatedSubtotal = 0;
 
     for (const item of items) {
       const med = medicineMap[item.medicine?.toString()];
@@ -68,9 +68,21 @@ exports.createOrder = async (req, res) => {
           error: `Only ${med.stock} units available`,
         });
       }
-      orderItems.push({ medicine: med._id, name: med.name, price: med.price, quantity: item.quantity });
-      totalAmount += med.price * item.quantity;
+      const itemPrice = typeof item.price === 'number' && item.price >= 0 ? item.price : med.price;
+      orderItems.push({
+        medicine: med._id,
+        name: med.name,
+        price: itemPrice,
+        quantity: item.quantity,
+        ...(item.pkg ? { pkg: item.pkg } : {})
+      });
+      calculatedSubtotal += itemPrice * item.quantity;
     }
+
+    const subtotal = reqSubtotal !== undefined ? Number(reqSubtotal) : calculatedSubtotal;
+    const shippingFee = Number(reqShippingFee) || 0;
+    const discountAmount = Number(reqDiscountAmount) || 0;
+    const finalTotal = req.body.totalAmount !== undefined ? Number(req.body.totalAmount) : Math.max(0, subtotal + shippingFee - discountAmount);
 
     // Enforce prescription requirement: any medicine with prescription === 'Required'
     // must have an approved prescription (status is Reviewed or Dispensed) associated with it.
@@ -140,13 +152,26 @@ exports.createOrder = async (req, res) => {
     const [order] = await Order.create([{
       user: req.user.id,
       items: orderItems,
-      totalAmount: req.body.totalAmount || totalAmount,
+      subtotal,
+      shippingFee,
+      discountAmount,
+      couponCode: couponCode || null,
+      totalAmount: finalTotal,
       shippingAddress,
       paymentStatus: paymentStatus || 'Pending',
     }], createOpts);
 
     if (useTransaction) {
       await session.commitTransaction();
+    }
+
+    // Increment coupon usedCount upon order creation if coupon is used
+    if (couponCode) {
+      const Coupon = require('../models/Coupon');
+      await Coupon.findOneAndUpdate(
+        { code: String(couponCode).toUpperCase() },
+        { $inc: { usedCount: 1 } }
+      ).catch(() => {});
     }
 
     // Update user's profile with medical details if supplied
@@ -292,12 +317,49 @@ exports.getOrders = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
-    if (req.query.status) filter.status = req.query.status;
+    if (req.query.status && req.query.status !== 'All') filter.status = req.query.status;
+    if (req.query.paymentStatus && req.query.paymentStatus !== 'All') filter.paymentStatus = req.query.paymentStatus;
     if (req.query.user) filter.user = req.query.user;
+
+    const search = req.query.search || req.query.q;
+    if (search && String(search).trim()) {
+      const q = String(search).trim();
+      const userMatches = await User.find({
+        $or: [
+          { name: new RegExp(q, 'i') },
+          { email: new RegExp(q, 'i') }
+        ]
+      }).select('_id');
+      const userIds = userMatches.map(u => u._id);
+
+      const searchRegex = new RegExp(q, 'i');
+      const orConditions = [
+        { 'items.name': searchRegex },
+        { 'shippingAddress.name': searchRegex },
+        { 'shippingAddress.phone': searchRegex },
+        { 'shippingAddress.city': searchRegex },
+        { user: { $in: userIds } }
+      ];
+
+      const cleanQ = q.replace(/^#/, '').replace(/^cb-/i, '');
+      if (mongoose.Types.ObjectId.isValid(cleanQ) && cleanQ.length === 24) {
+        orConditions.push({ _id: new mongoose.Types.ObjectId(cleanQ) });
+      } else if (/^[0-9a-f]{4,24}$/i.test(cleanQ)) {
+        const matchingOrders = await Order.find({}).select('_id');
+        const matchedIds = matchingOrders
+          .filter(o => o._id.toString().toLowerCase().endsWith(cleanQ.toLowerCase()))
+          .map(o => o._id);
+        if (matchedIds.length > 0) {
+          orConditions.push({ _id: { $in: matchedIds } });
+        }
+      }
+
+      filter.$or = orConditions;
+    }
 
     const [orders, total] = await Promise.all([
       Order.find(filter)
-        .populate('user', 'name email')
+        .populate('user', 'name email phone')
         .populate('items.medicine', 'name image')
         .sort('-createdAt')
         .skip(skip)
@@ -310,7 +372,7 @@ exports.getOrders = async (req, res) => {
       count: orders.length,
       total,
       page,
-      pages: Math.ceil(total / limit),
+      pages: Math.ceil(total / limit) || 1,
       data: orders,
     });
   } catch (err) {
