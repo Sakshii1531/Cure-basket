@@ -205,6 +205,7 @@ function Blogs() {
             <table className="w-full text-sm text-left text-gray-500">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
                 <tr>
+                  <th className="px-6 py-4 w-12">S.No.</th>
                   <th className="px-6 py-4">Blog Title</th>
                   <th className="px-6 py-4">Tags</th>
                   <th className="px-6 py-4">Status</th>
@@ -213,8 +214,9 @@ function Blogs() {
                 </tr>
               </thead>
               <tbody>
-                {blogs.map((blog) => (
+                {blogs.map((blog, idx) => (
                   <tr key={blog._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                     <td className="px-6 py-4 font-bold text-gray-900">{blog.title}</td>
                     <td className="px-6 py-4 text-gray-500">{(blog.tags || []).join(', ') || '—'}</td>
                     <td className="px-6 py-4">

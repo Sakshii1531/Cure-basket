@@ -287,6 +287,7 @@ function Roles() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 w-12">S.No.</th>
                   <th className="px-6 py-4">Role Name</th>
                   <th className="px-6 py-4">Active Modules Permission</th>
                   <th className="px-6 py-4">Created Date</th>
@@ -296,6 +297,7 @@ function Roles() {
               <tbody className="divide-y divide-gray-50">
                 {/* ── Built-in Super Admin row ── */}
                 <tr className="text-sm bg-indigo-50/60 hover:bg-indigo-50 transition-colors border-b border-indigo-100">
+                  <td className="px-6 py-4 text-gray-400 font-semibold text-xs">—</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-indigo-700">Super Admin</span>
@@ -325,7 +327,7 @@ function Roles() {
                 </tr>
 
                 {/* ── Custom roles from DB ── */}
-                {roles.map((role) => {
+                {roles.map((role, idx) => {
                   const allowedModules = role.permissions
                     .filter(p => p.actions.length > 0)
                     .map(p => {
@@ -335,6 +337,7 @@ function Roles() {
 
                   return (
                     <tr key={role._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                       <td className="px-6 py-4 font-semibold text-gray-900">{role.name}</td>
                       <td className="px-6 py-4 max-w-xs md:max-w-md lg:max-w-xl">
                         <div className="flex flex-wrap gap-1.5">

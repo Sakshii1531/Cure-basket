@@ -560,6 +560,7 @@ function Prescriptions() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-5 py-4 w-12">S.No.</th>
                   <th className="px-5 py-4">Date</th>
                   <th className="px-5 py-4">Medicine</th>
                   <th className="px-5 py-4">Pkg / Qty</th>
@@ -570,7 +571,7 @@ function Prescriptions() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {prescriptions.map((rx) => {
+                {prescriptions.map((rx, idx) => {
                   const linkedOrder = rx.order;
                   const isDeleting  = deletingId === rx._id;
 
@@ -584,6 +585,7 @@ function Prescriptions() {
                       key={rx._id}
                       className={`text-sm text-gray-700 transition-colors ${selectedRx?._id === rx._id ? 'bg-primary/5' : 'hover:bg-gray-50'}`}
                     >
+                      <td className="px-5 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                       {/* Date */}
                       <td className="px-5 py-4 whitespace-nowrap text-gray-500 text-xs">
                         {new Date(rx.createdAt).toLocaleDateString()}

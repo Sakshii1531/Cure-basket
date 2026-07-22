@@ -102,14 +102,16 @@ function Brands() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-4 w-12">S.No.</th>
                 <th className="px-6 py-4">Image</th>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {pagedBrands.map((brand) => (
+              {pagedBrands.map((brand, idx) => (
                 <tr key={brand._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                   <td className="px-6 py-4">
                     <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
                       {brand.image && brand.image !== 'no-photo.jpg' ? (

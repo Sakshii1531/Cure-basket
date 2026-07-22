@@ -441,6 +441,7 @@ function Medicines() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 w-12">S.No.</th>
                   <th className="px-6 py-4">Medicine</th>
                   <th className="px-6 py-4">Category</th>
                   <th className="px-6 py-4">SKU</th>
@@ -451,8 +452,9 @@ function Medicines() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {paginatedMedicines.map((med) => (
+                {paginatedMedicines.map((med, idx) => (
                   <tr key={med._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs align-top pt-5">{idx + 1}</td>
                     <td className="px-6 py-4 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                         {med.image && med.image !== 'no-photo.jpg' ? (

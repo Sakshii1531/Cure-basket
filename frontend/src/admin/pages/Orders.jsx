@@ -650,6 +650,7 @@ function Orders() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-4 w-12">S.No.</th>
                   <th className="px-6 py-4">Order ID</th>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Customer</th>
@@ -661,7 +662,7 @@ function Orders() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {orders.map((order) => {
+                {orders.map((order, idx) => {
                   const itemsCount = (order.items || []).length;
                   const firstItemName = order.items?.[0]?.name || 'Medicine Item';
                   return (
@@ -669,6 +670,7 @@ function Orders() {
                       key={order._id}
                       className={`text-sm text-gray-700 hover:bg-gray-50/80 transition-colors ${selectedOrder?._id === order._id ? 'bg-primary/5' : ''}`}
                     >
+                      <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                       <td className="px-6 py-4 font-bold text-primary font-mono text-xs">
                         #{order._id.slice(-8).toUpperCase()}
                       </td>

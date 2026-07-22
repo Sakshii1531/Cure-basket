@@ -74,6 +74,7 @@ function Reviews() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-4 w-12">S.No.</th>
                 <th className="px-6 py-4">User</th>
                 <th className="px-6 py-4">Medicine</th>
                 <th className="px-6 py-4">Rating</th>
@@ -83,8 +84,9 @@ function Reviews() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {reviews.map((review) => (
+              {reviews.map((review, idx) => (
                 <tr key={review._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                   <td className="px-6 py-4 font-semibold text-gray-900">{review.user?.name || '—'}</td>
                   <td className="px-6 py-4 text-gray-500">{review.medicine?.name || '—'}</td>
                   <td className="px-6 py-4">
