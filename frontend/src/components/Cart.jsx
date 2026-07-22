@@ -16,6 +16,7 @@ const Cart = () => {
   const [globalStockError, setGlobalStockError] = useState('')
   const [validationLoading, setValidationLoading] = useState(false)
   const [rxErrors, setRxErrors] = useState({})
+  const [rxStatuses, setRxStatuses] = useState({})
   const [globalRxError, setGlobalRxError] = useState('')
   const [shippingCharges, setShippingCharges] = useState(0)
   const [freeThreshold, setFreeThreshold] = useState(0)
@@ -74,6 +75,7 @@ const Cart = () => {
   useEffect(() => {
     if (items.length === 0 || !isLoggedIn) {
       setRxErrors({})
+      setRxStatuses({})
       setGlobalRxError('')
       return
     }
@@ -84,6 +86,7 @@ const Cart = () => {
         const rxList = res.data.data || []
         
         const errors = {}
+        const statuses = {}
         let hasError = false
 
         items.forEach(item => {
@@ -92,18 +95,22 @@ const Cart = () => {
             const approved = matching.some(rx => rx.status === 'Reviewed' || rx.status === 'Dispensed')
             const pending = matching.some(rx => rx.status === 'Pending')
 
-            if (!approved) {
+            if (approved) {
+              statuses[item._id] = 'approved'
+            } else if (pending) {
+              statuses[item._id] = 'pending'
               hasError = true
-              if (pending) {
-                errors[item._id] = 'Your prescription for this medicine is currently under review.'
-              } else {
-                errors[item._id] = 'An approved prescription is required for this medicine.'
-              }
+              errors[item._id] = 'Your prescription for this medicine is currently under review.'
+            } else {
+              statuses[item._id] = 'missing'
+              hasError = true
+              errors[item._id] = 'An approved prescription is required for this medicine.'
             }
           }
         })
 
         setRxErrors(errors)
+        setRxStatuses(statuses)
         if (hasError) {
           setGlobalRxError('Some items in your cart require an approved prescription before you can checkout.')
         } else {
@@ -156,13 +163,13 @@ const Cart = () => {
 
             <div className="space-y-4">
               {hasErrors && (
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
-                  <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
-                    <h4 className="text-[14px] font-bold text-red-800">Checkout Unavailable</h4>
-                    <p className="text-[12px] text-red-600 mt-1">
+                    <h4 className="text-[14px] font-bold text-amber-800">Checkout Unavailable</h4>
+                    <p className="text-[12px] text-amber-700 mt-1">
                       Some items in your cart are out of stock or have insufficient quantity. Please update your cart before proceeding.
                     </p>
                   </div>
@@ -170,13 +177,13 @@ const Cart = () => {
               )}
 
               {globalRxError && (
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
-                  <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
-                    <h4 className="text-[14px] font-bold text-red-800">Checkout Blocked</h4>
-                    <p className="text-[12px] text-red-600 mt-1">
+                    <h4 className="text-[14px] font-bold text-amber-800">Checkout Blocked</h4>
+                    <p className="text-[12px] text-amber-700 mt-1">
                       {globalRxError}
                     </p>
                   </div>
@@ -204,7 +211,7 @@ const Cart = () => {
                     <div
                       key={item.itemKey || item._id}
                       className={`p-5 flex gap-5 transition-all duration-200 ${
-                        hasStockError ? 'bg-red-50/20 opacity-80 border-l-4 border-red-500' : ''
+                        hasStockError ? 'bg-amber-50/10 opacity-80 border-l-4 border-amber-500' : ''
                       }`}
                     >
                       <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 shrink-0 overflow-hidden">
@@ -221,22 +228,33 @@ const Cart = () => {
                             {item.generic && <p className="text-[12px] text-gray-500 mt-1">{item.generic}</p>}
                             {item.prescription === 'Required' && (
                               <div className="flex flex-wrap items-center gap-2 mt-2">
-                                <div className="flex items-center gap-1.5 text-[#d97706] text-[11px] font-bold bg-[#FFF8E7] px-2.5 py-1 rounded-md w-fit border border-[#FFD200]/30">
-                                  <svg className="w-3.5 h-3.5 text-[#FBB03B] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                  </svg>
-                                  <span>Prescription Required</span>
-                                </div>
-                                {rxErrors[item._id] && (
-                                  <span className="text-[11px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-md border border-red-100/50">
-                                    {rxErrors[item._id].includes('review') ? 'Under Review' : 'Prescription Missing'}
-                                  </span>
+                                {rxStatuses[item._id] === 'approved' ? (
+                                  <div className="flex items-center gap-1.5 text-green-700 text-[11px] font-bold bg-green-50 px-2.5 py-1 rounded-md w-fit border border-green-200">
+                                    <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                    </svg>
+                                    <span>Prescription Approved</span>
+                                  </div>
+                                ) : rxStatuses[item._id] === 'pending' ? (
+                                  <div className="flex items-center gap-1.5 text-amber-700 text-[11px] font-bold bg-[#FFF8E7] px-2.5 py-1 rounded-md w-fit border border-[#FFD200]/30">
+                                    <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Under Review</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 text-amber-700 text-[11px] font-bold bg-[#FFF8E7] px-2.5 py-1 rounded-md w-fit border border-[#FFD200]/30">
+                                    <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <span>Prescription Required</span>
+                                  </div>
                                 )}
                               </div>
                             )}
                             {hasStockError && (
-                              <div className="flex items-center gap-1.5 text-red-600 mt-2 text-[12px] font-semibold bg-red-50 px-2.5 py-1 rounded-md w-fit border border-red-100">
-                                <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className="flex items-center gap-1.5 text-amber-600 mt-2 text-[12px] font-semibold bg-amber-50 px-2.5 py-1 rounded-md w-fit border border-amber-100">
+                                <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                                 <span>{stockErrors[item._id].message}</span>
