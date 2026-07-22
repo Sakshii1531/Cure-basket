@@ -7,8 +7,19 @@ const STORAGE_KEY = 'cb_cart';
 
 function getItemKey(product, pkg) {
   const baseId = String(product._id || product.id || '');
-  if (!pkg) return baseId;
-  const pkgId = pkg.id || pkg._id || pkg.label || '';
+  
+  if (!product.packages || product.packages.length === 0) {
+    return baseId;
+  }
+  
+  let activePkg = pkg;
+  if (!activePkg) {
+    activePkg = product.packages.find(p => p.popular) || product.packages[0];
+  }
+  
+  if (!activePkg) return baseId;
+  
+  const pkgId = activePkg.id || activePkg._id || activePkg.label || '';
   return `${baseId}_pkg_${pkgId}`;
 }
 
@@ -91,7 +102,7 @@ export function CartProvider({ children }) {
     return () => window.removeEventListener('cb:logout', handler);
   }, []);
 
-  const cartCount = items.reduce((sum, i) => sum + i.qty, 0);
+  const cartCount = items.length;
   const cartTotal = items.reduce((sum, i) => sum + (i.price || 0) * i.qty, 0);
 
   return (

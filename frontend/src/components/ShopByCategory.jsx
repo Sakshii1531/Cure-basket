@@ -79,19 +79,25 @@ function ShopByCategory() {
           .animate-scroll {
             display: flex;
             width: fit-content;
-            animation: scroll 80s linear infinite;
+            animation: scroll var(--desktop-duration, 80s) linear infinite;
           }
           .animate-scroll:hover {
             animation-play-state: paused;
           }
           @media (max-width: 768px) {
             .animate-scroll {
-              animation: scroll 60s linear infinite;
+              animation: scroll var(--mobile-duration, 60s) linear infinite;
             }
           }
         `}} />
 
-        <div className="animate-scroll gap-4 md:gap-6 px-4">
+        <div 
+          className="animate-scroll gap-4 md:gap-6 px-4"
+          style={{
+            '--desktop-duration': `${categories.length * 13.33}s`,
+            '--mobile-duration': `${categories.length * 10}s`
+          }}
+        >
           {scrollItems.map((cat, index) => {
             const [line1, line2] = splitTitle(cat.name)
             const isUploaded = cat.image && cat.image !== 'no-photo.jpg' && cat.image !== '__uploading__'

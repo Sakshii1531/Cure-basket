@@ -17,7 +17,7 @@ function ProductDetail({ onBack }) {
   const { id: urlId } = useParams()
   const { guardedAction, isLoggedIn } = useAuthGate()
   const { user } = useAuth()
-  const { addToCart } = useCart()
+  const { addToCart, items, updateQty } = useCart()
   const [product, setProduct] = useState(location.state?.product || null)
   const [productLoading, setProductLoading] = useState(!location.state?.product)
 
@@ -87,6 +87,13 @@ function ProductDetail({ onBack }) {
 
   const packageOptions = getPackageOptions()
   const [selectedPackage, setSelectedPackage] = useState(packageOptions.find(p => p.popular) || packageOptions[0] || { price: 0, mrp: 0, id: 0, label: 'N/A', perUnit: 0 })
+
+  useEffect(() => {
+    const popular = packageOptions.find(p => p.popular) || packageOptions[0]
+    if (popular) {
+      setSelectedPackage(popular)
+    }
+  }, [product?._id])
   const [quantity, setQuantity] = useState(() => {
     if (product?._id) {
       const saved = sessionStorage.getItem(`qty_${product._id}`)
@@ -113,6 +120,38 @@ function ProductDetail({ onBack }) {
       sessionStorage.setItem(`qty_${product._id}`, quantity)
     }
   }, [quantity, product?._id])
+
+  const prevKeyRef = React.useRef(null)
+
+  // 1. Sync cart changes -> page quantity (initially or on cart update)
+  useEffect(() => {
+    if (!product) return
+    const baseId = String(product._id || product.id || '')
+    const pkgId = selectedPackage?.id || selectedPackage?._id || selectedPackage?.label || ''
+    const itemKey = selectedPackage ? `${baseId}_pkg_${pkgId}` : baseId
+    
+    const found = items.find(i => i.itemKey === itemKey)
+    
+    if (prevKeyRef.current !== itemKey) {
+      setQuantity(found ? found.qty : 1)
+      prevKeyRef.current = itemKey
+    } else if (found && found.qty !== quantity) {
+      setQuantity(found.qty)
+    }
+  }, [product?._id, selectedPackage?.id, items])
+
+  // 2. Sync page quantity -> cart changes
+  useEffect(() => {
+    if (!product) return
+    const baseId = String(product._id || product.id || '')
+    const pkgId = selectedPackage?.id || selectedPackage?._id || selectedPackage?.label || ''
+    const itemKey = selectedPackage ? `${baseId}_pkg_${pkgId}` : baseId
+    
+    const found = items.find(i => i.itemKey === itemKey)
+    if (found && found.qty !== quantity) {
+      updateQty(itemKey, quantity)
+    }
+  }, [quantity, product?._id, selectedPackage?.id, items, updateQty])
   const [prescriptionStatus, setPrescriptionStatus] = useState(null) // null | 'none' | 'pending' | 'approved' | 'rejected'
   const [reviewForm, setReviewForm] = useState({ rating: 0, comment: '' })
   const [reviewHover, setReviewHover] = useState(0)
@@ -585,7 +624,13 @@ function ProductDetail({ onBack }) {
             <button
               disabled={outOfStock}
               onClick={guardedAction(() => {
-                addToCart(product, quantity, selectedPackage);
+                const baseId = String(product._id || product.id || '')
+                const pkgId = selectedPackage?.id || selectedPackage?._id || selectedPackage?.label || ''
+                const itemKey = selectedPackage ? `${baseId}_pkg_${pkgId}` : baseId
+                const exists = items.some(i => i.itemKey === itemKey)
+                if (!exists) {
+                  addToCart(product, quantity, selectedPackage);
+                }
                 navigate('/cart');
               }, 'add-to-cart')}
               className={`w-full font-bold py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-2 text-[13px] transition-all ${
