@@ -558,7 +558,7 @@ function ProductDetail({ onBack }) {
             {!outOfStock && <span className="text-gray-400 line-through text-[12px]">${selectedMRP}</span>}
           </div>
           {!outOfStock && savingsPercent > 0 && (
-            <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save {product?.priceLabel || '$'}{savingsAmount} ({savingsPercent}%)</div>
+            <div className="text-[#006D6D] font-bold text-[10px] mt-0.5">You save ${savingsAmount} ({savingsPercent}%)</div>
           )}
         </div>
 
