@@ -162,7 +162,7 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
 
             <div className="space-y-4">
-              {hasErrors && (
+              {hasErrors && items.length > 1 && (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
                   <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -176,7 +176,7 @@ const Cart = () => {
                 </div>
               )}
 
-              {globalRxError && (
+              {globalRxError && items.length > 1 && (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
                   <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
