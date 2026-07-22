@@ -277,8 +277,14 @@ const Cart = () => {
                             >−</button>
                             <span className="text-[13px] font-semibold text-gray-800 min-w-[20px] text-center">{item.qty}</span>
                             <button
-                              onClick={() => updateQty(item.itemKey, item.qty + 1)}
-                              className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold"
+                              onClick={() => {
+                                const maxStock = item.stock ?? 9999;
+                                if (item.qty < maxStock) {
+                                  updateQty(item.itemKey, item.qty + 1);
+                                }
+                              }}
+                              disabled={item.qty >= (item.stock ?? 0)}
+                              className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-gray-900 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                             >+</button>
                           </div>
                           <button

@@ -612,9 +612,9 @@ function ProductDetail({ onBack }) {
               <span className="w-8 text-center font-bold text-gray-900 text-[13px] select-none">{quantity}</span>
               <button
                 type="button"
-                disabled={outOfStock}
-                onClick={() => setQuantity(q => q + 1)}
-                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none"
+                disabled={outOfStock || quantity >= (product?.stock ?? 0)}
+                onClick={() => setQuantity(q => Math.min(product?.stock ?? 9999, q + 1))}
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold select-none disabled:opacity-50 disabled:cursor-not-allowed"
               >+</button>
             </div>
           </div>
