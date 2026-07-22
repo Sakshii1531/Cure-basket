@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
-import productImg from '../assets/product.png'
+import ImageWithFallback from './ImageWithFallback'
 
 function ProductCard({ product, onClick }) {
   return (
@@ -11,11 +11,10 @@ function ProductCard({ product, onClick }) {
     >
       <div className="flex-1 p-5 flex items-center gap-8">
         <div className="w-1/2 flex items-center justify-center">
-          <img
-            src={product.image && product.image !== 'no-photo.jpg' ? product.image : productImg}
+          <ImageWithFallback
+            src={product.image}
             alt={product.name}
-            className="w-full h-auto object-contain drop-shadow-md"
-            loading="lazy"
+            className="w-full h-32 bg-transparent drop-shadow-md"
           />
         </div>
         <div className="w-1/2 flex flex-col justify-center">

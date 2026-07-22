@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../../utils/api';
 import uploadImage from '../../utils/uploadImage';
+import CountrySelect from '../components/CountrySelect';
+import CountryFlag from '../components/CountryFlag';
 
 // ── Excel template columns ────────────────────────────────────────────────────
 const TEMPLATE_HEADERS = [
@@ -36,7 +38,7 @@ const EMPTY_FORM = {
   priceLabel: 'USD', packSize: '', quantityOptions: '1',
   pricePerUnit: '', totalPrice: '', oldPrice: '', discount: '',
   sku: '', description: '', activeIngredient: '', manufacturer: '',
-  countryOrigin: '', stock: '', status: 'Active', image: '', images: [],
+  countryOrigin: null, stock: '', status: 'Active', image: '', images: [],
   packages: [], packaging: '', storage: '',
   prescription: 'Required', deliveryTime: 'Usually delivers in 1-2 days',
   uses: '', sideEffects: '', howToUse: '',
@@ -156,7 +158,7 @@ function Medicines() {
         genericFor:       med.genericFor || med.genericName || '',
         activeIngredient: med.activeIngredient || med.saltComposition || '',
         manufacturer:     med.manufacturer || '',
-        countryOrigin:    med.countryOrigin || '',
+        countryOrigin:    med.countryOrigin || null,
         images:           med.images || [],
         packages:         med.packages || [],
         packaging:        med.packaging || '',
@@ -209,7 +211,7 @@ function Medicines() {
       }
     }
 
-    if (/\d/.test(current.countryOrigin)) {
+    if (current.countryOrigin && typeof current.countryOrigin === 'string' && /\d/.test(current.countryOrigin)) {
       setSaveError('Country of Origin cannot contain numbers');
       toast.error('Country of Origin cannot contain numbers');
       return;
@@ -468,6 +470,18 @@ function Medicines() {
                             ? `${med.packages.length} pack${med.packages.length > 1 ? 's' : ''}`
                             : (med.packSize || '')}
                           {med.genericFor || med.genericName ? ` · ${med.genericFor || med.genericName}` : ''}
+                          {med.countryOrigin && (
+                            <>
+                              {' · '}
+                              <span className="inline-flex items-center gap-1">
+                                <CountryFlag 
+                                  countryCode={typeof med.countryOrigin === 'object' ? med.countryOrigin.countryCode : undefined} 
+                                  size="14px" 
+                                />
+                                {typeof med.countryOrigin === 'object' ? med.countryOrigin.countryName : med.countryOrigin}
+                              </span>
+                            </>
+                          )}
                         </p>
                       </div>
                     </td>
@@ -808,7 +822,10 @@ function Medicines() {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Country of Origin</label>
-                    <input type="text" value={current.countryOrigin} onChange={e => setCurrent({...current, countryOrigin: e.target.value.replace(/\d/g, '')})} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. India" />
+                    <CountrySelect
+                      value={current.countryOrigin}
+                      onChange={val => setCurrent({...current, countryOrigin: val})}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 block mb-1">Packaging</label>

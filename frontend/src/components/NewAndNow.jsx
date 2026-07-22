@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { isOutOfStock } from '../utils/stockUtils'
 import productImg from '../assets/product.png'
+import ImageWithFallback from './ImageWithFallback'
 import pharm1 from '../assets/pharm-1.png'
 import pharm2 from '../assets/pharm-2.png'
 import pharm3 from '../assets/pharm-3.png'
@@ -115,11 +116,11 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                           </p>
                         </div>
                         <div className="w-[40%] h-24 md:h-32 flex items-center justify-center shrink-0 bg-white/20 backdrop-blur-xs rounded-xl overflow-hidden p-1.5 border border-white/30">
-                          <img
-                            src={imgSrc}
-                            className="w-full h-full object-contain"
+                          <ImageWithFallback
+                            src={product.image}
                             alt={product.name}
-                            onError={e => { e.target.src = productImg }}
+                            fallbackSrc={fallbackImages[groupIdx % fallbackImages.length]}
+                            className="w-full h-full bg-transparent"
                           />
                         </div>
                       </div>
@@ -150,11 +151,11 @@ function NewAndNow({ title = "New and now", onProductClick }) {
                               className={`flex items-center gap-4 py-1.5 cursor-pointer hover:bg-gray-50 transition-colors ${!isLast ? 'border-b border-dotted border-gray-300' : ''} ${outOfStock ? 'opacity-60 bg-gray-50/50 cursor-not-allowed' : ''}`}
                             >
                               <div className="w-16 h-16 flex items-center justify-center shrink-0">
-                                <img
-                                  src={imgSrc}
-                                  className="w-full h-full object-contain"
+                                <ImageWithFallback
+                                  src={product.image}
                                   alt={product.name}
-                                  onError={e => { e.target.src = productImg }}
+                                  fallbackSrc={fallbackImages[(groupIdx + idx) % fallbackImages.length]}
+                                  className="w-full h-full bg-transparent"
                                 />
                               </div>
                               <div className="flex-grow text-left">

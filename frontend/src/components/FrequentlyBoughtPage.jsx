@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext'
 import { isOutOfStock } from '../utils/stockUtils'
 import api from '../utils/api'
 import productImg from '../assets/product.png'
+import ImageWithFallback from './ImageWithFallback'
 
 // Keep category banner assets for visual branding
 import allergyBanner from '../assets/allergy_banner_1777890268903.png'
@@ -183,11 +184,10 @@ function FrequentlyBoughtPage({ onBack, onProductClick }) {
                   )}
 
                   <div className="w-full h-24 md:h-40 flex items-center justify-center mb-3 md:mb-6">
-                    <img
-                      src={product.image && product.image !== 'no-photo.jpg' ? product.image : productImg}
+                    <ImageWithFallback
+                      src={product.image}
                       alt={product.name}
-                      className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
+                      className="w-full h-full bg-transparent group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
 

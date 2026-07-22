@@ -5,7 +5,7 @@ import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
 import { isOutOfStock } from '../utils/stockUtils'
 import api from '../utils/api'
-import productImg from '../assets/product.png'
+import ImageWithFallback from './ImageWithFallback'
 
 function SkeletonCard() {
   return (
@@ -159,11 +159,10 @@ const CategoryProductList = () => {
 
                 {/* Image */}
                 <div className="w-full h-20 md:h-32.5 flex items-center justify-center mt-1">
-                  <img
-                    src={product.image && product.image !== 'no-photo.jpg' ? product.image : productImg}
+                  <ImageWithFallback
+                    src={product.image}
                     alt={product.name}
-                    className="max-w-full max-h-full object-contain"
-                    loading="lazy"
+                    className="w-full h-full bg-transparent"
                   />
                 </div>
 

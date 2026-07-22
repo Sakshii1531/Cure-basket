@@ -1,6 +1,7 @@
 import { SkeletonForm } from '../components/Skeleton';
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+import CountryFlag from '../components/CountryFlag';
 
 const DEFAULT_DATA = {
   phone: '',
@@ -10,22 +11,66 @@ const DEFAULT_DATA = {
   prescriptionEmail: '',
 };
 
+const COUNTRY_CODES = [
+  { code: 'US', flag: '🇺🇸', dial: '+1' },
+  { code: 'CA', flag: '🇨🇦', dial: '+1' },
+  { code: 'IN', flag: '🇮🇳', dial: '+91' },
+  { code: 'GB', flag: '🇬🇧', dial: '+44' },
+  { code: 'AE', flag: '🇦🇪', dial: '+971' },
+  { code: 'AU', flag: '🇦🇺', dial: '+61' },
+  { code: 'SG', flag: '🇸🇬', dial: '+65' },
+  { code: 'SA', flag: '🇸🇦', dial: '+966' },
+  { code: 'BD', flag: '🇧🇩', dial: '+880' },
+  { code: 'PK', flag: '🇵🇰', dial: '+92' },
+  { code: 'LK', flag: '🇱🇰', dial: '+94' },
+  { code: 'NP', flag: '🇳🇵', dial: '+977' },
+  { code: 'MY', flag: '🇲🇾', dial: '+60' },
+  { code: 'ID', flag: '🇮🇩', dial: '+62' },
+  { code: 'ZA', flag: '🇿🇦', dial: '+27' },
+  { code: 'NG', flag: '🇳🇬', dial: '+234' },
+  { code: 'DE', flag: '🇩🇪', dial: '+49' },
+  { code: 'FR', flag: '🇫🇷', dial: '+33' },
+  { code: 'IT', flag: '🇮🇹', dial: '+39' },
+  { code: 'ES', flag: '🇪🇸', dial: '+34' },
+  { code: 'NL', flag: '🇳🇱', dial: '+31' },
+  { code: 'BR', flag: '🇧🇷', dial: '+55' },
+];
+
+const parsePhone = (fullPhone) => {
+  if (!fullPhone) return { countryCode: '+1', number: '' };
+  const clean = fullPhone.trim().replace(/\s+/g, '');
+  if (clean.length > 10) {
+    const number = clean.slice(-10);
+    const countryCode = clean.slice(0, -10);
+    return { countryCode, number };
+  }
+  return { countryCode: '+1', number: clean };
+};
+
 function ContactPrescription() {
   const [data, setData] = useState(DEFAULT_DATA);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [errors, setErrors] = useState({});
+  const [phoneCountry, setPhoneCountry] = useState('US');
+  const [faxCountry, setFaxCountry] = useState('US');
 
   useEffect(() => {
     api.get('/settings/bank_contact')
       .then((res) => {
         if (res.data.data) {
           const raw = res.data.data;
+          const parsedPhone = parsePhone(raw.phone);
+          const parsedFax = parsePhone(raw.prescriptionFax);
+          const phoneObj = COUNTRY_CODES.find(c => c.dial === parsedPhone.countryCode) || COUNTRY_CODES[0];
+          const faxObj = COUNTRY_CODES.find(c => c.dial === parsedFax.countryCode) || COUNTRY_CODES[0];
+          setPhoneCountry(phoneObj.code);
+          setFaxCountry(faxObj.code);
           setData({
             ...DEFAULT_DATA,
             ...raw,
-            phone: raw.phone ? raw.phone.replace('+91', '').trim() : '',
-            prescriptionFax: raw.prescriptionFax ? raw.prescriptionFax.replace('+91', '').trim() : '',
+            phone: parsedPhone.number,
+            prescriptionFax: parsedFax.number,
           });
         }
       })
@@ -55,10 +100,12 @@ function ContactPrescription() {
     }
 
     try {
+      const phoneDial = (COUNTRY_CODES.find(c => c.code === phoneCountry) || COUNTRY_CODES[0]).dial;
+      const faxDial = (COUNTRY_CODES.find(c => c.code === faxCountry) || COUNTRY_CODES[0]).dial;
       const payload = {
         ...data,
-        phone: data.phone ? `+91${data.phone}` : '',
-        prescriptionFax: data.prescriptionFax ? `+91${data.prescriptionFax}` : '',
+        phone: data.phone ? `${phoneDial}${data.phone}` : '',
+        prescriptionFax: data.prescriptionFax ? `${faxDial}${data.prescriptionFax}` : '',
       };
       await api.put('/settings/bank_contact', payload);
       setErrors({});
@@ -106,8 +153,27 @@ function ContactPrescription() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Phone Number</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-semibold">+91</span>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 border-r border-gray-200 pr-2 h-5 select-none pointer-events-none">
+                    <CountryFlag countryCode={phoneCountry} size="16px" />
+                    <span className="text-xs text-gray-500 font-bold">
+                      {(COUNTRY_CODES.find(c => c.code === phoneCountry) || COUNTRY_CODES[0]).dial}
+                    </span>
+                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                  <select
+                    value={phoneCountry}
+                    onChange={(e) => setPhoneCountry(e.target.value)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-transparent font-semibold bg-transparent focus:outline-none pr-1.5 h-5 cursor-pointer w-[72px] opacity-0"
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code} className="text-gray-900 bg-white">
+                        {c.flag} {c.dial}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="text"
                     value={data.phone}
@@ -115,7 +181,7 @@ function ContactPrescription() {
                       setData({ ...data, phone: e.target.value.replace(/\D/g, '').slice(0, 10) });
                       setErrors({ ...errors, phone: '' });
                     }}
-                    className={`w-full bg-gray-50 border rounded-lg pl-12 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                    className={`w-full bg-gray-50 border rounded-lg pl-[88px] pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
                       errors.phone ? 'border-red-300 focus:ring-red-200' : 'border-gray-200'
                     }`}
                     placeholder="Enter 10-digit phone number"
@@ -146,8 +212,27 @@ function ContactPrescription() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Prescription Fax Number</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-semibold">+91</span>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 border-r border-gray-200 pr-2 h-5 select-none pointer-events-none">
+                    <CountryFlag countryCode={faxCountry} size="16px" />
+                    <span className="text-xs text-gray-500 font-bold">
+                      {(COUNTRY_CODES.find(c => c.code === faxCountry) || COUNTRY_CODES[0]).dial}
+                    </span>
+                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                  <select
+                    value={faxCountry}
+                    onChange={(e) => setFaxCountry(e.target.value)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-transparent font-semibold bg-transparent focus:outline-none pr-1.5 h-5 cursor-pointer w-[72px] opacity-0"
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code} className="text-gray-900 bg-white">
+                        {c.flag} {c.dial}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="text"
                     value={data.prescriptionFax}
@@ -155,7 +240,7 @@ function ContactPrescription() {
                       setData({ ...data, prescriptionFax: e.target.value.replace(/\D/g, '').slice(0, 10) });
                       setErrors({ ...errors, prescriptionFax: '' });
                     }}
-                    className={`w-full bg-gray-50 border rounded-lg pl-12 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                    className={`w-full bg-gray-50 border rounded-lg pl-[88px] pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
                       errors.prescriptionFax ? 'border-red-300 focus:ring-red-200' : 'border-gray-200'
                     }`}
                     placeholder="Enter 10-digit fax number"

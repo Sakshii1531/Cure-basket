@@ -4,6 +4,8 @@ import { toast } from 'sonner'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
 import { OrderDetailDrawer } from './OrdersPage'
+import productImg from '../assets/product.png'
+import ImageWithFallback from './ImageWithFallback'
 
 const AccountPage = () => {
   const navigate = useNavigate()
@@ -449,7 +451,11 @@ const AccountPage = () => {
               {wishlistItems.map((item) => (
                 <div key={item._id} className="border border-gray-150 rounded-xl p-4 bg-white hover:border-gray-300 transition-all flex items-center gap-4 relative">
                   <div className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" />
+                    <ImageWithFallback
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full bg-transparent"
+                    />
                   </div>
                   <div className="flex-1 min-w-0 pr-6">
                     <h4 className="text-[14px] font-bold text-gray-900 truncate">{item.name}</h4>

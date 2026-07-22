@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext'
 import { useAuthGate } from '../hooks/useAuthGate'
 import { isOutOfStock } from '../utils/stockUtils'
 import productImg from '../assets/product.png'
+import ImageWithFallback from './ImageWithFallback'
 import pharm1 from '../assets/pharm-1.png'
 import pharm2 from '../assets/pharm-2.png'
 import pharm3 from '../assets/pharm-3.png'
@@ -107,12 +108,11 @@ function BestSellers({ onProductClick }) {
 
                   <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 mt-1 grow">
                     <div className="w-full md:w-40 h-20 md:h-32 shrink-0 flex items-center justify-center">
-                      <img
-                        src={imgSrc}
+                      <ImageWithFallback
+                        src={product.image}
                         alt={product.name}
-                        className="max-w-full max-h-full object-contain"
-                        loading="lazy"
-                        onError={e => { e.target.src = productImg }}
+                        fallbackSrc={fallbackImages[i % fallbackImages.length]}
+                        className="w-full h-full bg-transparent"
                       />
                     </div>
                     <div className="flex flex-col w-full min-w-0 text-left md:pt-8">

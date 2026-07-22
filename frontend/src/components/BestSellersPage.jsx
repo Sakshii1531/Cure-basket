@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext'
 import { isOutOfStock } from '../utils/stockUtils'
 import api from '../utils/api'
 import productImg from '../assets/product.png'
+import ImageWithFallback from './ImageWithFallback'
 
 function discountBadge(price, mrp) {
   if (!mrp || mrp <= price) return null
@@ -107,16 +108,19 @@ function BestSellersPage({ onBack }) {
 
                   <div className="flex flex-col grow">
                     <div className="w-full h-20 md:h-44 flex items-center justify-center mb-2 md:mb-4">
-                      <img
-                        src={product.image && product.image !== 'no-photo.jpg' ? product.image : productImg}
-                        alt={product.name}
-                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
+                       <ImageWithFallback
+                         src={product.image}
+                         alt={product.name}
+                         className="w-full h-full bg-transparent group-hover:scale-105 transition-transform duration-500"
+                       />
                     </div>
                     <div className="flex flex-col">
                       <h3 className="text-[14px] md:text-[17px] font-bold text-gray-900 leading-tight mb-1 line-clamp-2 min-h-0 md:min-h-[44px]">{product.name}</h3>
-                      <p className="text-primary font-semibold text-[11px] md:text-[13px] mb-1.5 md:mb-3 line-clamp-1">({product.genericName})</p>
+                      {product.genericName && String(product.genericName).trim() !== '' && String(product.genericName).trim() !== 'N/A' && (
+                        <p className="text-primary font-semibold text-[11px] md:text-[13px] mb-1.5 md:mb-3 line-clamp-1">
+                          {product.genericName}
+                        </p>
+                      )}
                     </div>
                   </div>
 

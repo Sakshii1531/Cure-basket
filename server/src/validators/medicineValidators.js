@@ -62,8 +62,27 @@ const coreRules = [
 
   body('countryOrigin')
     .optional()
-    .trim()
-    .isLength({ max: 100 }).withMessage('Country of origin must be at most 100 characters'),
+    .custom((value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (value.countryCode !== null && typeof value.countryCode !== 'string') {
+          throw new Error('Country code must be a string or null');
+        }
+        if (value.countryName !== null && typeof value.countryName !== 'string') {
+          throw new Error('Country name must be a string or null');
+        }
+        if (value.dialCode !== null && typeof value.dialCode !== 'string') {
+          throw new Error('Dial code must be a string or null');
+        }
+        return true;
+      }
+      if (typeof value === 'string') {
+        if (value.length > 100) {
+          throw new Error('Country of origin must be at most 100 characters');
+        }
+        return true;
+      }
+      throw new Error('Country of origin must be a string or an object');
+    }),
 ];
 
 exports.createMedicineRules = coreRules;
@@ -131,6 +150,25 @@ exports.updateMedicineRules = [
 
   body('countryOrigin')
     .optional()
-    .trim()
-    .isLength({ max: 100 }).withMessage('Country of origin must be at most 100 characters'),
+    .custom((value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (value.countryCode !== null && typeof value.countryCode !== 'string') {
+          throw new Error('Country code must be a string or null');
+        }
+        if (value.countryName !== null && typeof value.countryName !== 'string') {
+          throw new Error('Country name must be a string or null');
+        }
+        if (value.dialCode !== null && typeof value.dialCode !== 'string') {
+          throw new Error('Dial code must be a string or null');
+        }
+        return true;
+      }
+      if (typeof value === 'string') {
+        if (value.length > 100) {
+          throw new Error('Country of origin must be at most 100 characters');
+        }
+        return true;
+      }
+      throw new Error('Country of origin must be a string or an object');
+    }),
 ];

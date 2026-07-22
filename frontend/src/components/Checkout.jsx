@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
+import ImageWithFallback from './ImageWithFallback'
 
 const emptyForm = { name: '', street: '', city: '', phone: '' }
 
@@ -1572,12 +1573,11 @@ const Checkout = () => {
                 return (
                   <div key={item.itemKey || item._id} className={`flex gap-4 items-center transition-all ${isItemUnavailable ? 'opacity-70 bg-red-50/20 p-2 rounded-lg border border-red-100' : ''}`}>
                     {/* Product Image */}
-                    <div className="w-[64px] h-[64px] border border-gray-200 rounded-[12px] p-1.5 bg-white flex items-center justify-center shrink-0">
-                      <img
-                        src={item.image || 'https://via.placeholder.com/150'}
+                    <div className="w-[64px] h-[64px] border border-gray-200 rounded-[12px] p-1.5 bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                      <ImageWithFallback
+                        src={item.image}
                         alt={item.name}
-                        className="max-w-full max-h-full object-contain"
-                        onError={e => { e.target.src = 'https://via.placeholder.com/150' }}
+                        className="w-full h-full bg-transparent"
                       />
                     </div>
                     <div className="flex-1 min-w-0">

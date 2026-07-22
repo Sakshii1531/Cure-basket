@@ -9,6 +9,7 @@ import { isOutOfStock } from '../utils/stockUtils'
 import productImg from '../assets/product.png'
 import med1 from '../assets/med1.png'
 import api from '../utils/api'
+import ImageWithFallback from './ImageWithFallback'
 
 function ProductDetail({ onBack }) {
   const location = useLocation()
@@ -639,8 +640,8 @@ function ProductDetail({ onBack }) {
                   onClick={() => navigate(`/product/${alt._id}`, { state: { product: alt } })}
                   className="flex items-center gap-3 p-2 bg-gray-50 border border-gray-100 rounded-xl hover:border-[#006D6D]/30 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 bg-white rounded-lg p-1 border border-gray-100 shrink-0 flex items-center justify-center">
-                    <img src={alt.image || productImg} className="max-w-full max-h-full object-contain" alt={alt.name} />
+                  <div className="w-10 h-10 bg-white rounded-lg p-1 border border-gray-100 shrink-0 flex items-center justify-center overflow-hidden">
+                    <ImageWithFallback src={alt.image} className="w-full h-full bg-transparent" alt={alt.name} />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-[12px] font-extrabold text-gray-900 truncate leading-tight">{alt.name}</p>
@@ -721,9 +722,8 @@ function ProductDetail({ onBack }) {
                 </button>
               </div>
 
-              {/* Main Image */}
-              <div className="flex items-center justify-center pt-8 pb-4 h-auto overflow-hidden">
-                <img src={product.image} alt={product.title || product.name} className="w-full max-h-[300px] md:max-h-[700px] object-contain transform scale-95 md:scale-[1.45]" />
+              <div className="flex items-center justify-center pt-8 pb-4 h-[300px] md:h-[500px] overflow-hidden">
+                <ImageWithFallback src={product.image} alt={product.title || product.name} className="w-full h-full bg-transparent transform scale-95 md:scale-[1.45]" />
               </div>
 
               {/* Thumbnails */}
@@ -971,8 +971,8 @@ function ProductDetail({ onBack }) {
               onClick={() => navigate(`/product/${item._id}`, { state: { product: item } })}
               className="bg-white rounded-2xl border border-gray-100 p-4 flex gap-4 cursor-pointer hover:shadow-md transition-all"
             >
-              <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
-                <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" />
+              <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                <ImageWithFallback src={item.image} alt={item.name} className="w-full h-full bg-transparent" />
               </div>
               <div className="flex flex-col justify-between flex-1">
                 <h3 className="text-[13px] font-bold text-gray-800 line-clamp-1">{item.name}</h3>

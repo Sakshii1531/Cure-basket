@@ -1,5 +1,17 @@
 const mongoose = require('mongoose');
 
+const LEGACY_COUNTRY_MAP = {
+  'INDIA': { countryCode: 'IN', countryName: 'India', dialCode: '+91' },
+  'UNITED STATES': { countryCode: 'US', countryName: 'United States', dialCode: '+1' },
+  'USA': { countryCode: 'US', countryName: 'United States', dialCode: '+1' },
+  'US': { countryCode: 'US', countryName: 'United States', dialCode: '+1' },
+  'CANADA': { countryCode: 'CA', countryName: 'Canada', dialCode: '+1' },
+  'UNITED KINGDOM': { countryCode: 'GB', countryName: 'United Kingdom', dialCode: '+44' },
+  'UK': { countryCode: 'GB', countryName: 'United Kingdom', dialCode: '+44' },
+  'AUSTRALIA': { countryCode: 'AU', countryName: 'Australia', dialCode: '+61' },
+  'SINGAPORE': { countryCode: 'SG', countryName: 'Singapore', dialCode: '+65' },
+};
+
 const precautionEntrySchema = new mongoose.Schema(
   { label: String, status: String, description: String },
   { _id: false }
@@ -55,7 +67,23 @@ const medicineSchema = new mongoose.Schema({
   genericFor:       { type: String, trim: true },
   activeIngredient: { type: String, trim: true },
   manufacturer:     { type: String, trim: true },
-  countryOrigin:    { type: String, trim: true },
+  countryOrigin: {
+    countryCode: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    countryName: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    dialCode: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+  },
   brand:            { type: mongoose.Schema.ObjectId, ref: 'Brand' },
 
   stock:  { type: Number, default: 0, min: 0 },
@@ -100,6 +128,17 @@ const medicineSchema = new mongoose.Schema({
 });
 
 medicineSchema.pre('validate', function () {
+  if (this.countryOrigin && typeof this.countryOrigin === 'string') {
+    const rawVal = this.countryOrigin.trim();
+    const upperVal = rawVal.toUpperCase();
+    const resolved = LEGACY_COUNTRY_MAP[upperVal];
+    this.countryOrigin = {
+      countryCode: resolved ? resolved.countryCode : null,
+      countryName: resolved ? resolved.countryName : rawVal,
+      dialCode: resolved ? resolved.dialCode : null,
+    };
+  }
+
   if (this.name && !this.title)                this.title  = this.name;
   if (this.title && !this.name)                this.name   = this.title;
   
@@ -137,6 +176,17 @@ medicineSchema.pre('save', function () {
 medicineSchema.pre('findOneAndUpdate', async function () {
   const upd = this.getUpdate();
   if (!upd) return;
+
+  if (upd.countryOrigin && typeof upd.countryOrigin === 'string') {
+    const rawVal = upd.countryOrigin.trim();
+    const upperVal = rawVal.toUpperCase();
+    const resolved = LEGACY_COUNTRY_MAP[upperVal];
+    upd.countryOrigin = {
+      countryCode: resolved ? resolved.countryCode : null,
+      countryName: resolved ? resolved.countryName : rawVal,
+      dialCode: resolved ? resolved.dialCode : null,
+    };
+  }
 
   if (upd.name && !upd.title)                upd.title  = upd.name;
   if (upd.title && !upd.name)                upd.name   = upd.title;

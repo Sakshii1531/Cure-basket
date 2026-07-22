@@ -4,6 +4,7 @@ import api from '../utils/api'
 import { useCart } from '../context/CartContext'
 import { isOutOfStock } from '../utils/stockUtils'
 import med1 from '../assets/med1.png'
+import ImageWithFallback from './ImageWithFallback'
 
 const SORT_OPTIONS = [
   { label: 'Popularity', value: 'popularity' },
@@ -174,11 +175,11 @@ function MedicinesPage({ onProductClick }) {
 
                   <div className="flex flex-col flex-grow">
                     <div className="w-full h-[120px] md:h-[160px] flex items-center justify-center mb-4 md:mb-6">
-                      <img
-                        src={product.image || med1}
+                      <ImageWithFallback
+                        src={product.image}
                         alt={product.name}
-                        className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                        onError={e => { e.target.src = med1 }}
+                        fallbackSrc={med1}
+                        className="w-full h-full bg-transparent group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
 

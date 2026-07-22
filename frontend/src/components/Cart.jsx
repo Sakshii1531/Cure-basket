@@ -4,6 +4,7 @@ import { useAuthGate } from '../hooks/useAuthGate'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
+import ImageWithFallback from './ImageWithFallback'
 
 const Cart = () => {
   const navigate = useNavigate()
@@ -206,9 +207,9 @@ const Cart = () => {
                         hasStockError ? 'bg-red-50/20 opacity-80 border-l-4 border-red-500' : ''
                       }`}
                     >
-                      <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 shrink-0">
+                      <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 shrink-0 overflow-hidden">
                         {item.image ? (
-                          <img src={item.image} alt={item.name} className="max-w-full max-h-full object-contain" />
+                          <ImageWithFallback src={item.image} alt={item.name} className="w-full h-full bg-transparent" />
                         ) : (
                           <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs font-bold">IMG</div>
                         )}
