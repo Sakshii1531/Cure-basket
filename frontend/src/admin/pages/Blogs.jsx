@@ -216,7 +216,7 @@ function Blogs() {
               <tbody>
                 {blogs.map((blog, idx) => (
                   <tr key={blog._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
+                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
                     <td className="px-6 py-4 font-bold text-gray-900">{blog.title}</td>
                     <td className="px-6 py-4 text-gray-500">{(blog.tags || []).join(', ') || '—'}</td>
                     <td className="px-6 py-4">

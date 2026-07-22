@@ -585,7 +585,7 @@ function Prescriptions() {
                       key={rx._id}
                       className={`text-sm text-gray-700 transition-colors ${selectedRx?._id === rx._id ? 'bg-primary/5' : 'hover:bg-gray-50'}`}
                     >
-                      <td className="px-5 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
+                      <td className="px-5 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
                       {/* Date */}
                       <td className="px-5 py-4 whitespace-nowrap text-gray-500 text-xs">
                         {new Date(rx.createdAt).toLocaleDateString()}
