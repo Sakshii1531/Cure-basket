@@ -33,7 +33,7 @@ function getImageUrl(p) {
   if (!p) return null;
   if (p.startsWith('http') || p.startsWith('data:')) return p;
   const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
-  return `${base}${p}`;
+  return `${base}${p.startsWith('/') ? p : `/${p}`}`;
 }
 
 function SLabel({ children }) {
@@ -182,6 +182,12 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
                     src={imgUrl}
                     alt="Prescription"
                     className="w-full max-h-[240px] object-contain p-2"
+                    onError={(e) => {
+                      if (rx.image && !e.target.dataset.fallbackTried) {
+                        e.target.dataset.fallbackTried = 'true';
+                        e.target.src = rx.image.startsWith('/') ? rx.image : `/${rx.image}`;
+                      }
+                    }}
                   />
                 )}
                 {/* Overlay on hover */}
@@ -327,7 +333,17 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
             </button>
             {isPdf
               ? <iframe src={imgUrl} title="Prescription PDF" className="w-full flex-1 border-0"/>
-              : <img src={imgUrl} alt="Prescription" className="max-w-full max-h-[85vh] object-contain"/>
+              : <img
+                  src={imgUrl}
+                  alt="Prescription"
+                  className="max-w-full max-h-[85vh] object-contain"
+                  onError={(e) => {
+                    if (rx.image && !e.target.dataset.fallbackTried) {
+                      e.target.dataset.fallbackTried = 'true';
+                      e.target.src = rx.image.startsWith('/') ? rx.image : `/${rx.image}`;
+                    }
+                  }}
+                />
             }
           </div>
         </div>
@@ -496,6 +512,8 @@ function Prescriptions() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
   const [page, setPage]       = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const ITEMS_PER_PAGE        = 10;
 
   // Panels
@@ -503,15 +521,24 @@ function Prescriptions() {
   const [orderPanelId, setOrderPanelId] = useState(null); // order detail panel
   const [deletingId,  setDeletingId]  = useState(null);  // row-level inline delete confirm
 
-  useEffect(() => {
-    api.get('/prescriptions')
-      .then(res => { setPrescriptions(res.data.data); setPage(1); })
+  const fetchPrescriptions = (p = page) => {
+    setLoading(true);
+    api.get(`/prescriptions?page=${p}&limit=${ITEMS_PER_PAGE}`)
+      .then(res => {
+        setPrescriptions(res.data.data || []);
+        const total = res.data.total !== undefined ? res.data.total : (res.data.data || []).length;
+        const pages = res.data.pagination?.pages || Math.ceil(total / ITEMS_PER_PAGE) || 1;
+        setTotalCount(total);
+        setTotalPages(pages);
+        setPage(p);
+      })
       .catch(err => setError(err.response?.data?.error || 'Failed to load prescriptions'))
       .finally(() => setLoading(false));
-  }, []);
+  };
 
-  const totalPages          = Math.ceil(prescriptions.length / ITEMS_PER_PAGE);
-  const paginatedPrescriptions = prescriptions.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  useEffect(() => {
+    fetchPrescriptions(page);
+  }, [page]);
 
   /* ── Handlers ── */
   const handleStatusChange = async (id, status) => {
@@ -529,9 +556,13 @@ function Prescriptions() {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/prescriptions/${id}`);
-      setPrescriptions(prev => prev.filter(p => p._id !== id));
       setDeletingId(null);
       toast.success('Prescription deleted');
+      if (prescriptions.length === 1 && page > 1) {
+        setPage(p => p - 1);
+      } else {
+        fetchPrescriptions(page);
+      }
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to delete prescription');
     }
@@ -576,7 +607,7 @@ function Prescriptions() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {paginatedPrescriptions.map((rx, idx) => {
+                {prescriptions.map((rx, idx) => {
                   const linkedOrder = rx.order;
                   const isDeleting  = deletingId === rx._id;
 
@@ -741,7 +772,7 @@ function Prescriptions() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
               <span className="text-sm text-gray-500">
-                Showing {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, prescriptions.length)} of {prescriptions.length} prescriptions
+                Showing {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount} prescriptions
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -780,6 +811,7 @@ function Prescriptions() {
       {/* ── Prescription Detail Side Panel ──────────────────────────────── */}
       {selectedRx && !orderPanelId && (
         <PrescriptionDetailPanel
+          key={selectedRx._id}
           rx={selectedRx}
           onClose={() => setSelectedRx(null)}
           onStatusChange={handleStatusChange}

@@ -208,7 +208,7 @@ exports.createOrder = async (req, res) => {
           { _id: prescriptionId, user: req.user.id, order: null },
           { $set: { order: order._id } }
         );
-      } else if (rxRequired.length > 0) {
+      } else {
         const latestRx = await Prescription.findOne({
           user: req.user.id,
           status: { $in: ['Pending', 'Reviewed', 'Dispensed'] },
