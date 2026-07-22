@@ -454,7 +454,7 @@ function Medicines() {
               <tbody className="divide-y divide-gray-50">
                 {paginatedMedicines.map((med, idx) => (
                   <tr key={med._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs align-top pt-5">#{idx + 1}</td>
+                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs align-top pt-5">{idx + 1}</td>
                     <td className="px-6 py-4 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                         {med.image && med.image !== 'no-photo.jpg' ? (

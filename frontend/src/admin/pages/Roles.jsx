@@ -337,7 +337,7 @@ function Roles() {
 
                   return (
                     <tr key={role._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
+                      <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                       <td className="px-6 py-4 font-semibold text-gray-900">{role.name}</td>
                       <td className="px-6 py-4 max-w-xs md:max-w-md lg:max-w-xl">
                         <div className="flex flex-wrap gap-1.5">

@@ -495,6 +495,8 @@ function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
+  const [page, setPage]       = useState(1);
+  const ITEMS_PER_PAGE        = 10;
 
   // Panels
   const [selectedRx,  setSelectedRx]  = useState(null); // prescription detail panel
@@ -503,10 +505,13 @@ function Prescriptions() {
 
   useEffect(() => {
     api.get('/prescriptions')
-      .then(res => setPrescriptions(res.data.data))
+      .then(res => { setPrescriptions(res.data.data); setPage(1); })
       .catch(err => setError(err.response?.data?.error || 'Failed to load prescriptions'))
       .finally(() => setLoading(false));
   }, []);
+
+  const totalPages          = Math.ceil(prescriptions.length / ITEMS_PER_PAGE);
+  const paginatedPrescriptions = prescriptions.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   /* ── Handlers ── */
   const handleStatusChange = async (id, status) => {
@@ -571,7 +576,7 @@ function Prescriptions() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {prescriptions.map((rx, idx) => {
+                {paginatedPrescriptions.map((rx, idx) => {
                   const linkedOrder = rx.order;
                   const isDeleting  = deletingId === rx._id;
 
@@ -585,7 +590,7 @@ function Prescriptions() {
                       key={rx._id}
                       className={`text-sm text-gray-700 transition-colors ${selectedRx?._id === rx._id ? 'bg-primary/5' : 'hover:bg-gray-50'}`}
                     >
-                      <td className="px-5 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
+                      <td className="px-5 py-4 text-gray-400 font-semibold text-xs">{(page - 1) * ITEMS_PER_PAGE + idx + 1}</td>
                       {/* Date */}
                       <td className="px-5 py-4 whitespace-nowrap text-gray-500 text-xs">
                         {new Date(rx.createdAt).toLocaleDateString()}
@@ -731,6 +736,44 @@ function Prescriptions() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
+              <span className="text-sm text-gray-500">
+                Showing {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, prescriptions.length)} of {prescriptions.length} prescriptions
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+                >
+                  ← Prev
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`px-3 py-1.5 rounded-lg border transition-colors text-sm font-semibold ${
+                      p === page
+                        ? 'bg-primary text-white border-primary'
+                        : 'border-gray-200 hover:bg-gray-50 text-gray-600'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

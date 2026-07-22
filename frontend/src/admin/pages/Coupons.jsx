@@ -121,7 +121,7 @@ function Coupons() {
             <tbody className="divide-y divide-gray-50">
               {coupons.map((c, idx) => (
                 <tr key={c._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
+                  <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                   <td className="px-6 py-4 font-bold text-gray-900 font-mono">{c.code}</td>
                   <td className="px-6 py-4 font-semibold">{fmt(c)}{c.maxDiscount ? ` (max $${c.maxDiscount})` : ''}</td>
                   <td className="px-6 py-4">${c.minOrder}</td>

@@ -117,7 +117,7 @@ function Categories() {
               <tbody className="divide-y divide-gray-50">
                 {paginatedCategories.map((cat, idx) => (
                   <tr key={cat._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
+                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                     <td className="px-6 py-4">
                       <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
                         {cat.image && cat.image !== 'no-photo.jpg' && cat.image !== '__uploading__' ? (

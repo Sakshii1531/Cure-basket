@@ -157,7 +157,7 @@ function Subscribers() {
             <tbody className="divide-y divide-gray-50">
               {filteredSubscribers.map((sub, idx) => (
                 <tr key={sub._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
+                  <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                   <td className="px-6 py-4 font-semibold text-gray-900">{sub.email}</td>
                   <td className="px-6 py-4 text-gray-500">
                     {new Date(sub.createdAt).toLocaleDateString(undefined, {

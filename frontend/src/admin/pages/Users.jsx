@@ -137,7 +137,7 @@ function Users() {
               <tbody className="divide-y divide-gray-50">
                 {users.map((user, idx) => (
                   <tr key={user._id} className="text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
+                    <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                     <td className="px-6 py-4 font-semibold text-gray-900">{user.name}</td>
                     <td className="px-6 py-4">{user.email}</td>
                     <td className="px-6 py-4">{formatPhone(user.phone)}</td>

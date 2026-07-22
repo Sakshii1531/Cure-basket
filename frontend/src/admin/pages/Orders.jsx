@@ -670,7 +670,7 @@ function Orders() {
                       key={order._id}
                       className={`text-sm text-gray-700 hover:bg-gray-50/80 transition-colors ${selectedOrder?._id === order._id ? 'bg-primary/5' : ''}`}
                     >
-                      <td className="px-6 py-4 text-gray-400 font-semibold text-xs">#{idx + 1}</td>
+                      <td className="px-6 py-4 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                       <td className="px-6 py-4 font-bold text-primary font-mono text-xs">
                         #{order._id.slice(-8).toUpperCase()}
                       </td>
