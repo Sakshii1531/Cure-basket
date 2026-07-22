@@ -3,6 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import CountryFlag from '../components/CountryFlag';
+import { COUNTRY_CODES } from '../components/CountrySelect';
+
+const parsePhone = (fullPhone) => {
+  if (!fullPhone) return { countryCode: '+91', number: '' };
+  const clean = fullPhone.trim().replace(/\s+/g, '');
+  const match = clean.match(/^(\+\d+)(\d{10})$/);
+  if (match) {
+    return { countryCode: match[1], number: match[2] };
+  }
+  return { countryCode: '+91', number: clean };
+};
 
 function UserForm() {
   const { id } = useParams();
@@ -22,6 +34,7 @@ function UserForm() {
     address: '',
   });
 
+  const [phoneCountry, setPhoneCountry] = useState('IN');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -46,10 +59,13 @@ function UserForm() {
       api.get(`/users/${id}`)
         .then(res => {
           const u = res.data.data;
+          const parsed = parsePhone(u.phone);
+          const matchedCountry = COUNTRY_CODES.find(c => c.dial === parsed.countryCode) || COUNTRY_CODES.find(c => c.code === 'IN');
+          setPhoneCountry(matchedCountry ? matchedCountry.code : 'IN');
           setForm({
             name: u.name || '',
             email: u.email || '',
-            phone: u.phone || '',
+            phone: parsed.number || '',
             password: '', // Leave password empty by default on edit
             confirmPassword: '',
             role: u.role || 'user',
@@ -108,10 +124,11 @@ function UserForm() {
 
     setSaving(true);
 
+    const phoneDial = (COUNTRY_CODES.find(c => c.code === phoneCountry) || COUNTRY_CODES[0]).dial;
     const payload = {
       name: form.name,
       email: form.email,
-      phone: form.phone,
+      phone: form.phone ? `${phoneDial} ${form.phone}` : '',
       role: form.role,
       customRole: form.role === 'admin' ? (form.customRole || null) : null,
       address: form.address,
@@ -207,16 +224,39 @@ function UserForm() {
 
           <div>
             <label className="text-sm font-semibold text-gray-700 block mb-1">Phone Number</label>
-            <input
-              type="text"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="Enter 10-digit phone number"
-              className={`w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.phone ? 'border-red-300 focus:ring-red-200' : 'border-gray-200'
-              }`}
-            />
+            <div className="relative flex items-center">
+              {/* Country code selector overlay */}
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 border-r border-gray-200 pr-2 h-5 select-none pointer-events-none z-10">
+                <CountryFlag countryCode={phoneCountry} size="16px" />
+                <span className="text-xs text-gray-500 font-bold">
+                  {(COUNTRY_CODES.find(c => c.code === phoneCountry) || COUNTRY_CODES[0]).dial}
+                </span>
+                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              <select
+                value={phoneCountry}
+                onChange={(e) => setPhoneCountry(e.target.value)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-transparent font-semibold bg-transparent focus:outline-none pr-1.5 h-5 cursor-pointer w-[80px] opacity-0 z-20"
+              >
+                {COUNTRY_CODES.map((c) => (
+                  <option key={c.code} value={c.code} className="text-gray-900 bg-white">
+                    {c.dial} ({c.code})
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="Enter 10-digit phone number"
+                className={`w-full bg-gray-50 border rounded-lg pl-[92px] pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.phone ? 'border-red-300 focus:ring-red-200' : 'border-gray-200'
+                }`}
+              />
+            </div>
             {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
           </div>
 
