@@ -304,7 +304,7 @@ function Analytics() {
                 {summary.recentOrders.map(order => (
                   <tr key={order._id} className="text-gray-700">
                     <td className="py-3 font-semibold text-gray-900">{order.user?.name || 'Unknown'}</td>
-                    <td className="py-3 font-bold">${order.totalAmount}</td>
+                    <td className="py-3 font-bold">${Number(order.totalAmount || 0).toFixed(2)}</td>
                     <td className="py-3"><span className="px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full text-xs font-bold">{order.status}</span></td>
                     <td className="py-3 text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                   </tr>

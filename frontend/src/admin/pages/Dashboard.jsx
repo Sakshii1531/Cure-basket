@@ -116,7 +116,7 @@ function Dashboard() {
                           {order.status}
                         </span>
                       </td>
-                      <td className="py-4 font-bold text-gray-900">${order.totalAmount}</td>
+                      <td className="py-4 font-bold text-gray-900">${Number(order.totalAmount || 0).toFixed(2)}</td>
                       <td className="py-4 text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}

@@ -30,7 +30,7 @@ exports.getSummary = async (req, res) => {
       User.countDocuments({ role: 'user' }),
       User.countDocuments({ role: 'user', createdAt: { $gte: startOfMonth } }),
       Medicine.countDocuments(),
-      Prescription.countDocuments({ status: 'pending' }),
+      Prescription.countDocuments({ status: 'Pending' }),
       Order.aggregate([
         { $match: { createdAt: { $gte: startOfMonth }, paymentStatus: 'Paid', status: { $ne: 'Cancelled' } } },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } },
