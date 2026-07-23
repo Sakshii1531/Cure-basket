@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useCart } from '../context/CartContext'
 import med1 from '../assets/med1.png'
 
 const Review = () => {
   const navigate = useNavigate()
+  const { cartTotal } = useCart()
   const [agreed, setAgreed] = useState(false)
   const [agreeError, setAgreeError] = useState(false)
 
@@ -24,10 +26,10 @@ const Review = () => {
   const [paymentForm, setPaymentForm] = useState({ cardNumber: '', expiry: '', cvv: '', name: '' })
   const [paymentErrors, setPaymentErrors] = useState({})
 
-  const subtotal = 95.00
-  const shipping = 10.00
-  const discount = 35.00
-  const total = subtotal + shipping - discount
+  const subtotal = Number(cartTotal) || 0
+  const shipping = subtotal > 0 ? 10.00 : 0
+  const discount = 0
+  const total = Math.max(0, subtotal + shipping - discount)
 
   // Address handlers
   const openAddressEdit = () => {

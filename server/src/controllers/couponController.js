@@ -86,6 +86,8 @@ exports.validateCoupon = async (req, res) => {
 
     if (coupon.maxDiscount !== null) discount = Math.min(discount, coupon.maxDiscount);
     discount = Math.min(discount, orderTotal);
+    discount = Math.round(discount * 100) / 100;
+    const finalTotal = Math.round(Math.max(0, orderTotal - discount) * 100) / 100;
 
     res.status(200).json({
       success: true,
@@ -93,8 +95,9 @@ exports.validateCoupon = async (req, res) => {
         code: coupon.code,
         discountType: coupon.discountType,
         value: coupon.value,
-        discount: Math.round(discount * 100) / 100,
-        finalTotal: Math.round((orderTotal - discount) * 100) / 100,
+        minOrder: coupon.minOrder || 0,
+        discount,
+        finalTotal,
       },
     });
   } catch (err) {

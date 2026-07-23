@@ -394,6 +394,16 @@ const Checkout = () => {
       .catch(() => {})
   }, [])
 
+  // Auto-remove applied coupon if subtotal falls below coupon minOrder
+  useEffect(() => {
+    if (appliedCoupon && subtotal < (appliedCoupon.minOrder || 0)) {
+      setAppliedCoupon(null)
+      setCouponSuccess('')
+      setCouponError(`Coupon "${appliedCoupon.code}" removed because subtotal is below minimum order amount of $${appliedCoupon.minOrder}`)
+      toast.warning(`Coupon "${appliedCoupon.code}" removed (minimum order $${appliedCoupon.minOrder} required)`)
+    }
+  }, [subtotal, appliedCoupon])
+
   const [rxValidationError, setRxValidationError] = useState('')
 
   useEffect(() => {

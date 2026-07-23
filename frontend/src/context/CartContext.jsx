@@ -103,7 +103,8 @@ export function CartProvider({ children }) {
   }, []);
 
   const cartCount = items.length;
-  const cartTotal = items.reduce((sum, i) => sum + (i.price || 0) * i.qty, 0);
+  const rawTotal = items.reduce((sum, i) => sum + (i.price || 0) * i.qty, 0);
+  const cartTotal = Math.round(rawTotal * 100) / 100;
 
   return (
     <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQty, clearCart, cartCount, cartTotal }}>

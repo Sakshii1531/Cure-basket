@@ -79,10 +79,41 @@ exports.createOrder = async (req, res) => {
       calculatedSubtotal += itemPrice * item.quantity;
     }
 
-    const subtotal = reqSubtotal !== undefined ? Number(reqSubtotal) : calculatedSubtotal;
-    const shippingFee = Number(reqShippingFee) || 0;
-    const discountAmount = Number(reqDiscountAmount) || 0;
-    const finalTotal = req.body.totalAmount !== undefined ? Number(req.body.totalAmount) : Math.max(0, subtotal + shippingFee - discountAmount);
+    calculatedSubtotal = Math.round(calculatedSubtotal * 100) / 100;
+    const subtotal = calculatedSubtotal;
+
+    // Validate coupon server-side if couponCode is provided
+    let calculatedDiscount = 0;
+    let validCouponCode = null;
+    if (couponCode) {
+      const Coupon = require('../models/Coupon');
+      const couponDoc = await Coupon.findOne({ code: String(couponCode).toUpperCase(), isActive: true });
+      if (
+        couponDoc &&
+        (!couponDoc.expiresAt || couponDoc.expiresAt > new Date()) &&
+        (couponDoc.usageLimit === null || couponDoc.usedCount < couponDoc.usageLimit) &&
+        subtotal >= couponDoc.minOrder
+      ) {
+        validCouponCode = couponDoc.code;
+        let d = couponDoc.discountType === 'percent' ? (subtotal * couponDoc.value) / 100 : couponDoc.value;
+        if (couponDoc.maxDiscount !== null) d = Math.min(d, couponDoc.maxDiscount);
+        d = Math.min(d, subtotal);
+        calculatedDiscount = Math.round(d * 100) / 100;
+      }
+    }
+
+    // Recalculate shipping fee based on server settings & shippingMethod
+    const Settings = require('../models/Settings');
+    const generalSettingsDoc = await Settings.findOne({ type: 'general' });
+    const generalSettings = generalSettingsDoc?.data || {};
+    const freeThreshold = Number(generalSettings.freeThreshold) || 0;
+    const shippingCharges = Number(generalSettings.shippingCharges) || 0;
+
+    const stdFee = (freeThreshold > 0 && subtotal >= freeThreshold) ? 0 : shippingCharges;
+    const shippingFee = req.body.shippingMethod === 'express' ? stdFee + 15 : (reqShippingFee !== undefined ? Number(reqShippingFee) : stdFee);
+
+    const discountAmount = calculatedDiscount;
+    const finalTotal = Math.round(Math.max(0, subtotal + shippingFee - discountAmount) * 100) / 100;
 
     // Enforce prescription requirement: any medicine with prescription === 'Required'
     // must have an approved prescription (status is Reviewed or Dispensed) associated with it.
@@ -155,7 +186,7 @@ exports.createOrder = async (req, res) => {
       subtotal,
       shippingFee,
       discountAmount,
-      couponCode: couponCode || null,
+      couponCode: validCouponCode || couponCode || null,
       totalAmount: finalTotal,
       shippingAddress,
       paymentStatus: paymentStatus || 'Pending',
@@ -166,10 +197,10 @@ exports.createOrder = async (req, res) => {
     }
 
     // Increment coupon usedCount upon order creation if coupon is used
-    if (couponCode) {
+    if (validCouponCode) {
       const Coupon = require('../models/Coupon');
       await Coupon.findOneAndUpdate(
-        { code: String(couponCode).toUpperCase() },
+        { code: String(validCouponCode).toUpperCase() },
         { $inc: { usedCount: 1 } }
       ).catch(() => {});
     }
@@ -257,7 +288,7 @@ exports.createOrder = async (req, res) => {
                 <tbody>${itemRows}</tbody>
               </table>
               <div style="text-align:right;border-top:2px solid #006D6D;padding-top:12px;">
-                <span style="font-size:16px;font-weight:700;color:#1a1a1a;">Total: $${totalAmount.toFixed(2)}</span>
+                <span style="font-size:16px;font-weight:700;color:#1a1a1a;">Total: $${order.totalAmount.toFixed(2)}</span>
               </div>
               ${shippingAddress ? `
               <div style="margin-top:24px;background:#f9f9f9;border-radius:8px;padding:16px;">

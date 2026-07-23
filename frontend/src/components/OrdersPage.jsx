@@ -101,19 +101,13 @@ export function OrderDetailDrawer({ order, onClose }) {
     return sum + (p * q);
   }, 0);
 
-  const subtotal = Number(order.subtotal) || (rawSubtotal > 0 ? rawSubtotal : (Number(order.totalAmount) || 0));
+  const subtotal = (order.subtotal !== undefined && order.subtotal !== null)
+    ? Number(order.subtotal)
+    : rawSubtotal;
   const discountAmount = Number(order.discountAmount) || 0;
-
-  let shippingFee = 0;
-  if (order.shippingFee !== undefined && order.shippingFee !== null) {
-    shippingFee = Number(order.shippingFee) || 0;
-  } else if (order.totalAmount && order.totalAmount > (subtotal - discountAmount)) {
-    shippingFee = order.totalAmount - (subtotal - discountAmount);
-  } else if (freeThreshold > 0 && subtotal >= freeThreshold) {
-    shippingFee = 0;
-  } else {
-    shippingFee = shippingCharges;
-  }
+  const shippingFee = (order.shippingFee !== undefined && order.shippingFee !== null)
+    ? Number(order.shippingFee)
+    : (freeThreshold > 0 && subtotal >= freeThreshold ? 0 : shippingCharges);
 
   const displayedTotal = Number(order.totalAmount) || Math.max(0, subtotal + shippingFee - discountAmount);
 
@@ -443,10 +437,11 @@ const OrdersPage = () => {
             const itemCount = (order.items || []).length
             const previewItem = order.items?.[0]
 
-            const cardSubtotal = (order.items || []).reduce((sum, item) => sum + (Number(item.price ?? item.medicine?.price ?? 0) * (Number(item.quantity) || 1)), 0);
+            const cardRawSubtotal = (order.items || []).reduce((sum, item) => sum + (Number(item.price ?? item.medicine?.price ?? 0) * (Number(item.quantity) || 1)), 0);
+            const cardSubtotal = (order.subtotal !== undefined && order.subtotal !== null) ? Number(order.subtotal) : cardRawSubtotal;
             const cardShipping = (order.shippingFee !== undefined && order.shippingFee !== null)
               ? Number(order.shippingFee)
-              : (order.totalAmount && order.totalAmount > cardSubtotal ? order.totalAmount - cardSubtotal : ((freeThreshold > 0 && cardSubtotal >= freeThreshold) ? 0 : shippingCharges));
+              : (freeThreshold > 0 && cardSubtotal >= freeThreshold ? 0 : shippingCharges);
             const cardDiscount = Number(order.discountAmount) || 0;
             const cardTotal = Number(order.totalAmount) || Math.max(0, cardSubtotal + cardShipping - cardDiscount);
 

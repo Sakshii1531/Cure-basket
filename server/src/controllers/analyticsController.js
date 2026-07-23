@@ -32,11 +32,11 @@ exports.getSummary = async (req, res) => {
       Medicine.countDocuments(),
       Prescription.countDocuments({ status: 'pending' }),
       Order.aggregate([
-        { $match: { createdAt: { $gte: startOfMonth }, paymentStatus: 'Paid' } },
+        { $match: { createdAt: { $gte: startOfMonth }, paymentStatus: 'Paid', status: { $ne: 'Cancelled' } } },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } },
       ]),
       Order.aggregate([
-        { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }, paymentStatus: 'Paid' } },
+        { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }, paymentStatus: 'Paid', status: { $ne: 'Cancelled' } } },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } },
       ]),
       Order.aggregate([
@@ -49,14 +49,14 @@ exports.getSummary = async (req, res) => {
         .select('totalAmount status createdAt user'),
     ]);
 
-    const thisMonthRevenue = revenueThisMonth[0]?.total ?? 0;
-    const lastMonthRevenue = revenueLastMonth[0]?.total ?? 0;
+    const thisMonthRevenue = Math.round((revenueThisMonth[0]?.total ?? 0) * 100) / 100;
+    const lastMonthRevenue = Math.round((revenueLastMonth[0]?.total ?? 0) * 100) / 100;
     const revenueGrowth = lastMonthRevenue === 0
-      ? null
+      ? (thisMonthRevenue > 0 ? 100 : 0)
       : Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100);
 
     const orderGrowth = ordersLastMonth === 0
-      ? null
+      ? (ordersThisMonth > 0 ? 100 : 0)
       : Math.round(((ordersThisMonth - ordersLastMonth) / ordersLastMonth) * 100);
 
     res.status(200).json({
@@ -98,7 +98,7 @@ exports.getRevenueChart = async (req, res) => {
     const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
 
     const data = await Order.aggregate([
-      { $match: { createdAt: { $gte: startDate }, paymentStatus: 'Paid' } },
+      { $match: { createdAt: { $gte: startDate }, paymentStatus: 'Paid', status: { $ne: 'Cancelled' } } },
       {
         $group: {
           _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
