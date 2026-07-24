@@ -173,11 +173,19 @@ exports.updatePrescriptionStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Prescription not found' });
     }
 
-    if (rx.status === 'Dispensed') {
-      return res.status(400).json({ success: false, error: 'Dispensed prescriptions cannot be modified' });
+    const currentStatus = rx.status;
+    const newStatus = req.body.status;
+
+    if (currentStatus !== newStatus) {
+      if (currentStatus === 'Dispensed' || currentStatus === 'Rejected') {
+        return res.status(400).json({ success: false, error: `${currentStatus} prescriptions cannot be modified` });
+      }
+      if (newStatus === 'Pending' && currentStatus !== 'Pending') {
+        return res.status(400).json({ success: false, error: 'Cannot revert prescription back to Pending status' });
+      }
     }
 
-    rx.status = req.body.status;
+    rx.status = newStatus;
     if (req.body.notes !== undefined) rx.notes = req.body.notes;
     await rx.save();
 

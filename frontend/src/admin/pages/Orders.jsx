@@ -24,6 +24,75 @@ const RX_STATUS_COLORS = {
   Rejected: 'bg-red-50 text-red-600',
 };
 
+function OrderStatusDropdown({ status, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const options = [
+    { value: 'Pending', disabled: status !== 'Pending' },
+    { value: 'Processing', disabled: status === 'Shipped' || status === 'Delivered' || status === 'Cancelled' },
+    { value: 'Shipped', disabled: status === 'Delivered' || status === 'Cancelled' },
+    { value: 'Delivered', disabled: status === 'Cancelled' },
+    { value: 'Cancelled', disabled: status === 'Delivered' },
+  ];
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={status === 'Delivered' || status === 'Cancelled'}
+        onClick={() => setIsOpen(!isOpen)}
+        className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-between gap-1 w-[110px] h-[32px] cursor-pointer shadow-2xs transition-all disabled:cursor-not-allowed disabled:bg-gray-50"
+      >
+        <span className="truncate">{status}</span>
+        <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl border border-gray-150 shadow-xl py-1 z-50 animate-fade-in">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              disabled={opt.disabled}
+              onClick={() => {
+                if (!opt.disabled) {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }
+              }}
+              className={`w-full text-left px-3 py-1.5 text-xs font-bold flex items-center justify-between transition-all ${
+                opt.disabled
+                  ? 'cursor-not-allowed text-gray-500 bg-gray-50/80 select-none'
+                  : 'hover:bg-[#E6F7F7] hover:text-[#006D6D] text-gray-800 cursor-pointer'
+              } ${opt.value === status && !opt.disabled ? 'text-[#006D6D] bg-teal-50/40' : ''}`}
+            >
+              <span>{opt.value}</span>
+              {opt.disabled && (
+                <svg className="w-3.5 h-3.5 text-gray-400 shrink-0 opacity-80" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const getImageUrl = (path) => {
   if (!path) return null;
   if (path.startsWith('http') || path.startsWith('data:')) return path;
@@ -125,17 +194,10 @@ export function OrderDetailPanel({ order, onClose, onStatusChange }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <span className="text-sm font-bold text-gray-700 flex-1">Order Status</span>
-            <select
-              value={order.status}
-              onChange={e => onStatusChange(order._id, e.target.value)}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-            >
-              <option value="Pending" disabled={order.status !== 'Pending'}>Pending</option>
-              <option value="Processing" disabled={order.status === 'Shipped' || order.status === 'Delivered' || order.status === 'Cancelled'}>Processing</option>
-              <option value="Shipped" disabled={order.status === 'Delivered' || order.status === 'Cancelled'}>Shipped</option>
-              <option value="Delivered" disabled={order.status === 'Cancelled'}>Delivered</option>
-              <option value="Cancelled" disabled={order.status === 'Delivered'}>Cancelled</option>
-            </select>
+            <OrderStatusDropdown
+              status={order.status}
+              onChange={val => onStatusChange(order._id, val)}
+            />
           </div>
 
           {/* ── Customer Info ── */}
@@ -718,17 +780,10 @@ function Orders() {
                             View
                           </button>
                           {/* Status dropdown */}
-                          <select
-                            value={order.status}
-                            onChange={e => handleStatusChange(order._id, e.target.value)}
-                            className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white cursor-pointer"
-                          >
-                            <option value="Pending" disabled={order.status !== 'Pending'}>Pending</option>
-                            <option value="Processing" disabled={order.status === 'Shipped' || order.status === 'Delivered' || order.status === 'Cancelled'}>Processing</option>
-                            <option value="Shipped" disabled={order.status === 'Delivered' || order.status === 'Cancelled'}>Shipped</option>
-                            <option value="Delivered" disabled={order.status === 'Cancelled'}>Delivered</option>
-                            <option value="Cancelled" disabled={order.status === 'Delivered'}>Cancelled</option>
-                          </select>
+                          <OrderStatusDropdown
+                            status={order.status}
+                            onChange={val => handleStatusChange(order._id, val)}
+                          />
                         </div>
                       </td>
                     </tr>

@@ -6,11 +6,78 @@ import api from '../../utils/api';
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
 const STATUS_COLORS = {
-  Pending:  'bg-amber-50 text-amber-600 border-amber-200',
-  Reviewed: 'bg-blue-50 text-blue-600 border-blue-200',
-  Dispensed:'bg-emerald-50 text-emerald-600 border-emerald-200',
-  Rejected: 'bg-red-50 text-red-600 border-red-200',
+  Pending:   'bg-amber-50 text-amber-700 border-amber-200',
+  Reviewed:  'bg-blue-50 text-blue-700 border-blue-200',
+  Dispensed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Rejected:  'bg-red-50 text-red-700 border-red-200',
 };
+
+function PrescriptionStatusDropdown({ status, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const options = [
+    { value: 'Pending', disabled: status !== 'Pending' },
+    { value: 'Reviewed', disabled: status === 'Dispensed' || status === 'Rejected' },
+    { value: 'Dispensed', disabled: status === 'Rejected' },
+    { value: 'Rejected', disabled: status === 'Dispensed' },
+  ];
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-between gap-1 w-[105px] h-[32px] cursor-pointer shadow-2xs transition-all"
+      >
+        <span className="truncate">{status}</span>
+        <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-32 bg-white rounded-xl border border-gray-150 shadow-xl py-1 z-50 animate-fade-in">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              disabled={opt.disabled}
+              onClick={() => {
+                if (!opt.disabled) {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }
+              }}
+              className={`w-full text-left px-3 py-1.5 text-xs font-bold flex items-center justify-between transition-all ${
+                opt.disabled
+                  ? 'cursor-not-allowed text-gray-500 bg-gray-50/80 select-none'
+                  : 'hover:bg-[#E6F7F7] hover:text-[#006D6D] text-gray-800 cursor-pointer'
+              } ${opt.value === status && !opt.disabled ? 'text-[#006D6D] bg-teal-50/40' : ''}`}
+            >
+              <span>{opt.value}</span>
+              {opt.disabled && (
+                <svg className="w-3.5 h-3.5 text-gray-400 shrink-0 opacity-80" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const ORDER_STATUS_COLORS = {
   Delivered: 'text-emerald-600',
@@ -296,7 +363,12 @@ function PrescriptionDetailPanel({ rx, onClose, onStatusChange, onDelete, onOpen
                 <button
                   key={s}
                   onClick={() => onStatusChange(rx._id, s)}
-                  disabled={rx.status === 'Dispensed'}
+                  disabled={
+                    rx.status === 'Dispensed' ||
+                    rx.status === 'Rejected' ||
+                    (s === 'Pending' && rx.status !== 'Pending') ||
+                    (s === 'Reviewed' && (rx.status === 'Dispensed' || rx.status === 'Rejected'))
+                  }
                   className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
                     rx.status === s
                       ? STATUS_COLORS[s] + ' ring-2 ring-offset-1 ring-current'
@@ -736,16 +808,10 @@ function Prescriptions() {
                                 Dispensed
                               </div>
                             ) : (
-                              <select
-                                value={rx.status}
-                                onChange={e => handleStatusChange(rx._id, e.target.value)}
-                                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary bg-white w-[102px] h-[32px]"
-                              >
-                                <option value="Pending">Pending</option>
-                                <option value="Reviewed">Reviewed</option>
-                                <option value="Dispensed">Dispensed</option>
-                                <option value="Rejected">Rejected</option>
-                              </select>
+                              <PrescriptionStatusDropdown
+                                status={rx.status}
+                                onChange={val => handleStatusChange(rx._id, val)}
+                              />
                             )}
 
                             {/* Delete */}
