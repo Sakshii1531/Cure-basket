@@ -369,6 +369,8 @@ const Checkout = () => {
         name: buyNow.product.title || buyNow.product.name,
         price: buyNow.selectedPackage?.price ?? (Number(buyNow.product.pricePerUnit) || Number(buyNow.product.price) || 0),
         qty: buyNow.quantity || 1,
+        pkg: buyNow.selectedPackage,
+        packSize: buyNow.selectedPackage?.label || buyNow.product.packSize,
         image: buyNow.product.image || null,
         prescription: buyNow.product.prescription || null,
       }]
@@ -1594,11 +1596,11 @@ const Checkout = () => {
                       <h4 className="text-[13px] font-extrabold text-gray-800 truncate leading-tight">
                         {item.name}
                       </h4>
-                      <div className="text-[11px] text-gray-400 mt-1 font-bold">
-                        Pack Size
+                      <div className="text-[11px] text-[#006D6D] mt-1 font-bold">
+                        {item.pkg?.label ? `Package: ${item.pkg.label}` : `Pack Size: ${item.packSize || '1 Pack'}`}
                       </div>
                       <div className="text-[11.5px] text-gray-600 font-bold leading-tight mt-0.5">
-                        {item.packSize || '30 Tablet/s'} X {item.qty}
+                        Qty: {item.qty}
                       </div>
                       {isItemUnavailable && (
                         <div className="text-[10px] text-red-600 font-bold mt-1">

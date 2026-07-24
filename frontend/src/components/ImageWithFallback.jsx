@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import productImg from '../assets/product.png';
 
 const ImageWithFallback = ({
@@ -6,15 +6,25 @@ const ImageWithFallback = ({
   alt,
   className = '',
   fallbackSrc = productImg,
-  loading = 'lazy',
+  loading,
   ...props
 }) => {
+  const imgRef = useRef(null);
   const [status, setStatus] = useState('loading'); // 'loading' | 'loaded' | 'error'
 
-  // Reset status if src changes
   useEffect(() => {
     if (!src || src === 'no-photo.jpg') {
       setStatus('error');
+      return;
+    }
+
+    // Immediately check if the image is already completed in browser cache
+    if (imgRef.current && imgRef.current.complete) {
+      if (imgRef.current.naturalWidth > 0) {
+        setStatus('loaded');
+      } else {
+        setStatus('error');
+      }
     } else {
       setStatus('loading');
     }
@@ -44,13 +54,14 @@ const ImageWithFallback = ({
 
       {/* Actual Image */}
       <img
+        ref={imgRef}
         src={currentSrc}
         alt={alt || ''}
         loading={loading}
         onLoad={handleLoad}
         onError={handleError}
-        className={`transition-opacity duration-300 ease-in-out ${
-          status === 'loaded' ? 'opacity-100' : status === 'loading' ? 'opacity-0' : 'opacity-100'
+        className={`transition-opacity duration-200 ease-in-out ${
+          status === 'loading' ? 'opacity-0' : 'opacity-100'
         }`}
         {...props}
       />

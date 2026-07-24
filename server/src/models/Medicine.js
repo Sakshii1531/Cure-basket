@@ -46,14 +46,26 @@ const medicineSchema = new mongoose.Schema({
   pricePerUnit: {
     type: Number,
     required: [true, 'Please add a price per unit (USD)'],
-    min: [0, 'Price per unit must be non-negative'],
+    min: [0.01, 'Price per unit must be greater than 0'],
   },
   totalPrice: {
     type: Number,
     required: [true, 'Please add a total price (USD)'],
-    min: [0, 'Total price must be non-negative'],
+    min: [0.01, 'Total price must be greater than 0'],
   },
-  oldPrice:    { type: Number, min: [0, 'Old price must be non-negative'] },
+  oldPrice:    {
+    type: Number,
+    min: [0.01, 'Old price must be greater than 0'],
+    validate: {
+      validator: function(val) {
+        if (val == null) return true;
+        const newPrice = this.pricePerUnit ?? this.totalPrice ?? this.price;
+        if (newPrice != null) return val > newPrice;
+        return true;
+      },
+      message: 'Old price must be greater than new price',
+    },
+  },
   discount:    { type: Number, min: [0, 'Discount must be 0–100'], max: [100, 'Discount must be 0–100'] },
   description: { type: String, trim: true },
 

@@ -226,6 +226,11 @@ const Cart = () => {
                         <div className="flex justify-between items-start gap-4">
                           <div>
                             <h3 className="text-[14px] md:text-[15px] font-semibold text-gray-900 leading-tight">{item.name}</h3>
+                            {item.pkg?.label ? (
+                              <p className="text-[12px] font-bold text-[#006D6D] mt-1">Package: {item.pkg.label}</p>
+                            ) : item.packSize ? (
+                              <p className="text-[12px] text-gray-500 mt-1">Pack Size: {item.packSize}</p>
+                            ) : null}
                             {item.generic && <p className="text-[12px] text-gray-500 mt-1">{item.generic}</p>}
                             {item.prescription === 'Required' && (
                               <div className="flex flex-wrap items-center gap-2 mt-2">

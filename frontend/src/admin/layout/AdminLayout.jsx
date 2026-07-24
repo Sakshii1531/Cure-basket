@@ -21,6 +21,137 @@ function ChatNotificationBell() {
   );
 }
 
+// Real-time order notification bell dropdown in admin header
+function OrderNotificationBell() {
+  const { orderNotifications = [], markOrderNotificationsAsRead, clearOrderNotifications } = useAdminChatSocket();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef(null);
+  const navigate = useNavigate();
+
+  const unreadCount = orderNotifications.filter(n => !n.read).length;
+
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleToggle = () => {
+    if (!isOpen && unreadCount > 0) {
+      markOrderNotificationsAsRead();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={handleToggle}
+        className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center"
+        title="Order Notifications"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+        {unreadCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-[#006D6D] text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white animate-pulse">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-2xl border border-gray-150 shadow-2xl py-3 z-50 animate-fade-in">
+          <div className="px-4 pb-2.5 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-extrabold text-gray-900 uppercase tracking-wide">Order Notifications</span>
+              {orderNotifications.length > 0 && (
+                <span className="text-[10px] font-extrabold bg-[#006D6D]/10 text-[#006D6D] px-2 py-0.5 rounded-full">
+                  {orderNotifications.length}
+                </span>
+              )}
+            </div>
+            {orderNotifications.length > 0 && (
+              <button
+                onClick={clearOrderNotifications}
+                className="text-[11px] font-bold text-gray-400 hover:text-red-500 transition-colors"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-96 overflow-y-auto p-2.5 space-y-2">
+            {orderNotifications.length > 0 ? (
+              orderNotifications.map((n) => (
+                <div
+                  key={n.id}
+                  className="bg-white border border-[#006D6D]/20 border-l-4 border-l-[#006D6D] rounded-xl p-3 shadow-xs hover:shadow-md flex items-center justify-between gap-3 transition-all"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-[#006D6D]/10 text-[#006D6D] flex items-center justify-center shrink-0 relative">
+                      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                      </svg>
+                      {!n.read && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] font-black text-[#006D6D] uppercase tracking-wider">New Order</span>
+                        <span className="text-[10px] text-gray-400 font-semibold">{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p className="text-[13px] font-extrabold text-gray-900 truncate leading-tight mt-0.5">
+                        {n.customerName}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-[11.5px] text-gray-500 mt-0.5 font-medium">
+                        <span className="font-extrabold text-[#006D6D]">${Number(n.totalAmount || 0).toFixed(2)}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{n.itemsCount || 1} {n.itemsCount === 1 ? 'item' : 'items'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate('/admin/orders');
+                    }}
+                    className="bg-[#006D6D] hover:bg-[#005252] text-white text-[11px] font-extrabold px-3 py-2 rounded-lg shrink-0 transition-all shadow-2xs hover:shadow-xs active:scale-95 flex items-center gap-1"
+                  >
+                    View
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-gray-400 text-xs font-semibold">
+                No recent order notifications
+              </div>
+            )}
+          </div>
+
+          <div className="px-4 pt-2.5 border-t border-gray-100 text-center">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/admin/orders');
+              }}
+              className="text-[12px] font-extrabold text-[#006D6D] hover:underline"
+            >
+              View All Orders →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -198,7 +329,8 @@ function AdminLayout() {
               </button>
             </div>
 
-            {/* Notifications — links to Live Chat, badge shows unread chats */}
+            {/* Order Notifications & Chat Notifications */}
+            <OrderNotificationBell />
             {can('chat', 'read') && <ChatNotificationBell />}
 
             {/* User Profile */}

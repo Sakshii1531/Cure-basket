@@ -18,15 +18,22 @@ const coreRules = [
 
   body('pricePerUnit')
     .notEmpty().withMessage('Price per unit is required')
-    .isFloat({ min: 0 }).withMessage('Price per unit must be a non-negative number'),
+    .isFloat({ gt: 0 }).withMessage('Price per unit must be greater than 0'),
 
   body('totalPrice')
     .notEmpty().withMessage('Total price is required')
-    .isFloat({ min: 0 }).withMessage('Total price must be a non-negative number'),
+    .isFloat({ gt: 0 }).withMessage('Total price must be greater than 0'),
 
   body('oldPrice')
-    .optional()
-    .isFloat({ min: 0 }).withMessage('Old price must be a non-negative number'),
+    .optional({ nullable: true, checkFalsy: true })
+    .isFloat({ gt: 0 }).withMessage('Old price must be greater than 0')
+    .custom((oldPrice, { req }) => {
+      const newPrice = req.body.pricePerUnit ?? req.body.totalPrice ?? req.body.price;
+      if (oldPrice != null && oldPrice !== '' && newPrice != null && newPrice !== '' && Number(oldPrice) <= Number(newPrice)) {
+        throw new Error('Old price must be greater than new price');
+      }
+      return true;
+    }),
 
   body('discount')
     .optional()
@@ -106,15 +113,22 @@ exports.updateMedicineRules = [
 
   body('pricePerUnit')
     .optional()
-    .isFloat({ min: 0 }).withMessage('Price per unit must be a non-negative number'),
+    .isFloat({ gt: 0 }).withMessage('Price per unit must be greater than 0'),
 
   body('totalPrice')
     .optional()
-    .isFloat({ min: 0 }).withMessage('Total price must be a non-negative number'),
+    .isFloat({ gt: 0 }).withMessage('Total price must be greater than 0'),
 
   body('oldPrice')
-    .optional()
-    .isFloat({ min: 0 }).withMessage('Old price must be a non-negative number'),
+    .optional({ nullable: true, checkFalsy: true })
+    .isFloat({ gt: 0 }).withMessage('Old price must be greater than 0')
+    .custom((oldPrice, { req }) => {
+      const newPrice = req.body.pricePerUnit ?? req.body.totalPrice ?? req.body.price;
+      if (oldPrice != null && oldPrice !== '' && newPrice != null && newPrice !== '' && Number(oldPrice) <= Number(newPrice)) {
+        throw new Error('Old price must be greater than new price');
+      }
+      return true;
+    }),
 
   body('discount')
     .optional()

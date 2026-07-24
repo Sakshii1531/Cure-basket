@@ -204,9 +204,9 @@ function Medicines() {
         setSaveError('Old Price must be greater than 0');
         return;
       }
-      if (oldPrice <= totalPrice) {
-        setSaveError('Old Price must be greater than Total Price');
-        toast.error('Old Price must be greater than Total Price');
+      if (oldPrice <= pricePerUnit || oldPrice <= totalPrice) {
+        setSaveError('Old Price must be greater than new price');
+        toast.error('Old Price must be greater than new price');
         return;
       }
     }

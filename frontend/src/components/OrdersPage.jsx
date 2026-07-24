@@ -248,43 +248,62 @@ export function OrderDetailDrawer({ order, onClose }) {
 
           {/* Price Breakdown */}
           <div>
-            <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider mb-3">Price Breakdown</p>
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-2.5">
-              {(order.items || []).map((item, idx) => {
-                const uPrice = Number(item.price ?? item.medicine?.price ?? (order.totalAmount && (order.items || []).length === 1 ? order.totalAmount : 0)) || 0;
-                const iQty = Number(item.quantity) || 1;
-                return (
-                  <div key={idx} className="flex justify-between text-[12.5px] text-gray-500">
-                    <span className="truncate max-w-[200px]">{item.name} × {iQty}</span>
-                    <span className="font-semibold text-gray-700 shrink-0 ml-2">${(uPrice * iQty).toFixed(2)}</span>
-                  </div>
-                );
-              })}
-              
-              <div className="border-t border-gray-200/60 my-2" />
-
-              <div className="flex justify-between text-[12.5px] text-gray-500">
-                <span>Subtotal</span>
-                <span className="font-semibold text-gray-700">${subtotal.toFixed(2)}</span>
+            <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider mb-2.5">Price Breakdown</p>
+            <div className="bg-white rounded-2xl p-4 space-y-3">
+              {/* Highlighted Items Table */}
+              <div className="space-y-2">
+                {(order.items || []).map((item, idx) => {
+                  const uPrice = Number(item.price ?? item.medicine?.price ?? (order.totalAmount && (order.items || []).length === 1 ? order.totalAmount : 0)) || 0;
+                  const iQty = Number(item.quantity) || 1;
+                  const pkgLabel = item.pkg?.label || item.packageLabel || item.packSize;
+                  return (
+                    <div key={idx} className="bg-[#E6F7F7]/60 rounded-xl p-3 flex items-center justify-between transition-all">
+                      <div className="flex-1 min-w-0 pr-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[13.5px] font-extrabold text-gray-900 truncate">{item.name}</span>
+                          {pkgLabel && (
+                            <span className="bg-[#006D6D] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs">
+                              Package: {pkgLabel}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11.5px] text-gray-500 font-semibold mt-1">
+                          Quantity: <span className="font-bold text-gray-800">{iQty}</span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-[14px] font-black text-[#006D6D]">${(uPrice * iQty).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {shippingFee > 0 && (
-                <div className="flex justify-between text-[12.5px] text-gray-500">
-                  <span>Shipping Fee</span>
-                  <span className="font-semibold text-gray-700">${shippingFee.toFixed(2)}</span>
+              {/* Financial Summary */}
+              <div className="pt-2 border-t border-gray-100 space-y-2 text-[13px]">
+                <div className="flex justify-between text-gray-600 font-medium">
+                  <span>Subtotal</span>
+                  <span className="font-bold text-gray-800">${subtotal.toFixed(2)}</span>
                 </div>
-              )}
 
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-[12.5px] text-emerald-600">
-                  <span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
-                  <span className="font-bold">-${discountAmount.toFixed(2)}</span>
+                {shippingFee > 0 && (
+                  <div className="flex justify-between text-gray-600 font-medium">
+                    <span>Shipping Fee</span>
+                    <span className="font-bold text-gray-800">${shippingFee.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-medium">
+                    <span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
+                    <span className="font-bold">-${discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                <div className="border-t border-gray-200 pt-3 mt-2 flex justify-between items-center">
+                  <span className="text-[14px] font-black text-gray-900 uppercase tracking-wide">Total</span>
+                  <span className="text-[17px] font-black text-[#006D6D]">${displayedTotal.toFixed(2)}</span>
                 </div>
-              )}
-
-              <div className="border-t border-gray-200 pt-2.5 mt-1 flex justify-between">
-                <span className="text-[14px] font-black text-gray-900">Total</span>
-                <span className="text-[16px] font-black text-[#006D6D]">${displayedTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>

@@ -130,10 +130,10 @@ export function OrderDetailPanel({ order, onClose, onStatusChange }) {
               onChange={e => onStatusChange(order._id, e.target.value)}
               className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white"
             >
-              <option value="Pending" disabled={order.status === 'Delivered'}>Pending</option>
-              <option value="Processing" disabled={order.status === 'Delivered'}>Processing</option>
-              <option value="Shipped" disabled={order.status === 'Delivered'}>Shipped</option>
-              <option value="Delivered">Delivered</option>
+              <option value="Pending" disabled={order.status !== 'Pending'}>Pending</option>
+              <option value="Processing" disabled={order.status === 'Shipped' || order.status === 'Delivered' || order.status === 'Cancelled'}>Processing</option>
+              <option value="Shipped" disabled={order.status === 'Delivered' || order.status === 'Cancelled'}>Shipped</option>
+              <option value="Delivered" disabled={order.status === 'Cancelled'}>Delivered</option>
               <option value="Cancelled" disabled={order.status === 'Delivered'}>Cancelled</option>
             </select>
           </div>
@@ -723,10 +723,10 @@ function Orders() {
                             onChange={e => handleStatusChange(order._id, e.target.value)}
                             className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white cursor-pointer"
                           >
-                            <option value="Pending" disabled={order.status === 'Delivered'}>Pending</option>
-                            <option value="Processing" disabled={order.status === 'Delivered'}>Processing</option>
-                            <option value="Shipped" disabled={order.status === 'Delivered'}>Shipped</option>
-                            <option value="Delivered">Delivered</option>
+                            <option value="Pending" disabled={order.status !== 'Pending'}>Pending</option>
+                            <option value="Processing" disabled={order.status === 'Shipped' || order.status === 'Delivered' || order.status === 'Cancelled'}>Processing</option>
+                            <option value="Shipped" disabled={order.status === 'Delivered' || order.status === 'Cancelled'}>Shipped</option>
+                            <option value="Delivered" disabled={order.status === 'Cancelled'}>Delivered</option>
                             <option value="Cancelled" disabled={order.status === 'Delivered'}>Cancelled</option>
                           </select>
                         </div>

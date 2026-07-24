@@ -6,6 +6,7 @@ const User = require('../models/User');
 const sanitizeError = require('../utils/sanitizeError');
 const { clearCache } = require('../middlewares/cacheMiddleware');
 const sendEmail = require('../utils/sendEmail');
+const { emitToAdmins } = require('../socket');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -194,6 +195,19 @@ exports.createOrder = async (req, res) => {
 
     if (useTransaction) {
       await session.commitTransaction();
+    }
+
+    // Emit real-time notification to all connected admins
+    try {
+      emitToAdmins('order:new', {
+        orderId: order._id,
+        totalAmount: order.totalAmount,
+        customerName: order.shippingAddress?.name || 'Customer',
+        itemsCount: order.items?.length || 0,
+        createdAt: order.createdAt || new Date(),
+      });
+    } catch (socketErr) {
+      console.error('Failed to emit order:new socket event:', socketErr);
     }
 
     // Increment coupon usedCount upon order creation if coupon is used
@@ -459,15 +473,28 @@ exports.updateOrderStatus = async (req, res) => {
     return res.status(404).json({ success: false, error: 'Order not found' });
   }
   try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status: req.body.status },
-      { new: true, runValidators: true }
-    );
-
-    if (!order) {
+    const existingOrder = await Order.findById(req.params.id);
+    if (!existingOrder) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
+
+    const currentStatus = existingOrder.status;
+    const newStatus = req.body.status;
+
+    if (currentStatus !== newStatus) {
+      if (currentStatus === 'Delivered' || currentStatus === 'Cancelled') {
+        return res.status(400).json({ success: false, error: `Cannot change status of a ${currentStatus} order` });
+      }
+      if (newStatus === 'Pending' && currentStatus !== 'Pending') {
+        return res.status(400).json({ success: false, error: 'Cannot revert order back to Pending status' });
+      }
+      if (newStatus === 'Processing' && (currentStatus === 'Shipped' || currentStatus === 'Delivered')) {
+        return res.status(400).json({ success: false, error: `Cannot revert order back to Processing from ${currentStatus}` });
+      }
+    }
+
+    existingOrder.status = newStatus;
+    const order = await existingOrder.save();
 
     await clearCache('/api/orders');
     res.status(200).json({ success: true, data: order });

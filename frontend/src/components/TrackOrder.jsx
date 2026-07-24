@@ -168,7 +168,7 @@ const TrackOrder = () => {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 className="text-[15px] font-bold text-gray-900 mb-5">Tracking Timeline</h2>
                 <div className="relative">
-                  <div className="absolute left-[18px] top-0 bottom-0 w-[2px] bg-gray-100"></div>
+                  <div className="absolute left-[18px] top-0 bottom-0 w-[2px] bg-gray-300"></div>
                   <div className="space-y-6">
                     {TIMELINE.map((step, i) => {
                       const stepNum = i + 1
@@ -178,17 +178,17 @@ const TrackOrder = () => {
                       const isActiveStep = stepNum === progress + (progress < TIMELINE.length ? 1 : 0) && !isDone
                       return (
                         <div key={step.key} className="flex gap-5 relative">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 border-2 transition-all ${isDone ? 'bg-[#006D6D] border-[#006D6D]' : isActiveStep ? 'bg-white border-[#FFD200]' : 'bg-white border-gray-200'}`}>
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 border-2 transition-all ${isDone ? 'bg-[#006D6D] border-[#006D6D]' : isActiveStep ? 'bg-white border-[#FFD200]' : 'bg-white border-gray-400'}`}>
                             {isDone
                               ? <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                               : isActiveStep
                               ? <div className="w-3 h-3 rounded-full bg-[#FFD200]"></div>
-                              : <div className="w-2.5 h-2.5 rounded-full bg-gray-200"></div>
+                              : <div className="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
                             }
                           </div>
                           <div className="flex-1 pt-1.5">
-                            <p className={`text-[14px] font-bold ${isDone ? 'text-gray-900' : isActiveStep ? 'text-[#006D6D]' : 'text-gray-300'}`}>{step.label}</p>
-                            <p className={`text-[12px] mt-0.5 ${isDone ? 'text-gray-500' : isActiveStep ? 'text-gray-500' : 'text-gray-200'}`}>{step.desc}</p>
+                            <p className={`text-[14px] font-bold ${isDone ? 'text-gray-900' : isActiveStep ? 'text-[#006D6D]' : 'text-gray-600'}`}>{step.label}</p>
+                            <p className={`text-[12px] mt-0.5 ${isDone ? 'text-gray-500' : isActiveStep ? 'text-gray-500' : 'text-gray-400'}`}>{step.desc}</p>
                           </div>
                         </div>
                       )
