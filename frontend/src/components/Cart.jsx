@@ -163,44 +163,26 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
 
             <div className="space-y-4">
-              {hasErrors && items.length > 1 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
-                  <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <h4 className="text-[14px] font-bold text-amber-800">Checkout Unavailable</h4>
-                    <p className="text-[12px] text-amber-700 mt-1">
-                      Some items in your cart are out of stock or have insufficient quantity. Please update your cart before proceeding.
-                    </p>
+              {(hasErrors || globalRxError || (requiresPrescription && !isLoggedIn)) && items.length > 0 && (
+                <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 flex gap-3.5 animate-fade-in shadow-xs">
+                  <div className="w-8 h-8 rounded-full bg-amber-100/80 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
                   </div>
-                </div>
-              )}
-
-              {globalRxError && items.length > 1 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
-                  <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <h4 className="text-[14px] font-bold text-amber-800">Checkout Blocked</h4>
-                    <p className="text-[12px] text-amber-700 mt-1">
-                      {globalRxError}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {requiresPrescription && !isLoggedIn && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 mb-2 animate-fade-in">
-                  <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <div>
-                    <h4 className="text-[14px] font-bold text-amber-800">Prescription Required</h4>
-                    <p className="text-[12px] text-amber-600 mt-1">
-                      One or more medicines in your cart require a doctor's prescription. You must log in and have an approved prescription before you can checkout.
-                    </p>
+                  <div className="space-y-1.5 py-0.5">
+                    <h4 className="text-[14px] font-bold text-amber-900">Action Required Before Checkout</h4>
+                    <ul className="space-y-1 list-disc list-inside text-[12.5px] text-amber-800/90 leading-snug">
+                      {hasErrors && (
+                        <li>Some items in your cart are out of stock or have insufficient quantity.</li>
+                      )}
+                      {globalRxError && (
+                        <li>{globalRxError}</li>
+                      )}
+                      {requiresPrescription && !isLoggedIn && (
+                        <li>One or more medicines require a doctor's prescription. Please log in to proceed.</li>
+                      )}
+                    </ul>
                   </div>
                 </div>
               )}
