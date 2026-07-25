@@ -4,8 +4,6 @@ node_modules/
 .pnp.js
 
 # ── Environment / Secrets ────────────────────────────────────────
-.env
-.env.*
 !.env.example
 !.env.*.example
 
@@ -43,7 +41,6 @@ desktop.ini
 *~
 
 # ── IDE configs (keep VSCode workspace settings out of repo) ─────
-.vscode/
 .idea/
 *.suo
 *.ntvs*
@@ -79,3 +76,4 @@ build_output.txt
 branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat
+config.bat

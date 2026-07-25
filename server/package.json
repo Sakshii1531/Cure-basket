@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "build": "npm install",
+    "start": "node init && node src/index.js",
+    "dev": "node init && nodemon src/index.js",
+    "build": "node init && npm install",
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch --runInBand"
   },
