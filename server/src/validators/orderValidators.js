@@ -24,4 +24,8 @@ exports.updateOrderStatusRules = [
     .notEmpty().withMessage('Status is required')
     .isIn(['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'])
     .withMessage('Invalid order status'),
+  body('cancellationReason')
+    .optional()
+    .isString().withMessage('Cancellation reason must be text')
+    .trim(),
 ];

@@ -574,8 +574,16 @@ function Orders() {
   };
 
   const handleStatusChange = async (id, status) => {
+    let cancellationReason;
+    if (status === 'Cancelled') {
+      const reasonInput = window.prompt('Enter reason for cancellation (optional):');
+      if (reasonInput === null) return; // Admin cancelled the prompt
+      cancellationReason = reasonInput.trim();
+    }
     try {
-      const res = await api.put(`/orders/${id}/status`, { status });
+      const payload = { status };
+      if (cancellationReason) payload.cancellationReason = cancellationReason;
+      const res = await api.put(`/orders/${id}/status`, payload);
       const updated = res.data.data;
       setOrders(prev => prev.map(o => o._id === id ? updated : o));
       // Keep selected order in sync

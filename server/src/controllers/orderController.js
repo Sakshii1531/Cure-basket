@@ -494,9 +494,104 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     existingOrder.status = newStatus;
+    if (newStatus === 'Cancelled' && req.body.cancellationReason) {
+      existingOrder.cancellationReason = req.body.cancellationReason;
+    }
     const order = await existingOrder.save();
 
     await clearCache('/api/orders');
+
+    // Asynchronously send status update email if status has changed
+    if (currentStatus !== newStatus) {
+      User.findById(order.user).select('name email').then((user) => {
+        if (!user?.email) return;
+
+        const orderIdShort = order._id.toString().slice(-8).toUpperCase();
+        const itemsList = (order.items || []).map(item =>
+          `<tr>
+            <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;">${item.name || 'Medicine'}</td>
+            <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;text-align:center;">${item.quantity}</td>
+            <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;text-align:right;">$${((item.price || 0) * item.quantity).toFixed(2)}</td>
+          </tr>`
+        ).join('');
+
+        let subject = `CureBasket — Order Status Updated #${orderIdShort}`;
+        let statusBadgeColor = '#006D6D';
+        let statusMessage = `Your order status has been updated to <strong>${newStatus}</strong>.`;
+        let extraInfo = '';
+
+        if (newStatus === 'Processing') {
+          subject = `CureBasket — Order #${orderIdShort} is being Processed`;
+          statusBadgeColor = '#0284c7';
+          statusMessage = `Great news! Your order has been reviewed by our pharmacy team and is currently being processed.`;
+        } else if (newStatus === 'Shipped') {
+          subject = `CureBasket — Order #${orderIdShort} Has Been Shipped 🚚`;
+          statusBadgeColor = '#006D6D';
+          statusMessage = `Your order is on its way! It has been packed and dispatched for delivery.`;
+        } else if (newStatus === 'Delivered') {
+          subject = `CureBasket — Order #${orderIdShort} Delivered 🎉`;
+          statusBadgeColor = '#16a34a';
+          statusMessage = `Your order has been marked as delivered. Thank you for choosing CureBasket!`;
+        } else if (newStatus === 'Cancelled') {
+          subject = `CureBasket — Order #${orderIdShort} Cancelled`;
+          statusBadgeColor = '#dc2626';
+          statusMessage = `Your order <strong>#${orderIdShort}</strong> has been cancelled.`;
+          if (order.cancellationReason) {
+            extraInfo = `
+              <div style="background:#fef2f2;border-left:4px solid #dc2626;border-radius:4px;padding:12px 16px;margin:16px 0;">
+                <p style="margin:0;font-size:13px;color:#991b1b;"><strong>Reason for Cancellation:</strong> ${order.cancellationReason}</p>
+              </div>`;
+          }
+          extraInfo += `
+            <p style="color:#555;font-size:13px;margin-top:12px;">If you have already been charged, a refund will be processed back to your original payment method within 5–7 business days. If you have questions, please reach out to our support team.</p>`;
+        }
+
+        const html = `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;">
+            <div style="background:${statusBadgeColor};padding:28px 24px;text-align:center;border-radius:8px 8px 0 0;">
+              <h1 style="color:#ffffff;margin:0;font-size:26px;letter-spacing:-0.5px;">CureBasket</h1>
+              <p style="color:#ffffff;opacity:0.9;margin:6px 0 0;font-size:13px;font-weight:600;">Order Update: ${newStatus}</p>
+            </div>
+            <div style="padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
+              <h2 style="color:#1a1a1a;font-size:18px;margin:0 0 8px;">Hello, ${user.name || 'Customer'}</h2>
+              <p style="color:#4b5563;font-size:14px;line-height:1.5;margin:0 0 16px;">${statusMessage}</p>
+              ${extraInfo}
+              <div style="background:#f9fafb;border:1px solid #f3f4f6;border-radius:8px;padding:16px;margin:20px 0;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                  <span style="font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;">Order ID:</span>
+                  <span style="font-size:13px;font-weight:700;color:#111827;font-family:monospace;">#${orderIdShort}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;">Total Amount:</span>
+                  <span style="font-size:13px;font-weight:700;color:#006D6D;">$${(order.totalAmount || 0).toFixed(2)}</span>
+                </div>
+              </div>
+              <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+                <thead>
+                  <tr style="background:#f3f4f6;">
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#374151;font-weight:700;text-transform:uppercase;">Item</th>
+                    <th style="padding:8px 12px;text-align:center;font-size:11px;color:#374151;font-weight:700;text-transform:uppercase;">Qty</th>
+                    <th style="padding:8px 12px;text-align:right;font-size:11px;color:#374151;font-weight:700;text-transform:uppercase;">Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsList}
+                </tbody>
+              </table>
+              <div style="border-top:1px solid #e5e7eb;padding-top:16px;text-align:center;">
+                <p style="font-size:12px;color:#9ca3af;margin:0;">Thank you for shopping with CureBasket!</p>
+              </div>
+            </div>
+          </div>`;
+
+        sendEmail({ to: user.email, subject, html }).catch(err => {
+          console.error(`Failed to send order ${newStatus} email:`, err.message);
+        });
+      }).catch(err => {
+        console.error('Error finding user for order status email:', err.message);
+      });
+    }
+
     res.status(200).json({ success: true, data: order });
   } catch (err) {
     res.status(400).json({ success: false, error: sanitizeError(err) });
